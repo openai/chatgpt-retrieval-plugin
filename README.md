@@ -587,7 +587,7 @@ BEARER_TOKEN=your_bearer_token \
 
 Alternatively, you could set environment variables in the [Fly.io Console](https://fly.io/dashboard).
 
-At this point, you can change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml) to the url for your Fly.io app, which will be https://<your-app-name>.fly.dev.
+At this point, you can change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml) to the url for your Fly.io app, which will be `https://your-app-name.fly.dev`.
 
 Deploy your app with:
 
@@ -710,7 +710,7 @@ To view your app logs:
 heroku logs --tail -a [app-name]
 ```
 
-Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://<your-app-name>.herokuapp.com`.
+Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
 
 ### Other Deployment Options
 

@@ -80,7 +80,8 @@ async def upsert_main(
 @sub_app.post(
     "/upsert",
     response_model=UpsertResponse,
-    description="Save information from chat conversations as documents, only if the user asks you to. Accepts an array of documents, each document has a text field with the conversation text and possible questions that could lead to the answer, and metadata including the source (chat) and created_at timestamp. Confirm with the user before saving information, and ask if they want to add details / context.",
+    # NOTE: We are describing the the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in future.
+    description="Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp). Confirm with the user before saving, ask for more details/context.",
 )
 async def upsert(
     request: UpsertRequest = Body(...),
@@ -115,7 +116,8 @@ async def query_main(
 @sub_app.post(
     "/query",
     response_model=QueryResponse,
-    description='Accepts an array of search query objects, each with a natural language query string ("query") and an optional metadata filter ("filter"). Filters are not necessary in most cases, but can sometimes help refine search results based on criteria such as document source or time period. Send multiple queries to compare information from different sources or break down complex questions into sub-questions. If you receive a ResponseTooLargeError, try splitting up the queries into multiple calls to this endpoint.',
+    # NOTE: We are describing the the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in future.
+    description="Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.",
 )
 async def query(
     request: QueryRequest = Body(...),
