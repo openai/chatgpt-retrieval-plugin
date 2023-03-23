@@ -335,7 +335,7 @@ Zilliz is a managed cloud-native vector database designed for the billion scale.
 - Separated storage and compute
 - Multi-language SDK's
 
-Find more information [here](www.zilliz.com).
+Find more information [here](https://zilliz.com).
 
 **Self Hosted vs SaaS**
 
