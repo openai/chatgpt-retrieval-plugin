@@ -1,6 +1,6 @@
 import os
 from io import BufferedReader
-from typing import Optional
+
 from fastapi import UploadFile
 import mimetypes
 from PyPDF2 import PdfReader
@@ -21,7 +21,7 @@ async def get_document_from_file(file: UploadFile) -> Document:
     return doc
 
 
-def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) -> str:
+def extract_text_from_filepath(filepath: str, mimetype: str | None = None) -> str:
     """Return the text content of a file given its filepath."""
 
     if mimetype is None:
@@ -81,7 +81,7 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
     else:
         # Unsupported file type
         file.close()
-        raise ValueError("Unsupported file type: {}".format(mimetype))
+        raise ValueError(f"Unsupported file type: {mimetype}")
 
     file.close()
     return extracted_text

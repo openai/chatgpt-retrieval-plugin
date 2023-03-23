@@ -1,6 +1,5 @@
 # TODO
 import asyncio
-from typing import Dict, List, Optional
 from loguru import logger
 from weaviate import Client
 import weaviate
@@ -88,7 +87,7 @@ def extract_schema_properties(schema):
 
 
 class WeaviateDataStore(DataStore):
-    def handle_errors(self, results: Optional[List[dict]]) -> List[str]:
+    def handle_errors(self, results: list[dict] | None) -> list[str]:
         if not self or not results:
             return []
 
@@ -147,7 +146,7 @@ class WeaviateDataStore(DataStore):
         else:
             return None
 
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
@@ -188,8 +187,8 @@ class WeaviateDataStore(DataStore):
 
     async def _query(
         self,
-        queries: List[QueryWithEmbedding],
-    ) -> List[QueryResult]:
+        queries: list[QueryWithEmbedding],
+    ) -> list[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -239,7 +238,7 @@ class WeaviateDataStore(DataStore):
                     .do()
                 )
 
-            query_results: List[DocumentChunkWithScore] = []
+            query_results: list[DocumentChunkWithScore] = []
             response = result["data"]["Get"][WEAVIATE_INDEX]
 
             for resp in response:
@@ -264,9 +263,9 @@ class WeaviateDataStore(DataStore):
 
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         # TODO
         """

@@ -1,10 +1,9 @@
 from models.models import Source
 from services.openai import get_chat_completion
 import json
-from typing import Dict
 
 
-def extract_metadata_from_document(text: str) -> Dict[str, str]:
+def extract_metadata_from_document(text: str) -> dict[str, str]:
     sources = Source.__members__.keys()
     sources_string = ", ".join(sources)
     # This prompt is just an example, change it to fit your use case

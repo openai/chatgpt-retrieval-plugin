@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import pytest
 import qdrant_client
 from qdrant_client.http.models import PayloadSchemaType
@@ -14,7 +12,7 @@ from models.models import (
 )
 
 
-def create_embedding(non_zero_pos: int, size: int) -> List[float]:
+def create_embedding(non_zero_pos: int, size: int) -> list[float]:
     vector = [0.0] * size
     vector[non_zero_pos % size] = 1.0
     return vector
@@ -33,7 +31,7 @@ def client() -> qdrant_client.QdrantClient:
 
 
 @pytest.fixture
-def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
+def initial_document_chunks() -> dict[str, list[DocumentChunk]]:
     first_doc_chunks = [
         DocumentChunk(
             id=f"first-doc-{i}",
@@ -49,7 +47,7 @@ def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
 
 
 @pytest.fixture
-def document_chunks() -> Dict[str, List[DocumentChunk]]:
+def document_chunks() -> dict[str, list[DocumentChunk]]:
     first_doc_chunks = [
         DocumentChunk(
             id=f"first-doc_{i}",

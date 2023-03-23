@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Optional
 from enum import Enum
 
 
@@ -10,22 +9,22 @@ class Source(str, Enum):
 
 
 class DocumentMetadata(BaseModel):
-    source: Optional[Source] = None
-    source_id: Optional[str] = None
-    url: Optional[str] = None
-    created_at: Optional[str] = None
-    author: Optional[str] = None
+    source: Source | None = None
+    source_id: str | None = None
+    url: str | None = None
+    created_at: str | None = None
+    author: str | None = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):
-    document_id: Optional[str] = None
+    document_id: str | None = None
 
 
 class DocumentChunk(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     text: str
     metadata: DocumentChunkMetadata
-    embedding: Optional[List[float]] = None
+    embedding: list[float] | None = None
 
 
 class DocumentChunkWithScore(DocumentChunk):
@@ -33,34 +32,34 @@ class DocumentChunkWithScore(DocumentChunk):
 
 
 class Document(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     text: str
-    metadata: Optional[DocumentMetadata] = None
+    metadata: DocumentMetadata | None = None
 
 
 class DocumentWithChunks(Document):
-    chunks: List[DocumentChunk]
+    chunks: list[DocumentChunk]
 
 
 class DocumentMetadataFilter(BaseModel):
-    document_id: Optional[str] = None
-    source: Optional[Source] = None
-    source_id: Optional[str] = None
-    author: Optional[str] = None
-    start_date: Optional[str] = None  # any date string format
-    end_date: Optional[str] = None  # any date string format
+    document_id: str | None = None
+    source: Source | None = None
+    source_id: str | None = None
+    author: str | None = None
+    start_date: str | None = None  # any date string format
+    end_date: str | None = None  # any date string format
 
 
 class Query(BaseModel):
     query: str
-    filter: Optional[DocumentMetadataFilter] = None
-    top_k: Optional[int] = 3
+    filter: DocumentMetadataFilter | None = None
+    top_k: int | None = 3
 
 
 class QueryWithEmbedding(Query):
-    embedding: List[float]
+    embedding: list[float]
 
 
 class QueryResult(BaseModel):
     query: str
-    results: List[DocumentChunkWithScore]
+    results: list[DocumentChunkWithScore]

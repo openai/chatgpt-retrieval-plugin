@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
 import asyncio
 
 from models.models import (
@@ -16,8 +15,8 @@ from services.openai import get_embeddings
 
 class DataStore(ABC):
     async def upsert(
-        self, documents: List[Document], chunk_token_size: Optional[int] = None
-    ) -> List[str]:
+        self, documents: list[Document], chunk_token_size: int | None = None
+    ) -> list[str]:
         """
         Takes in a list of documents and inserts them into the database.
         First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
@@ -42,7 +41,7 @@ class DataStore(ABC):
         return await self._upsert(chunks)
 
     @abstractmethod
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
@@ -50,7 +49,7 @@ class DataStore(ABC):
 
         raise NotImplementedError
 
-    async def query(self, queries: List[Query]) -> List[QueryResult]:
+    async def query(self, queries: list[Query]) -> list[QueryResult]:
         """
         Takes in a list of queries and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -65,7 +64,7 @@ class DataStore(ABC):
         return await self._query(queries_with_embeddings)
 
     @abstractmethod
-    async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
+    async def _query(self, queries: list[QueryWithEmbedding]) -> list[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -74,9 +73,9 @@ class DataStore(ABC):
     @abstractmethod
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         """
         Removes vectors by ids, filter, or everything in the datastore.

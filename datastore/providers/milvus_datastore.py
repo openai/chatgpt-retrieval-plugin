@@ -1,7 +1,6 @@
 import os
 import asyncio
 
-from typing import Dict, List, Optional
 from pymilvus import (
     Collection,
     connections,
@@ -95,9 +94,9 @@ SCHEMA = [
 class MilvusDataStore(DataStore):
     def __init__(
         self,
-        create_new: Optional[bool] = False,
-        index_params: Optional[dict] = None,
-        search_params: Optional[dict] = None,
+        create_new: bool | None = False,
+        index_params: dict | None = None,
+        search_params: dict | None = None,
     ):
         """Create a Milvus DataStore.
 
@@ -221,7 +220,7 @@ class MilvusDataStore(DataStore):
 
         self.col.load()
 
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """Upsert chunks into the datastore.
 
         Args:
@@ -234,7 +233,7 @@ class MilvusDataStore(DataStore):
             List[str]: The document_id's that were inserted.
         """
         # The doc id's to return for the upsert
-        doc_ids: List[str] = []
+        doc_ids: list[str] = []
         # List to collect all the insert data
         insert_data = [[] for _ in range(len(SCHEMA) - 1)]
         # Go through each document chunklist and grab the data
@@ -272,7 +271,7 @@ class MilvusDataStore(DataStore):
 
         return doc_ids
 
-    def _get_values(self, chunk: DocumentChunk) -> List[any] | None:  # type: ignore
+    def _get_values(self, chunk: DocumentChunk) -> list[any] | None:  # type: ignore
         """Convert the chunk into a list of values to insert whose indexes align with fields.
 
         Args:
@@ -310,8 +309,8 @@ class MilvusDataStore(DataStore):
 
     async def _query(
         self,
-        queries: List[QueryWithEmbedding],
-    ) -> List[QueryResult]:
+        queries: list[QueryWithEmbedding],
+    ) -> list[QueryResult]:
         """Query the QueryWithEmbedding against the MilvusDocumentSearch
 
         Search the embedding and its filter in the collection.
@@ -372,16 +371,16 @@ class MilvusDataStore(DataStore):
 
             return QueryResult(query=query.query, results=results)
 
-        results: List[QueryResult] = await asyncio.gather(
+        results: list[QueryResult] = await asyncio.gather(
             *[_single_query(query) for query in queries]
         )
         return results
 
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         """Delete the entities based either on the chunk_id of the vector,
 
@@ -441,7 +440,7 @@ class MilvusDataStore(DataStore):
 
         return True
 
-    def _get_filter(self, filter: DocumentMetadataFilter) -> Optional[str]:
+    def _get_filter(self, filter: DocumentMetadataFilter) -> str | None:
         """Converts a DocumentMetdataFilter to the expression that Milvus takes.
 
         Args:

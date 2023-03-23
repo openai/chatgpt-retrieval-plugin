@@ -1,6 +1,5 @@
 import os
 import uuid
-from typing import Dict, List, Optional
 
 from grpc._channel import _InactiveRpcError
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -32,7 +31,7 @@ class QdrantDataStore(DataStore):
 
     def __init__(
         self,
-        collection_name: Optional[str] = None,
+        collection_name: str | None = None,
         vector_size: int = 1536,
         distance: str = "Cosine",
         recreate_collection: bool = False,
@@ -57,7 +56,7 @@ class QdrantDataStore(DataStore):
         # Set up the collection so the points might be inserted or queried
         self._set_up_collection(vector_size, distance, recreate_collection)
 
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """
         Takes in a list of document chunks and inserts them into the database.
         Return a list of document ids.
@@ -76,8 +75,8 @@ class QdrantDataStore(DataStore):
 
     async def _query(
         self,
-        queries: List[QueryWithEmbedding],
-    ) -> List[QueryResult]:
+        queries: list[QueryWithEmbedding],
+    ) -> list[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -101,9 +100,9 @@ class QdrantDataStore(DataStore):
 
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         """
         Removes vectors by ids, filter, or everything in the datastore.
@@ -146,7 +145,7 @@ class QdrantDataStore(DataStore):
             },
         )
 
-    def _create_document_chunk_id(self, external_id: Optional[str]) -> str:
+    def _create_document_chunk_id(self, external_id: str | None) -> str:
         if external_id is None:
             return uuid.uuid4().hex
         return uuid.uuid5(self.UUID_NAMESPACE, external_id).hex
@@ -164,9 +163,9 @@ class QdrantDataStore(DataStore):
 
     def _convert_metadata_filter_to_qdrant_filter(
         self,
-        metadata_filter: Optional[DocumentMetadataFilter] = None,
-        ids: Optional[List[str]] = None,
-    ) -> Optional[rest.Filter]:
+        metadata_filter: DocumentMetadataFilter | None = None,
+        ids: list[str] | None = None,
+    ) -> rest.Filter | None:
         if metadata_filter is None and ids is None:
             return None
 

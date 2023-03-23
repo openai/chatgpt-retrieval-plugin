@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 import pinecone
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import asyncio
@@ -65,13 +65,13 @@ class PineconeDataStore(DataStore):
                 raise e
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """
         Takes in a dict from document id to list of document chunks and inserts them into the index.
         Return a list of document ids.
         """
         # Initialize a list of ids to return
-        doc_ids: List[str] = []
+        doc_ids: list[str] = []
         # Initialize a list of vectors to upsert
         vectors = []
         # Loop through the dict items
@@ -109,8 +109,8 @@ class PineconeDataStore(DataStore):
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
     async def _query(
         self,
-        queries: List[QueryWithEmbedding],
-    ) -> List[QueryResult]:
+        queries: list[QueryWithEmbedding],
+    ) -> list[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -135,7 +135,7 @@ class PineconeDataStore(DataStore):
                 print(f"Error querying index: {e}")
                 raise e
 
-            query_results: List[DocumentChunkWithScore] = []
+            query_results: list[DocumentChunkWithScore] = []
             for result in query_response.matches:
                 score = result.score
                 metadata = result.metadata
@@ -165,7 +165,7 @@ class PineconeDataStore(DataStore):
             return QueryResult(query=query.query, results=query_results)
 
         # Use asyncio.gather to run multiple _single_query coroutines concurrently and collect their results
-        results: List[QueryResult] = await asyncio.gather(
+        results: list[QueryResult] = await asyncio.gather(
             *[_single_query(query) for query in queries]
         )
 
@@ -174,9 +174,9 @@ class PineconeDataStore(DataStore):
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         """
         Removes vectors by ids, filter, or everything from the index.
@@ -218,8 +218,8 @@ class PineconeDataStore(DataStore):
         return True
 
     def _get_pinecone_filter(
-        self, filter: Optional[DocumentMetadataFilter] = None
-    ) -> Dict[str, Any]:
+        self, filter: DocumentMetadataFilter | None = None
+    ) -> dict[str, Any]:
         if filter is None:
             return {}
 
@@ -242,8 +242,8 @@ class PineconeDataStore(DataStore):
         return pinecone_filter
 
     def _get_pinecone_metadata(
-        self, metadata: Optional[DocumentChunkMetadata] = None
-    ) -> Dict[str, Any]:
+        self, metadata: DocumentChunkMetadata | None = None
+    ) -> dict[str, Any]:
         if metadata is None:
             return {}
 

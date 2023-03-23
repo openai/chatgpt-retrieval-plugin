@@ -6,29 +6,28 @@ from models.models import (
     QueryResult,
 )
 from pydantic import BaseModel
-from typing import List, Optional
 
 
 class UpsertRequest(BaseModel):
-    documents: List[Document]
+    documents: list[Document]
 
 
 class UpsertResponse(BaseModel):
-    ids: List[str]
+    ids: list[str]
 
 
 class QueryRequest(BaseModel):
-    queries: List[Query]
+    queries: list[Query]
 
 
 class QueryResponse(BaseModel):
-    results: List[QueryResult]
+    results: list[QueryResult]
 
 
 class DeleteRequest(BaseModel):
-    ids: Optional[List[str]] = None
-    filter: Optional[DocumentMetadataFilter] = None
-    delete_all: Optional[bool] = False
+    ids: list[str] | None = None
+    filter: DocumentMetadataFilter | None = None
+    delete_all: bool | None = False
 
 
 class DeleteResponse(BaseModel):

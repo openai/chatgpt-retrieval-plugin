@@ -14,7 +14,6 @@ from redis.commands.search.field import (
     NumericField,
     VectorField,
 )
-from typing import Dict, List, Optional
 from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
@@ -232,7 +231,7 @@ class RedisDataStore(DataStore):
             .dialect(2)
         )
 
-    async def _redis_delete(self, keys: List[str]):
+    async def _redis_delete(self, keys: list[str]):
         """
         Delete a list of keys from Redis.
 
@@ -244,13 +243,13 @@ class RedisDataStore(DataStore):
 
     #######
 
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: dict[str, list[DocumentChunk]]) -> list[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
         # Initialize a list of ids to return
-        doc_ids: List[str] = []
+        doc_ids: list[str] = []
 
         # Loop through the dict items
         for doc_id, chunk_list in chunks.items():
@@ -275,14 +274,14 @@ class RedisDataStore(DataStore):
 
     async def _query(
         self,
-        queries: List[QueryWithEmbedding],
-    ) -> List[QueryResult]:
+        queries: list[QueryWithEmbedding],
+    ) -> list[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and
         returns a list of query results with matching document chunks and scores.
         """
         # Prepare results object
-        results: List[QueryResult] = []
+        results: list[QueryResult] = []
 
         # Use asyncio for concurrent search
         n = min(len(queries), 50)
@@ -311,7 +310,7 @@ class RedisDataStore(DataStore):
         for query, query_response in zip(queries, query_responses):
 
             # Iterate through nearest neighbor documents
-            query_results: List[DocumentChunkWithScore] = []
+            query_results: list[DocumentChunkWithScore] = []
             for doc in query_response.docs:
                 # Create a document chunk with score object with the result data
                 doc_json = json.loads(doc.json)
@@ -327,14 +326,14 @@ class RedisDataStore(DataStore):
             results.append(QueryResult(query=query.query, results=query_results))
         return results
 
-    async def _find_keys(self, pattern: str) -> List[str]:
+    async def _find_keys(self, pattern: str) -> list[str]:
         return await self.client.keys(pattern=pattern)
 
     async def delete(
         self,
-        ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
-        delete_all: Optional[bool] = None,
+        ids: list[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
     ) -> bool:
         """
         Removes vectors by ids, filter, or everything in the datastore.

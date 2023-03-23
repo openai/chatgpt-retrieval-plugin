@@ -1,4 +1,3 @@
-from typing import Dict, List, Optional, Tuple
 import uuid
 from models.models import Document, DocumentChunk, DocumentChunkMetadata
 
@@ -19,7 +18,7 @@ EMBEDDINGS_BATCH_SIZE = 128  # The number of embeddings to request at a time
 MAX_NUM_CHUNKS = 10000  # The maximum number of chunks to generate from a text
 
 
-def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
+def get_text_chunks(text: str, chunk_token_size: int | None) -> list[str]:
     """
     Split a text into chunks of ~CHUNK_SIZE tokens, based on punctuation and newline boundaries.
 
@@ -101,8 +100,8 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
 
 
 def create_document_chunks(
-    doc: Document, chunk_token_size: Optional[int]
-) -> Tuple[List[DocumentChunk], str]:
+    doc: Document, chunk_token_size: int | None
+) -> tuple[list[DocumentChunk], str]:
     """
     Create a list of document chunks from a document object and return the document id.
 
@@ -151,8 +150,8 @@ def create_document_chunks(
 
 
 def get_document_chunks(
-    documents: List[Document], chunk_token_size: Optional[int]
-) -> Dict[str, List[DocumentChunk]]:
+    documents: list[Document], chunk_token_size: int | None
+) -> dict[str, list[DocumentChunk]]:
     """
     Convert a list of documents into a dictionary from document id to list of document chunks.
 
@@ -165,10 +164,10 @@ def get_document_chunks(
         with text, metadata, and embedding attributes.
     """
     # Initialize an empty dictionary of lists of chunks
-    chunks: Dict[str, List[DocumentChunk]] = {}
+    chunks: dict[str, list[DocumentChunk]] = {}
 
     # Initialize an empty list of all chunks
-    all_chunks: List[DocumentChunk] = []
+    all_chunks: list[DocumentChunk] = []
 
     # Loop over each document and create chunks
     for doc in documents:
@@ -185,7 +184,7 @@ def get_document_chunks(
         return {}
 
     # Get all the embeddings for the document chunks in batches, using get_embeddings
-    embeddings: List[List[float]] = []
+    embeddings: list[list[float]] = []
     for i in range(0, len(all_chunks), EMBEDDINGS_BATCH_SIZE):
         # Get the text of the chunks in the current batch
         batch_texts = [
