@@ -63,7 +63,7 @@ A plugin consists of:
 - An API schema (OpenAPI JSON or YAML format)
 - A manifest (JSON file) that defines relevant metadata for the plugin
 
-The Retrieval Plugin already contains all of these components. Read the Chat Plugins blogpost [here](https://openai.com/blog/chat-plugins), and find the docs [here](https://platform.openai.com/docs/plugins/introduction).
+The Retrieval Plugin already contains all of these components. Read the Chat Plugins blogpost [here](https://openai.com/blog/chatgpt-plugins), and find the docs [here](https://platform.openai.com/docs/plugins/introduction).
 
 ### Retrieval Plugin
 
