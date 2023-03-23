@@ -25,6 +25,7 @@ This README provides detailed information on how to set up, develop, and deploy 
   - [Memory Feature](#memory-feature)
   - [Security](#security)
   - [API Endpoints](#api-endpoints)
+- [Quickstart](#quickstart)
 - [Development](#development)
   - [Setup](#setup)
     - [General Environment Variables](#general-environment-variables)
@@ -99,6 +100,31 @@ The plugin exposes the following endpoints for upserting, querying, and deleting
 The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.yaml). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that give ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
 
 To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [here](/.well-known/openapi.yaml). You can update this easily by running the app locally, copying the json found at http://0.0.0.0:8000/sub/openapi.json, and converting it to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the `openapi.yaml` file with an `openapi.json` file.
+
+## Quickstart
+
+Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
+
+1. Install Python 3.10, if not already installed.
+2. Clone the repository: `git clone https://github.com/openai/chatgpt-retrieval-plugin.git`
+3. Navigate to the cloned repository directory: `cd /path/to/chatgpt-retrieval-plugin`
+4. Install poetry: `pip install poetry`
+5. Create a new virtual environment with Python 3.10: `poetry env use python3.10`
+6. Activate the virtual environment: `poetry shell`
+7. Install app dependencies: `poetry install`
+8. Set the required environment variables:
+
+   ```
+   export DATASTORE=<your_datastore>
+   export BEARER_TOKEN=<your_bearer_token>
+   export OPENAI_API_KEY=<your_openai_api_key>
+   <Add the environment variables for your chosen vector DB here>
+   ```
+
+9. Run the API locally: `poetry run start`
+10. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
+
+For more detailed information on setting up, developing, and deploying the ChatGPT Retrieval Plugin, refer to the full Development section below.
 
 ## Development
 
