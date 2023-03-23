@@ -1,6 +1,6 @@
 # ChatGPT Retrieval Plugin
 
-Join the [ChatGPT Plugins waitlist here](https://openai.com/blog/chatgpt-plugins)!
+Join the [ChatGPT Plugins waitlist here](https://openai.com/waitlist/plugins)!
 
 ## Introduction
 
