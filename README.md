@@ -1,6 +1,13 @@
 # ChatGPT Retrieval Plugin
 
-Join the [ChatGPT plugins waitlist here](https://openai.com/waitlist/plugins)!
+> **Join the [ChatGPT plugins waitlist here](https://openai.com/waitlist/plugins)!**
+
+This is an example of a Retrieval Plugin that has access to the UN Annual Reports from 2018 to 2022.
+
+<video width="640" height="480" controls>
+  <source src="https://cdn.openai.com/chat-plugins/retrieval-gh-repo-readme/Retrieval-Final.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Introduction
 
