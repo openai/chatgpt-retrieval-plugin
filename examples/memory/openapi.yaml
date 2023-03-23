@@ -9,7 +9,7 @@ paths:
   /upsert:
     post:
       summary: Upsert
-      description: Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp). Confirm with the user before saving, ask for more details/context.
+      description: Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp, no ID as this will be generated). Confirm with the user before saving, ask for more details/context.
       operationId: upsert_upsert_post
       requestBody:
         content:
