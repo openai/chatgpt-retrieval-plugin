@@ -79,11 +79,11 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
             chunk_text = chunk_text[: last_punctuation + 1]
 
         # Remove any newline characters and strip any leading or trailing whitespace
-        chunk_text = chunk_text.replace("\n", " ").strip()
+        chunk_text_to_append = chunk_text.replace("\n", " ").strip()
 
-        if len(chunk_text) > MIN_CHUNK_LENGTH_TO_EMBED:
+        if len(chunk_text_to_append) > MIN_CHUNK_LENGTH_TO_EMBED:
             # Append the chunk text to the list of chunks
-            chunks.append(chunk_text)
+            chunks.append(chunk_text_to_append)
 
         # Remove the tokens corresponding to the chunk text from the remaining tokens
         tokens = tokens[len(tokenizer.encode(chunk_text, disallowed_special=())) :]
