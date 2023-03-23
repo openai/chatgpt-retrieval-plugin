@@ -1,0 +1,17 @@
+services:
+  retrieval-app:
+    build:
+      context: ../../../
+      dockerfile: Dockerfile
+    image: openai/chatgpt-retrieval-plugin
+    ports:
+      - "80:80"
+    depends_on:
+      - qdrant
+    environment:
+      DATASTORE: "qdrant"
+      QDRANT_URL: "http://qdrant"
+      BEARER_TOKEN: "${BEARER_TOKEN}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  qdrant:
+    image: qdrant/qdrant:v1.0.3
