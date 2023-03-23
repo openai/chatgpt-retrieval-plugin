@@ -333,7 +333,7 @@ class RedisDataStore(DataStore):
     async def delete(
         self,
         ids: Optional[List[str]] = None,
-        filter: Optional[DocumentMetadataFilter] = None,
+        doc_filter: Optional[DocumentMetadataFilter] = None,
         delete_all: Optional[bool] = None,
     ) -> bool:
         """
@@ -352,15 +352,15 @@ class RedisDataStore(DataStore):
                 raise e
 
         # Delete by filter
-        if filter:
+        if doc_filter:
             # TODO - extend this to work with other metadata filters?
-            if filter.document_id:
+            if doc_filter.document_id:
                 try:
-                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{filter.document_id}:*")
+                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{doc_filter.document_id}:*")
                     await self._redis_delete(keys)
-                    logging.info(f"Deleted document {filter.document_id} successfully")
+                    logging.info(f"Deleted document {doc_filter.document_id} successfully")
                 except Exception as e:
-                    logging.info(f"Error deleting document {filter.document_id}: {e}")
+                    logging.info(f"Error deleting document {doc_filter.document_id}: {e}")
                     raise e
 
         # Delete by explicit ids (Redis keys)
