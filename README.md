@@ -183,7 +183,7 @@ The API requires the following environment variables to work:
 
 ### Choosing a Vector Database
 
-The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different docker file and set different environment variables. The following sections provide detailed information and instructions on using each vector database provider.
+The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide detailed information and instructions on using each vector database provider.
 
 #### Pinecone
 
@@ -518,7 +518,7 @@ You can personalize the Retrieval Plugin for your own use case by doing the foll
 
 - **Replace the logo**: Replace the image in [logo.png](/.well-known/logo.png) with your own logo.
 
-- **Edit the data models**: Edit the `DocumentMetadata` and `DocumentMetadataFilter` data models in [models.py](/models/models.py) to add custom metadata fields. Update the OpenAPI schema in [openapi.yaml](/.well-known/openapi.yaml) accordingly. To update the OpenAPI schema more easily, you can run the app locally, then navigate to `http://0.0.0.0:8000/sub/openapi.json` and copy the contents of the webpage. Then go to [Swagger Editor](https://editor.swagger.io/) and paste in the JSON to convert it to a YAML format. You could also replace the openapi.yaml file with an openapi.json file in the [.well-known](/.well-known) folder.
+- **Edit the data models**: Edit the `DocumentMetadata` and `DocumentMetadataFilter` data models in [models.py](/models/models.py) to add custom metadata fields. Update the OpenAPI schema in [openapi.yaml](/.well-known/openapi.yaml) accordingly. To update the OpenAPI schema more easily, you can run the app locally, then navigate to `http://0.0.0.0:8000/sub/openapi.json` and copy the contents of the webpage. Then go to [Swagger Editor](https://editor.swagger.io/) and paste in the JSON to convert it to a YAML format. You could also replace the [openapi.yaml](/.well-known/openapi.yaml) file with an openapi.json file in the [.well-known](/.well-known) folder.
 
 - **Change the plugin name, description, and usage instructions**: Update the plugin name, user-facing description, and usage instructions for the model. You can either edit the descriptions in the [main.py](/server/main.py) file or update the [openapi.yaml](/.well-known/openapi.yaml) file. Follow the same instructions as in the previous step to update the OpenAPI schema.
 
@@ -571,7 +571,7 @@ curl -X POST https://your-app-url.com/upsert \
 To deploy the Docker container from this repository to Fly.io, follow
 these steps:
 
-Install Docker on your local machine if it is not already installed.
+[Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
 
 Install the [Fly.io CLI](https://fly.io/docs/getting-started/installing-flyctl/) on your local machine.
 
@@ -650,7 +650,7 @@ If your app fails to deploy, check if the environment variables are set correctl
 
 To deploy the Docker container from this repository to Heroku and set the required environment variables, follow these steps:
 
-Install Docker on your local machine if it is not already installed.
+[Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
 
 Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) on your local machine.
 
