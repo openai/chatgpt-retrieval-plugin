@@ -1,5 +1,7 @@
 # ChatGPT Retrieval Plugin
 
+Join the [ChatGPT Plugins waitlist here](https://openai.com/blog/chatgpt-plugins)!
+
 ## Introduction
 
 The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. The repository is organized into several directories:
