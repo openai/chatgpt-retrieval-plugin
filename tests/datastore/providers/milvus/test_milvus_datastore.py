@@ -151,7 +151,6 @@ async def test_upsert(milvus_datastore, document_chunk_one):
     assert res == list(document_chunk_one.keys())
     milvus_datastore.col.flush()
     assert 3 == milvus_datastore.col.num_entities
-   
 
 
 @pytest.mark.asyncio
@@ -163,7 +162,7 @@ async def test_reload(milvus_datastore, document_chunk_one, document_chunk_two):
     milvus_datastore.col.flush()
     assert 3 == milvus_datastore.col.num_entities
     new_store = MilvusDataStore()
-    another_in = {i:document_chunk_two[i] for i in document_chunk_two if i!=res[0]}
+    another_in = {i: document_chunk_two[i] for i in document_chunk_two if i != res[0]}
     res = await new_store._upsert(another_in)
     new_store.col.flush()
     assert 6 == new_store.col.num_entities
@@ -174,9 +173,6 @@ async def test_reload(milvus_datastore, document_chunk_one, document_chunk_two):
     )
     query_results = await milvus_datastore._query(queries=[query])
     assert 1 == len(query_results)
-
-    
-
 
 
 @pytest.mark.asyncio
@@ -197,8 +193,6 @@ async def test_upsert_query_all(milvus_datastore, document_chunk_two):
     assert 1 == len(query_results)
     assert 6 == len(query_results[0].results)
 
-    
-
 
 @pytest.mark.asyncio
 async def test_query_accuracy(milvus_datastore, document_chunk_one):
@@ -217,7 +211,6 @@ async def test_query_accuracy(milvus_datastore, document_chunk_one):
     assert 1 == len(query_results[0].results)
     assert 0 == query_results[0].results[0].score
     assert "abc_123" == query_results[0].results[0].id
-    
 
 
 @pytest.mark.asyncio
@@ -240,7 +233,6 @@ async def test_query_filter(milvus_datastore, document_chunk_one):
     assert 1 == len(query_results[0].results)
     assert 0 != query_results[0].results[0].score
     assert "def_456" == query_results[0].results[0].id
-    
 
 
 @pytest.mark.asyncio
@@ -265,7 +257,6 @@ async def test_delete_with_date_filter(milvus_datastore, document_chunk_one):
     assert 1 == len(query_results)
     assert 1 == len(query_results[0].results)
     assert "ghi_789" == query_results[0].results[0].id
-    
 
 
 @pytest.mark.asyncio
@@ -290,7 +281,6 @@ async def test_delete_with_source_filter(milvus_datastore, document_chunk_one):
     assert 1 == len(query_results)
     assert 2 == len(query_results[0].results)
     assert "def_456" == query_results[0].results[0].id
-    
 
 
 @pytest.mark.asyncio
@@ -313,7 +303,6 @@ async def test_delete_with_document_id_filter(milvus_datastore, document_chunk_o
 
     assert 1 == len(query_results)
     assert 0 == len(query_results[0].results)
-    
 
 
 @pytest.mark.asyncio
@@ -333,7 +322,6 @@ async def test_delete_with_document_id(milvus_datastore, document_chunk_one):
 
     assert 1 == len(query_results)
     assert 0 == len(query_results[0].results)
-    
 
 
 # if __name__ == '__main__':

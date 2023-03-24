@@ -215,9 +215,7 @@ class MilvusDataStore(DataStore):
                     print("Creation of Zilliz Cloud default index succesful")
         # If an index already exists, grab its params
         else:
-            self.index_params = self.col.indexes[0].to_dict()['index_param']
-            
-
+            self.index_params = self.col.indexes[0].to_dict()["index_param"]
 
         self.col.load()
 
@@ -322,9 +320,9 @@ class MilvusDataStore(DataStore):
         Returns:
             List[QueryResult]: Results for each search.
         """
+
         # Async to perform the query, adapted from pinecone implementation
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
-
             filter = None
             # Set the filter to expression that is valid for Milvus
             if query.filter != None:

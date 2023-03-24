@@ -5,6 +5,7 @@ from models.models import Document, DocumentChunk, DocumentChunkMetadata
 import tiktoken
 
 from services.openai import get_embeddings
+import asyncio
 
 # Global variables
 tokenizer = tiktoken.get_encoding(
@@ -146,7 +147,7 @@ def create_document_chunks(
     return doc_chunks, doc_id
 
 
-def get_document_chunks(
+async def get_document_chunks(
     documents: List[Document], chunk_token_size: Optional[int]
 ) -> Dict[str, List[DocumentChunk]]:
     """
@@ -180,23 +181,18 @@ def get_document_chunks(
     if not all_chunks:
         return {}
 
-    # Get all the embeddings for the document chunks in batches, using get_embeddings
-    embeddings: List[List[float]] = []
-    for i in range(0, len(all_chunks), EMBEDDINGS_BATCH_SIZE):
-        # Get the text of the chunks in the current batch
-        batch_texts = [
-            chunk.text for chunk in all_chunks[i : i + EMBEDDINGS_BATCH_SIZE]
-        ]
+    # async tasks to get embeddings for all chunks
+    tasks = [
+        get_embeddings(all_chunks[i : i + EMBEDDINGS_BATCH_SIZE].text)
+        for i in range(0, len(all_chunks), EMBEDDINGS_BATCH_SIZE)
+    ]
 
-        # Get the embeddings for the batch texts
-        batch_embeddings = get_embeddings(batch_texts)
+    # gather all embeddings
+    embeddings = []
+    for result in await asyncio.gather(*tasks):
+        embeddings.extend(result)
 
-        # Append the batch embeddings to the embeddings list
-        embeddings.extend(batch_embeddings)
-
-    # Update the document chunk objects with the embeddings
     for i, chunk in enumerate(all_chunks):
-        # Assign the embedding from the embeddings list to the chunk object
         chunk.embedding = embeddings[i]
 
     return chunks

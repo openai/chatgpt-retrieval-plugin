@@ -254,7 +254,6 @@ class RedisDataStore(DataStore):
 
         # Loop through the dict items
         for doc_id, chunk_list in chunks.items():
-
             # Append the id to the ids list
             doc_ids.append(doc_id)
 
@@ -309,7 +308,6 @@ class RedisDataStore(DataStore):
 
         # Iterate through responses and construct results
         for query, query_response in zip(queries, query_responses):
-
             # Iterate through nearest neighbor documents
             query_results: List[DocumentChunkWithScore] = []
             for doc in query_response.docs:
@@ -356,7 +354,9 @@ class RedisDataStore(DataStore):
             # TODO - extend this to work with other metadata filters?
             if filter.document_id:
                 try:
-                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{filter.document_id}:*")
+                    keys = await self._find_keys(
+                        f"{REDIS_DOC_PREFIX}:{filter.document_id}:*"
+                    )
                     await self._redis_delete(keys)
                     logging.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
@@ -370,7 +370,9 @@ class RedisDataStore(DataStore):
                 keys = []
                 # find all keys associated with the document ids
                 for document_id in ids:
-                    doc_keys = await self._find_keys(pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*")
+                    doc_keys = await self._find_keys(
+                        pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*"
+                    )
                     keys.extend(doc_keys)
                 # delete all keys
                 logging.info(f"Deleting {len(keys)} keys from Redis")
