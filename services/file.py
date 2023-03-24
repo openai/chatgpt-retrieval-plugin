@@ -16,6 +16,7 @@ async def get_document_from_file(file: UploadFile) -> Document:
     print(f"extracted_text:")
     # get metadata
     metadata = DocumentMetadata()
+    metadata.source = "file"
     doc = Document(text=extracted_text, metadata=metadata)
 
     return doc
