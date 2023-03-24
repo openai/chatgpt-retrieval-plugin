@@ -7,20 +7,23 @@ from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWit
 
 # TODO: import all supported indices
 from llama_index import GPTTreeIndex, GPTListIndex, GPTSimpleVectorIndex, Document
+from llama_index.indices.knowledge_graph import GPTKnowledgeGraphIndex
 from llama_index.indices.base import BaseGPTIndex
 from llama_index.indices.query.schema import QueryBundle
 
-INDEX_TYPE = os.environ.get('LLAMA_INDEX_TYPE', 'GPTTreeIndex')
+INDEX_TYPE = os.environ.get('LLAMA_INDEX_TYPE', 'simple_vector')
 INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
 QUERY_CONFIG_JSON_PATH = os.environ.get('LLAMA_QUERY_CONFIG_JSON_PATH', None)
 RESPONSE_MODE = 'no_text'
 
 
+# TODO: support more indices
 # Hardcoded mapping from index type str to index class
 INDEX_TYPE_TO_INDEX_CLS: Dict[str, BaseGPTIndex] = {
     'tree': GPTTreeIndex,
     'list': GPTListIndex,
     'simple_vector': GPTSimpleVectorIndex,
+    'kg': GPTKnowledgeGraphIndex,
 }
 
 def get_index_cls(index_type: str) -> BaseGPTIndex:
@@ -51,7 +54,7 @@ class LlamaDataStore(DataStore):
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
-        # TODO: figure out updating
+        # TODO: right now will always insert instead of updating
         doc_ids = []
         for doc_id, doc_chunks in chunks.items():
             logger.debug(f"Upserting {doc_id} with {len(doc_chunks)} chunks")
@@ -114,5 +117,8 @@ class LlamaDataStore(DataStore):
         Removes vectors by ids, filter, or everything in the datastore.
         Returns whether the operation was successful.
         """
-        # TODO: implement
+        # TODO: filters are not supported
+        # TODO: delete all is not supported
+        for id_ in ids:
+            self._index.delete(id_)
         return False
