@@ -1,17 +1,18 @@
+import json
 import os
 from typing import Dict, List, Optional
 from loguru import logger
 from datastore.datastore import DataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, QueryResult, QueryWithEmbedding
+
 # TODO: import all supported indices
 from llama_index import GPTTreeIndex, GPTListIndex, GPTSimpleVectorIndex, Document
 from llama_index.indices.base import BaseGPTIndex
 from llama_index.indices.query.schema import QueryBundle
 
-# Saved JSON
-# JSON config: index type, query configs
 INDEX_TYPE = os.environ.get('LLAMA_INDEX_TYPE', 'GPTTreeIndex')
 INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
+QUERY_CONFIG_JSON_PATH = os.environ.get('LLAMA_QUERY_CONFIG_JSON_PATH', None)
 RESPONSE_MODE = 'no_text'
 
 
@@ -38,6 +39,12 @@ class LlamaDataStore(DataStore):
         else:
             # Load index from disk
             self._index = index_cls.load_from_disk(INDEX_JSON_PATH)
+        
+        if QUERY_CONFIG_JSON_PATH is None:
+            self._query_configs = None
+        else: 
+            with open(INDEX_JSON_PATH, 'r') as f:
+                self._query_configs = json.load(f)
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
@@ -76,7 +83,10 @@ class LlamaDataStore(DataStore):
                 embedding=query.embedding,
             )
             # similarity_top_k = query.top_k
-            response = await self._index.aquery(query_bundle, response_mode=RESPONSE_MODE)
+            if self._query_configs is not None:
+                response = await self._index.aquery(query_bundle, response_mode=RESPONSE_MODE, query_configs=self._query_configs)
+            else:
+                response = await self._index.aquery(query_bundle, response_mode=RESPONSE_MODE)
             results = []
             for node in response.source_nodes:
                 result = DocumentChunkWithScore(
