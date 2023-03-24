@@ -70,11 +70,7 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
         )
 
         # If there is a punctuation mark, and the last punctuation index is before MIN_CHUNK_SIZE_CHARS
-        if (
-            last_punctuation != -1
-            and last_punctuation > MIN_CHUNK_SIZE_CHARS
-            and last_punctuation > MIN_CHUNK_SIZE_CHARS
-        ):
+        if last_punctuation != -1 and last_punctuation > MIN_CHUNK_SIZE_CHARS:
             # Truncate the chunk text at the punctuation mark
             chunk_text = chunk_text[: last_punctuation + 1]
 
