@@ -119,6 +119,7 @@ class LlamaDataStore(DataStore):
         """
         # TODO: filters are not supported
         # TODO: delete all is not supported
-        for id_ in ids:
-            self._index.delete(id_)
+        if ids is not None:
+            for id_ in ids:
+                self._index.delete(id_)
         return False
