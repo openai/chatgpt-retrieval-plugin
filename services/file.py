@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader
 import docx2txt
 import csv
 import pptx
+import html2text
 
 from models.models import Document, DocumentMetadata
 
@@ -52,6 +53,9 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
     elif mimetype == "text/plain" or mimetype == "text/markdown":
         # Read text from plain text file
         extracted_text = file.read().decode("utf-8")
+    elif mimetype == "text/html" or mimetype == "text/xml":
+        # Extract text from HTML using html2text
+        extracted_text = html2text.html2text(file.read().decode("utf-8"))
     elif (
         mimetype
         == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
