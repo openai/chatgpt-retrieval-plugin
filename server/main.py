@@ -17,6 +17,12 @@ from services.file import get_document_from_file
 
 
 app = FastAPI()
+
+# Add a route for the root path
+@app.get("/")
+async def read_root():
+    return {"message": "Hello, world!"}
+
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
 # Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
