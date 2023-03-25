@@ -250,7 +250,7 @@ class WeaviateDataStore(DataStore):
                     score=resp["_additional"]["score"],
                     metadata=DocumentChunkMetadata(
                         document_id=resp["document_id"] if resp["document_id"] else "",
-                        source=Source(resp["source"]),
+                        source=Source(resp["source"]) if resp["source"] else None,
                         source_id=resp["source_id"],
                         url=resp["url"],
                         created_at=resp["created_at"],
