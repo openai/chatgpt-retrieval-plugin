@@ -40,6 +40,7 @@ assert REDIS_INDEX_TYPE in ("FLAT", "HNSW")
 VECTOR_DIMENSION = 1536
 
 # RediSearch constants
+REDIS_REQUIRED_MODULES = ("search", "ReJSON")
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
 REDIS_SEARCH_SCHEMA = {
     "document_id": TagField("$.document_id", as_name="document_id"),
@@ -70,6 +71,11 @@ def unpack_schema(d: dict):
         else:
             yield v
 
+async def _check_redis_module_exist(client: redis.Redis, modules: List[str]) -> bool:
+    installed_modules = (await client.info()).get("modules", {"name": ""})
+    installed_modules = [m["name"] for m in installed_modules]
+    return all([module in installed_modules for module in modules])
+
 
 class RedisDataStore(DataStore):
     def __init__(self, client: redis.Redis):
@@ -95,6 +101,12 @@ class RedisDataStore(DataStore):
         except Exception as e:
             logging.error(f"Error setting up Redis: {e}")
             raise e
+
+        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):
+            raise ValueError(
+                "You must add the search and json modules in Redis Stack. "
+                "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
+            )
 
         try:
             # Check for existence of RediSearch Index
