@@ -40,6 +40,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [pgvector](#pgvector)
   - [Running the API Locally](#running-the-api-locally)
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
@@ -491,6 +492,37 @@ Environment Variables:
 | `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
 | `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
 
+
+#### pgvector
+
+Use pgvector to store and search for vectors in a PostgreSQL database. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled.
+
+- For more information about pgvector, visit the [official repository](https://github.com/pgvector/pgvector).
+
+Environment Variables:
+
+| Name                 | Required | Description                                                                                | Default     |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------ | ----------- |
+| `DATASTORE`          | Yes      | Datastore name, set to `pgvector`                                                          |             |
+| `BEARER_TOKEN`       | Yes      | Secret token                                                                               |             |
+| `OPENAI_API_KEY`     | Yes      | OpenAI API key                                                                             |             |
+| `PGVECTOR_URL`       | Yes | PostgreSQL connection URL with the pgvector extension enabled                              |  |
+| `PGVECTOR_COLLECTION`| Optional | PostgreSQL table name to store the vector documents                                        | `documents` |
+
+```bash
+export DATASTORE=pgvector
+export BEARER_TOKEN=<your_bearer_token>
+export OPENAI_API_KEY=<your_openai_api_key>
+export PGVECTOR_URL=<your_postgresql_connection_url>
+export PGVECTOR_COLLECTION=<your_pgvector_collection>
+```
+
+### Running the API with pgvector locally
+
+To run the API locally with pgvector, you first need to set the requisite environment variables with the `export` command:
+
+
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
@@ -852,3 +884,5 @@ We would like to extend our gratitude to the following contributors for their co
 - [Redis](https://redis.io/)
   - [spartee](https://github.com/spartee)
   - [tylerhutcherson](https://github.com/tylerhutcherson)
+- [pgvector](https://github.com/pgvector/pgvector-python)
+  - [mmmaia](https://github.com/mmmaia)
