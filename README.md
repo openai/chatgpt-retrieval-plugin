@@ -300,7 +300,7 @@ If you enabled OIDC authentication for your Weaviate instance (recommended for W
 | ------------------- | -------- | ------------------------------ |
 | `WEAVIATE_USERNAME` | Yes      | Your OIDC or WCS username      |
 | `WEAVIATE_PASSWORD` | Yes      | Your OIDC or WCS password      |
-| `WEAVIATE_SCOPES`   | Optional | Space-separated list of scopes |
+| `WEAVIATE_SCOPE`    | Optional | Space-separated list of scopes |
 
 Learn more about [authentication in Weaviate](https://weaviate.io/developers/weaviate/configuration/authentication#overview) and the [Python client authentication](https://weaviate-python-client.readthedocs.io/en/stable/weaviate.auth.html).
 
