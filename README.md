@@ -101,9 +101,9 @@ The plugin exposes the following endpoints for upserting, querying, and deleting
 
 - `/delete`: This endpoint allows deleting one or more documents from the vector database using their IDs, a metadata filter, or a delete_all flag. The endpoint expects at least one of the following parameters in the request body: `ids`, `filter`, or `delete_all`. The `ids` parameter should be a list of document IDs to delete; all document chunks for the document with these IDS will be deleted. The `filter` parameter should contain a subset of the following subfields: `source`, `source_id`, `document_id`, `url`, `created_at`, and `author`. The `delete_all` parameter should be a boolean indicating whether to delete all documents from the vector database. The endpoint returns a boolean indicating whether the deletion was successful.
 
-The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.yaml). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that give ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
+The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.json). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that give ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
 
-To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [here](/.well-known/openapi.yaml). You can update this easily by running the app locally, copying the json found at http://0.0.0.0:8000/sub/openapi.json, and converting it to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the `openapi.yaml` file with an `openapi.json` file.
+To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [openapi.json](/.well-known/openapi.json). You can update this easily by running the app locally, and run `poetry run generate_openapi` command in a different terminal. The [openapi.json](/.well-known/openapi.json) will be updated accordingly. You could also replace the [openapi.json](/.well-known/openapi.json) file with an openapi.yaml file in the [.well-known](/.well-known) folder.
 
 ## Quickstart
 
@@ -518,9 +518,9 @@ You can personalize the Retrieval Plugin for your own use case by doing the foll
 
 - **Replace the logo**: Replace the image in [logo.png](/.well-known/logo.png) with your own logo.
 
-- **Edit the data models**: Edit the `DocumentMetadata` and `DocumentMetadataFilter` data models in [models.py](/models/models.py) to add custom metadata fields. Update the OpenAPI schema in [openapi.yaml](/.well-known/openapi.yaml) accordingly. To update the OpenAPI schema more easily, you can run the app locally, then navigate to `http://0.0.0.0:8000/sub/openapi.json` and copy the contents of the webpage. Then go to [Swagger Editor](https://editor.swagger.io/) and paste in the JSON to convert it to a YAML format. You could also replace the [openapi.yaml](/.well-known/openapi.yaml) file with an openapi.json file in the [.well-known](/.well-known) folder.
+- **Edit the data models**: Edit the `DocumentMetadata` and `DocumentMetadataFilter` data models in [models.py](/models/models.py) to add custom metadata fields. Update the OpenAPI schema in [openapi.json](/.well-known/openapi.json). You can update this easily by running the app locally, and run `poetry run generate_openapi` command in a different terminal. The [openapi.json](/.well-known/openapi.json) will be updated accordingly. You could also replace the [openapi.json](/.well-known/openapi.json) file with an openapi.yaml file in the [.well-known](/.well-known) folder.
 
-- **Change the plugin name, description, and usage instructions**: Update the plugin name, user-facing description, and usage instructions for the model. You can either edit the descriptions in the [main.py](/server/main.py) file or update the [openapi.yaml](/.well-known/openapi.yaml) file. Follow the same instructions as in the previous step to update the OpenAPI schema.
+- **Change the plugin name, description, and usage instructions**: Update the plugin name, user-facing description, and usage instructions for the model. You can either edit the descriptions in the [main.py](/server/main.py) file or update the [openapi.json](/.well-known/openapi.json) file. Follow the same instructions as in the previous step to update the OpenAPI schema.
 
 - **Enable ChatGPT to save information from conversations**: See the instructions in the [memory example folder](/examples/memory).
 
@@ -542,7 +542,7 @@ Consider the benefits and drawbacks of each authentication method before choosin
 
 ## Deployment
 
-You can deploy your app to different cloud providers, depending on your preferences and requirements. However, regardless of the provider you choose, you will need to update two files in your app: [openapi.yaml](/.well-known/openapi.yaml) and [ai-plugin.json](/.well-known/ai-plugin.json). As outlined above, these files define the API specification and the AI plugin configuration for your app, respectively. You need to change the url field in both files to match the address of your deployed app.
+You can deploy your app to different cloud providers, depending on your preferences and requirements. However, regardless of the provider you choose, you will need to update two files in your app: [openapi.json](/.well-known/openapi.json) and [ai-plugin.json](/.well-known/ai-plugin.json). As outlined above, these files define the API specification and the AI plugin configuration for your app, respectively. You need to change the url field in both files to match the address of your deployed app.
 
 Before deploying your app, you might want to remove unused dependencies from your [pyproject.toml](/pyproject.toml) file to reduce the size of your app and improve its performance. Depending on the vector database provider you choose, you can remove the packages that are not needed for your specific provider.
 
@@ -617,7 +617,7 @@ BEARER_TOKEN=your_bearer_token \
 
 Alternatively, you could set environment variables in the [Fly.io Console](https://fly.io/dashboard).
 
-At this point, you can change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml) to the url for your Fly.io app, which will be `https://your-app-name.fly.dev`.
+At this point, you can change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and the `servers` of OpenAPI schema in the [main.py](/server/main.py) to the url for your Fly.io app, which will be `https://your-app-name.fly.dev`.
 
 Deploy your app with:
 
@@ -631,7 +631,7 @@ After completing these steps, your Docker container should be deployed to Fly.io
 flyctl open
 ```
 
-which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.yaml` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
+which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.json` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
 
 To view your app logs:
 
@@ -639,7 +639,7 @@ To view your app logs:
 flyctl logs
 ```
 
-Now, make sure you have changed the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `flyctl deploy`. This url will be `https://<your-app-name>.fly.dev`.
+Now, make sure you have changed the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/server/main.py), and redeploy with `flyctl deploy`. This url will be `https://<your-app-name>.fly.dev`.
 
 **Debugging tips:**
 Fly.io uses port 8080 by default.
@@ -732,7 +732,7 @@ After completing these steps, your Docker container should be deployed to Heroku
 heroku open -a [app-name]
 ```
 
-which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.yaml` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
+which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.json` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
 
 To view your app logs:
 
@@ -740,7 +740,7 @@ To view your app logs:
 heroku logs --tail -a [app-name]
 ```
 
-Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
+Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and the `servers` of OpenAPI schema in the [main.py](/server/main.py) , and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
 
 ### Other Deployment Options
 
@@ -750,7 +750,7 @@ Some possible other options for deploying the app are:
 - Google Cloud Run: This is a serverless platform that allows you to run stateless web apps using Docker containers. You can use the Google Cloud Console or the gcloud command-line tool to create and deploy your Cloud Run service, and then push your Docker image to the Google Container Registry and deploy it to your service. You can also set environment variables and scale your app using the Google Cloud Console. Learn more [here](https://cloud.google.com/run/docs/quickstarts/build-and-deploy).
 - AWS Elastic Container Service: This is a cloud platform that allows you to run and manage web apps using Docker containers. You can use the AWS CLI or the AWS Management Console to create and configure your ECS cluster, and then push your Docker image to the Amazon Elastic Container Registry and deploy it to your cluster. You can also set environment variables and scale your app using the AWS Management Console. Learn more [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html).
 
-After you create your app, make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy.
+After you create your app, make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.json), and redeploy.
 
 ## Installing a Developer Plugin
 

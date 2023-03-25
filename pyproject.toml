@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["isafulf <isabella@openai.com>"]
 readme = "README.md"
-packages = [{include = "server"}]
+packages = [{include = "server"},{include = "scripts"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -29,6 +29,7 @@ redis = "4.5.1"
 
 [tool.poetry.scripts]
 start = "server.main:start"
+generate_openapi = "scripts.process_openapi.process_openapi:generate_openapi"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"
