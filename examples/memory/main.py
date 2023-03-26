@@ -19,19 +19,6 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
-
-app = FastAPI()
-app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
-
-# Create a sub-application, in order to access just the upsert and query endpoints in the OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
-sub_app = FastAPI(
-    title="Retrieval Plugin API",
-    description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
-    version="1.0.0",
-    servers=[{"url": "https://your-app-url.com"}],
-)
-app.mount("/sub", sub_app)
-
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
 assert BEARER_TOKEN is not None
@@ -43,13 +30,25 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
     return credentials
 
 
+app = FastAPI(dependencies=[Depends(validate_token)])
+app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
+
+# Create a sub-application, in order to access just the upsert and query endpoints in the OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
+sub_app = FastAPI(
+    title="Retrieval Plugin API",
+    description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
+    version="1.0.0",
+    servers=[{"url": "https://your-app-url.com"}],
+)
+app.mount("/sub", sub_app)
+
+
 @app.post(
     "/upsert-file",
     response_model=UpsertResponse,
 )
 async def upsert_file(
     file: UploadFile = File(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     document = await get_document_from_file(file)
 
@@ -67,7 +66,6 @@ async def upsert_file(
 )
 async def upsert_main(
     request: UpsertRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
         ids = await datastore.upsert(request.documents)
@@ -85,7 +83,6 @@ async def upsert_main(
 )
 async def upsert(
     request: UpsertRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
         ids = await datastore.upsert(request.documents)
@@ -101,7 +98,6 @@ async def upsert(
 )
 async def query_main(
     request: QueryRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
         results = await datastore.query(
@@ -121,7 +117,6 @@ async def query_main(
 )
 async def query(
     request: QueryRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
         results = await datastore.query(
@@ -139,7 +134,6 @@ async def query(
 )
 async def delete(
     request: DeleteRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     if not (request.ids or request.filter or request.delete_all):
         raise HTTPException(

@@ -8,7 +8,6 @@ from models.models import (
     DocumentChunkMetadata,
     DocumentMetadataFilter,
     DocumentChunk,
-    Query,
     QueryWithEmbedding,
     Source,
 )
@@ -164,7 +163,7 @@ async def test_reload(milvus_datastore, document_chunk_one, document_chunk_two):
     assert 3 == milvus_datastore.col.num_entities
     new_store = MilvusDataStore()
     another_in = {i:document_chunk_two[i] for i in document_chunk_two if i!=res[0]}
-    res = await new_store._upsert(another_in)
+    await new_store._upsert(another_in)
     new_store.col.flush()
     assert 6 == new_store.col.num_entities
     query = QueryWithEmbedding(

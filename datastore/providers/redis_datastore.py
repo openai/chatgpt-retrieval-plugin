@@ -182,7 +182,6 @@ class RedisDataStore(DataStore):
         Returns:
             RediSearchQuery: Query for RediSearch.
         """
-        query_str: str = ""
         filter_str: str = ""
 
         # RediSearch field type to query string

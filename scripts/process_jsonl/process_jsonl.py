@@ -1,9 +1,8 @@
-import uuid
 import json
 import argparse
 import asyncio
 
-from models.models import Document, DocumentMetadata, Source
+from models.models import Document, DocumentMetadata
 from datastore.datastore import DataStore
 from datastore.factory import get_datastore
 from services.extract_metadata import extract_metadata_from_document

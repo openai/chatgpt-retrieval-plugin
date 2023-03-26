@@ -261,7 +261,7 @@ class ZillizDataStore(DataStore):
 
             filter = None
             # Set the filter to expression that is valid for Zilliz
-            if query.filter != None:
+            if query.filter is not None:
                 # Either a valid filter or None will be returned
                 filter = self._get_filter(query.filter)
 
@@ -338,7 +338,7 @@ class ZillizDataStore(DataStore):
         delete_count = 0
 
         # Check if empty ids
-        if ids != None:
+        if ids is not None:
             if len(ids) != 0:
                 # Add quotation marks around the string format id
                 ids = ['"' + str(id) + '"' for id in ids]
@@ -354,7 +354,7 @@ class ZillizDataStore(DataStore):
                     delete_count += int(res.delete_count)  # type: ignore
 
         # Check if empty filter
-        if filter != None:
+        if filter is not None:
             # Convert filter to Zilliz expression
             filter = self._get_filter(filter)  # type: ignore
             # Check if there is anything to filter

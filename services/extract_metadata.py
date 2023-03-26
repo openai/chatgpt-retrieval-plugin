@@ -32,7 +32,7 @@ def extract_metadata_from_document(text: str) -> Dict[str, str]:
 
     try:
         metadata = json.loads(completion)
-    except:
+    except json.JSONDecodeError:
         metadata = {}
 
     return metadata

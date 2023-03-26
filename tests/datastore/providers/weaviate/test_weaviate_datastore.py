@@ -131,7 +131,7 @@ def caplog(caplog: LogCaptureFixture):
 
 
 @pytest.mark.parametrize(
-    "document_id", [("abc_123"), ("9a253e0b-d2df-5c2e-be6d-8e9b1f4ae345")]
+    "document_id", ["abc_123", "9a253e0b-d2df-5c2e-be6d-8e9b1f4ae345"]
 )
 def test_upsert(weaviate_client, document_id):
     weaviate_client.schema.delete_all()
