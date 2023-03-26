@@ -271,11 +271,12 @@ To set up Chroma and start using it as your vector database provider, you need t
 
 **Chroma Datastore Environment Variables**
 
-| Name                | Required | Description                                                 | Default            |
-| ------------------- | -------- | ----------------------------------------------------------- | ------------------ |
-| `CHROMA_HOST`       | Optional | Your Chroma instance host address (see notes below)         | `http://127.0.0.1` |
-| `CHROMA_PORT`       | Optional | Your Chroma port number                                     | 8000               |
-| `CHROMA_COLLECTION` | Optional | Your chosen Chroma collection name to store your embeddings | OpenAIEmbeddings   |
+| Name                | Required | Description                                                                                      | Default            |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------------ | ------------------ |
+| `CHROMA_IN_MEMORY`  | Optional | If set to True, ignore `CHROMA_HOST` and `CHROMA_PORT` and just use an in-memory Chroma instance | False              |
+| `CHROMA_HOST`       | Optional | Your Chroma instance host address (see notes below)                                              | `http://127.0.0.1` |
+| `CHROMA_PORT`       | Optional | Your Chroma port number                                                                          | 8000               |
+| `CHROMA_COLLECTION` | Optional | Your chosen Chroma collection name to store your embeddings                                      | OpenAIEmbeddings   |
 
 > For **self-hosted instances**, if your instance is not at 127.0.0.1:8000, set `CHROMA_HOST` and `CHROMA_PORT` accordingly. For example: `CHROMA_HOST=http://localhost/` and `CHROMA_PORT=8080`.
 

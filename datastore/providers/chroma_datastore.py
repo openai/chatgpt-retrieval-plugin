@@ -19,6 +19,7 @@ from models.models import (
     QueryWithEmbedding,
 )
 
+CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "False")
 CHROMA_HOST = os.environ.get("CHROMA_HOST", "http://127.0.0.1")
 CHROMA_PORT = os.environ.get("CHROMA_PORT", "8000")
 CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "OpenAIEmbeddings")
@@ -26,7 +27,10 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "OpenAIEmbeddings")
 
 class ChromaDataStore(DataStore):
     def __init__(self):
-        self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
+        if CHROMA_IN_MEMORY == "True":
+            self.client = chromadb.Client()
+        else:
+            self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
         self.collection = self.client.create_collection(
             name=CHROMA_COLLECTION, embedding_function=None
         )
