@@ -139,7 +139,7 @@ class MilvusDataStore(DataStore):
             ].index({"host": MILVUS_HOST, "port": MILVUS_PORT})
             self.alias = connections.list_connections()[i][0]
         except ValueError:
-            # Connect to the Milvus instance using the passed in Enviroment variables
+            # Connect to the Milvus instance using the passed in Environment variables
             self.alias = uuid4().hex
             connections.connect(
                 alias=self.alias,
@@ -160,7 +160,7 @@ class MilvusDataStore(DataStore):
         )
 
     def _create_collection(self, create_new: bool) -> None:
-        """Create a collection based on enviroment and passed in variables.
+        """Create a collection based on environment and passed in variables.
 
         Args:
             create_new (bool): Whether to overwrite if collection already exists.
