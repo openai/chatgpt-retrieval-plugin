@@ -133,7 +133,7 @@ class ZillizDataStore(DataStore):
 
         # Check if the collection doesnt exist
         if utility.has_collection(ZILLIZ_COLLECTION, using=self.alias) is False:
-            # If it doesnt exist use the field params from init to create a new schem
+            # If it doesnt exist use the field params from init to create a new schema
             schema = [field[1] for field in SCHEMA]
             schema = CollectionSchema(schema)
             # Use the schema to create a new collection
@@ -201,7 +201,7 @@ class ZillizDataStore(DataStore):
                     print(f"Error upserting batch: {e}")
                     raise e
 
-        # This setting perfoms flushes after insert. Small insert == bad to use
+        # This setting performs flushes after insert. Small insert == bad to use
         # self.col.flush()
 
         return doc_ids
@@ -321,7 +321,7 @@ class ZillizDataStore(DataStore):
 
         Args:
             ids (Optional[List[str]], optional): The document_ids to delete. Defaults to None.
-            filter (Optional[DocumentMetadataFilter], optional): The filter to delet by. Defaults to None.
+            filter (Optional[DocumentMetadataFilter], optional): The filter to delete by. Defaults to None.
             delete_all (Optional[bool], optional): Whether to drop the collection and recreate it. Defaults to None.
         """
         # If deleting all, drop and create the new collection
@@ -350,7 +350,7 @@ class ZillizDataStore(DataStore):
                 if len(ids) != 0:
                     # Delete the entries for each pk
                     res = self.col.delete(f"pk in [{','.join(ids)}]")
-                    # Incremet our deleted count
+                    # Increment our deleted count
                     delete_count += int(res.delete_count)  # type: ignore
 
         # Check if empty filter
@@ -370,7 +370,7 @@ class ZillizDataStore(DataStore):
                     # Increment our delete count
                     delete_count += int(res.delete_count)  # type: ignore
 
-        # This setting perfoms flushes after delete. Small delete == bad to use
+        # This setting performs flushes after delete. Small delete == bad to use
         # self.col.flush()
 
         return True
