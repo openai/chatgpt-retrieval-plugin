@@ -23,7 +23,7 @@ from models.models import (
 CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "False")
 CHROMA_HOST = os.environ.get("CHROMA_HOST", "http://127.0.0.1")
 CHROMA_PORT = os.environ.get("CHROMA_PORT", "8000")
-CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "OpenAIEmbeddings")
+CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "openaiembeddings")
 
 
 class ChromaDataStore(DataStore):
