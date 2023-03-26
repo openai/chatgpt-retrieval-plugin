@@ -491,6 +491,40 @@ Environment Variables:
 | `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
 | `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
 
+#### Postgres
+
+You can use Postgres as a vector database with the [pgvector](https://github.com/pgvector/pgvector) extension.
+
+- You can use a local Postgres instance or visit [Neon](https://neon.tech/) to create a managed serverless Postgres instance.
+- You will need to add your Postgres connection string `export DATABSE_URL=<connection_string>`.
+- The app creates the `vector` and `uuid-ossp` extensions along with the `documents` table.
+- You can also run the following SQL queries manually and remove from the constructor:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS documents (
+  id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::TEXT,
+  source TEXT,
+  source_id TEXT,
+  content TEXT,
+  document_id TEXT,
+  author TEXT,
+  url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  embedding VECTOR(1536)
+```
+
+Environment Variables:
+
+| Name             | Required | Description                       | Default |
+| ---------------- | -------- | --------------------------------- | ------- |
+| `DATASTORE`      | Yes      | Datastore name, set to `postgres` |         |
+| `BEARER_TOKEN`   | Yes      | Secret token                      |         |
+| `OPENAI_API_KEY` | Yes      | OpenAI API key                    |         |
+| `DATABASE_URL`   | Yes      | Postgres connection string        |         |
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:

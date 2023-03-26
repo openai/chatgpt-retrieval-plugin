@@ -1,6 +1,8 @@
 from datastore.datastore import DataStore
 import os
 
+from datastore.providers.postgres_datastore import PostgresDataStore
+
 
 async def get_datastore() -> DataStore:
     datastore = os.environ.get("DATASTORE")
@@ -31,5 +33,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
             return QdrantDataStore()
+        case "postgres":
+            from datastore.providers.postgres_datastore import PostgresDataStore
+
+            return PostgresDataStore()
         case _:
             raise ValueError(f"Unsupported vector database: {datastore}")
+        
