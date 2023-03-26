@@ -48,6 +48,11 @@ class ChromaDataStore(DataStore):
         """
         self.collection.add(
             ids=[chunk.id for chunk_list in chunks.values() for chunk in chunk_list],
+            embeddings=[
+                chunk.embedding
+                for chunk_list in chunks.values()
+                for chunk in chunk_list
+            ],
             documents=[
                 chunk.text for chunk_list in chunks.values() for chunk in chunk_list
             ],
