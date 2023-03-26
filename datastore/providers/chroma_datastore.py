@@ -8,9 +8,11 @@ Consult the Chroma docs and GitHub repo for more information:
 """
 
 import os
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import chromadb
+from chromadb.api.models import Collection
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -27,11 +29,17 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "openaiembeddings")
 
 
 class ChromaDataStore(DataStore):
-    def __init__(self):
-        if CHROMA_IN_MEMORY == "True":
-            self.client = chromadb.Client()
+    def __init__(
+        self,
+        client: Optional[chromadb.Client] = None,
+    ):
+        if client:
+            self.client = client
         else:
-            self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
+            if CHROMA_IN_MEMORY == "True":
+                self.client = chromadb.Client()
+            else:
+                self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
         self.collection = self.client.create_collection(
             name=CHROMA_COLLECTION, embedding_function=None
         )
