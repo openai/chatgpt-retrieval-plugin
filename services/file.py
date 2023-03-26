@@ -100,7 +100,7 @@ async def extract_text_from_form_file(file: UploadFile):
 
     temp_file_path = "/tmp/temp_file"
 
-    # write the file to a temporary locatoin
+    # write the file to a temporary location
     with open(temp_file_path, "wb") as f:
         f.write(file_stream)
 

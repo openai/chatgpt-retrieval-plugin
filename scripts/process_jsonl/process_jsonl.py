@@ -116,7 +116,7 @@ async def main():
         "--screen_for_pii",
         default=False,
         type=bool,
-        help="A boolean flag to indicate whether to try to the PII detection function (using a language model)",
+        help="A boolean flag to indicate whether to try the PII detection function (using a language model)",
     )
     parser.add_argument(
         "--extract_metadata",
