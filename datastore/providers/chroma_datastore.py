@@ -65,6 +65,7 @@ class ChromaDataStore(DataStore):
                 for chunk in chunk_list
             ],
         )
+        return list(chunks.keys())
 
     def _where_from_query_filter(self, query_filter: DocumentMetadataFilter) -> Dict:
         output = {
