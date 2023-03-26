@@ -61,30 +61,37 @@ class PulsarMessageQueue(MessageQueue):
         for _doc in documents:
             try:
                 _metadata = _doc.metadata
-                metadata = DocumentMetadata(source=Source(_metadata.source), source_id=_metadata.source_id,
-                                            url=_metadata.url,
-                                            created_at=_metadata.created_at, author=_metadata.author)
-                doc = DocumentSchema(id=_doc.id, text=_doc.text, metadata=metadata)
+                if _metadata:
+                    metadata = DocumentMetadata(source=Source(_metadata.source), source_id=_metadata.source_id,
+                                                url=_metadata.url,
+                                                created_at=_metadata.created_at, author=_metadata.author)
+                    doc = DocumentSchema(id=_doc.id, text=_doc.text, metadata=metadata)
+                else:
+                    doc = DocumentSchema(id=_doc.id, text=_doc.text, metadata=DocumentMetadata())
                 producer.send(doc)
                 success_produce_docs.append(_doc)
             except Exception as e:
                 logger.error(f"Produce doc {_doc.text} error {e}")
         return success_produce_docs
 
-    async def consume(self, callback: Callable, *args, **kwargs):
-        async def _consume():
-            while True:
-                msg = consumer.receive()
-                try:
-                    _doc = msg.value()
-                    doc = Document(id=_doc.id, text=_doc.text, metadata=_doc.metadata.__dict__)
-                    await callback([doc], *args, **kwargs)
-                    consumer.acknowledge(msg)
-                except Exception as e:
-                    logger.error(f"Consume msg error {e}")
-                    consumer.negative_acknowledge(msg)
+    async def consume_loop_helper(self, callback: Callable, *args, **kwargs):
+        msg = consumer.receive()
+        try:
+            _doc = msg.value()
+            doc = Document(id=_doc.id, text=_doc.text, metadata=_doc.metadata.__dict__)
+            await callback([doc], *args, **kwargs)
+            consumer.acknowledge(msg)
+        except Exception as e:
+            logger.error(f"Consume msg error {e}")
+            consumer.negative_acknowledge(msg)
 
-        threading.Thread(target=asyncio.run, args=(_consume(),), name="pulsar-consumer").start()
+    async def consume_loop(self, callback: Callable, *args, **kwargs):
+        while True:
+            await self.consume_loop_helper(callback, *args, **kwargs)
+
+    async def consume(self, callback: Callable, *args, **kwargs):
+        threading.Thread(target=asyncio.run, args=(self.consume_loop(callback, *args, **kwargs),),
+                         name="pulsar-consumer").start()
 
     async def close(self):
         client.close()

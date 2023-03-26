@@ -663,14 +663,14 @@ zstandard = ["zstandard"]
 
 [[package]]
 name = "filelock"
-version = "3.10.5"
+version = "3.10.6"
 description = "A platform independent file lock."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "filelock-3.10.5-py3-none-any.whl", hash = "sha256:bfe2df552f604a333a32e43f666f0ece4ebb489c01fe42c0e8237bf83cde8ba9"},
-    {file = "filelock-3.10.5.tar.gz", hash = "sha256:6c0312de887536b07321e16e6428a580497be288259baa501bf898e39f9486f3"},
+    {file = "filelock-3.10.6-py3-none-any.whl", hash = "sha256:52f119747b2b9c4730dac715a7b1ab34b8ee70fd9259cba158ee53da566387ff"},
+    {file = "filelock-3.10.6.tar.gz", hash = "sha256:409105becd604d6b176a483f855e7e8903c5cb2873e47f2c64f66a370c046aaf"},
 ]
 
 [package.extras]
