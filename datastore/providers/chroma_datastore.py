@@ -11,7 +11,6 @@ import os
 from typing import Dict, List, Optional
 
 import chromadb
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
 from models.models import (
     DocumentChunk,
@@ -27,18 +26,9 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "OpenAIEmbeddings")
 
 class ChromaDataStore(DataStore):
     def __init__(self):
-        embedding_function = OpenAIEmbeddingFunction(
-            api_key=os.getenv("OPENAI_API_KEY")
-        )
-
         self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
-
-        # TODO(csvoss): embedding_function here is not actually used?, since the
-        # parent DataStore class already embeds the documents and passes
-        # QueryWithEmbedding objects to _query. Determine whether this might
-        # result in duplicate calls to the embeddings API?
         self.collection = self.client.create_collection(
-            name=CHROMA_COLLECTION, embedding_function=embedding_function
+            name=CHROMA_COLLECTION, embedding_function=None
         )
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
@@ -85,8 +75,7 @@ class ChromaDataStore(DataStore):
         """
         results = [
             self.collection.query(
-                # TODO(csvoss): should this be query_embeddings instead?
-                query_texts=[query.query],
+                query_embeddings=[query.embedding],
                 include=["documents", "distances"],
                 n_results=query.top_k,
                 where=(
