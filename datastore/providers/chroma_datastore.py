@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 
 import chromadb
 
+from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
     DocumentMetadataFilter,
