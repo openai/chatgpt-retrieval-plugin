@@ -51,7 +51,7 @@ else:
     client = pulsar.Client(PULSAR_BROKER_SERVICE_URL)
 producer = client.create_producer(PULSAR_TOPIC_NAME, schema=AvroSchema(DocumentSchema))
 consumer = client.subscribe(PULSAR_TOPIC_NAME, f'{PULSAR_TOPIC_NAME}-subscription',
-                            consumer_type=ConsumerType.Failover,
+                            consumer_type=ConsumerType.Shared,
                             schema=AvroSchema(DocumentSchema))
 
 
