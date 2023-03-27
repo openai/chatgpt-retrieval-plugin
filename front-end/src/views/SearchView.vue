@@ -20,7 +20,7 @@ const resultData = ref<{
   kb_html: '',
   olh_html: '',
   kb_html_old: '',
-  olh_html_old: '',
+  olh_html_old: ''
 })
 
 const loading = ref(false)
@@ -34,13 +34,28 @@ const onSubmit = async (e: any) => {
     controller = new AbortController()
   }
   loading.value = true
-  fetch('/chatgpt/submit', {
+  fetch('/query', {
     signal: controller.signal,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(formData.value)
+    body: JSON.stringify({
+      queries: [
+        {
+          query: formData.value.searchstring
+          // filter: {
+          //   document_id: 'string',
+          //   source: 'email',
+          //   source_id: 'string',
+          //   author: 'string',
+          //   start_date: 'string',
+          //   end_date: 'string'
+          // },
+          // top_k: 3
+        }
+      ]
+    })
   })
     .then((response) => response.json())
     .then((data) => {
@@ -132,23 +147,30 @@ onMounted(() => {
       </template>
 
       <template v-if="resultData.olh_html">
-        <h2 class="display-8 text-center mb-4">Most Relevant OLH By <span class="text-blue-600">Consine-BM25F</span> </h2>
+        <h2 class="display-8 text-center mb-4">
+          Most Relevant OLH By <span class="text-blue-600">Consine-BM25F</span>
+        </h2>
         <div v-html="resultData.olh_html"></div>
       </template>
       <template v-if="resultData.olh_html_old">
-        <h2 class="display-8 text-center mb-4">Most Relevant OLH By <span class="text-blue-600">Consine Similarity</span></h2>
+        <h2 class="display-8 text-center mb-4">
+          Most Relevant OLH By <span class="text-blue-600">Consine Similarity</span>
+        </h2>
         <div v-html="resultData.olh_html_old"></div>
       </template>
 
       <template v-if="resultData.kb_html">
-        <h2 class="display-8 text-center mb-4">Most Relevant KB By <span class="text-blue-600">Consine-BM25F</span></h2>
+        <h2 class="display-8 text-center mb-4">
+          Most Relevant KB By <span class="text-blue-600">Consine-BM25F</span>
+        </h2>
         <div v-html="resultData.kb_html"></div>
       </template>
       <template v-if="resultData.kb_html_old">
-        <h2 class="display-8 text-center mb-4">Most Relevant KB By <span class="text-blue-600">Consine Similarity</span> </h2>
+        <h2 class="display-8 text-center mb-4">
+          Most Relevant KB By <span class="text-blue-600">Consine Similarity</span>
+        </h2>
         <div v-html="resultData.kb_html_old"></div>
       </template>
-
     </template>
   </main>
 </template>
