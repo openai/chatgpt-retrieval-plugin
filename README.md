@@ -176,11 +176,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
+| Name             | Required | Description                                                                                                                                                                                  |
+| ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, or `pgvector`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                  |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).   |
 
 ### Choosing a Vector Database
 
@@ -495,7 +495,7 @@ Environment Variables:
 
 #### pgvector
 
-Use pgvector to store and search for vectors in a PostgreSQL database. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled.
+pgvector is a PostgreSQL extension that provides fast vector similarity search. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled or use a managed solution that provides pgvector, such as [Supabase](https://supabase.com/), [Neon](https://neon.tech/), [Crunchy Bridge](https://www.crunchydata.com/products/crunchy-bridge), or [bit.io](https://bit.io/).
 
 - For more information about pgvector, visit the [official repository](https://github.com/pgvector/pgvector).
 
@@ -516,12 +516,6 @@ export OPENAI_API_KEY=<your_openai_api_key>
 export PGVECTOR_URL=<your_postgresql_connection_url>
 export PGVECTOR_COLLECTION=<your_pgvector_collection>
 ```
-
-### Running the API with pgvector locally
-
-To run the API locally with pgvector, you first need to set the requisite environment variables with the `export` command:
-
-
 
 ### Running the API locally
 
@@ -580,12 +574,13 @@ Before deploying your app, you might want to remove unused dependencies from you
 
 Here are the packages you can remove for each vector database provider:
 
-- **Pinecone:** Remove `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Weaviate:** Remove `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Zilliz:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Milvus:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Qdrant:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
-- **Redis:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
+- **Pinecone:** Remove `weaviate-client`, `pymilvus`, `qdrant-client`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **Weaviate:** Remove `pinecone-client`, `pymilvus`, `qdrant-client`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **Zilliz:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **Milvus:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **Qdrant:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **Redis:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, `redis`, `sqlalchemy`, `pgvector`, and `psycopg2`.
+- **pgvecto:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
 
 After removing the unnecessary packages from the `pyproject.toml` file, you don't need to run `poetry lock` and `poetry install` manually. The provided Dockerfile takes care of installing the required dependencies using the `requirements.txt` file generated by the `poetry export` command.
 
