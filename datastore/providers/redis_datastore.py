@@ -40,7 +40,10 @@ assert REDIS_INDEX_TYPE in ("FLAT", "HNSW")
 VECTOR_DIMENSION = 1536
 
 # RediSearch constants
-REDIS_REQUIRED_MODULES = ("search", "ReJSON")
+REDIS_REQUIRED_MODULES = [
+    {"name": "search", "ver": 20600},
+    {"name": "ReJSON", "ver": 20404}
+]
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
 REDIS_SEARCH_SCHEMA = {
     "document_id": TagField("$.document_id", as_name="document_id"),
@@ -57,7 +60,6 @@ REDIS_SEARCH_SCHEMA = {
             "TYPE": "FLOAT64",
             "DIM": VECTOR_DIMENSION,
             "DISTANCE_METRIC": REDIS_DISTANCE_METRIC,
-            "INITIAL_CAP": 500,
         },
         as_name="embedding",
     ),
@@ -71,11 +73,16 @@ def unpack_schema(d: dict):
         else:
             yield v
 
-
-async def _check_redis_module_exist(client: redis.Redis, modules: List[str]) -> bool:
-    installed_modules = (await client.info()).get("modules", {"name": ""})
-    installed_modules = [m["name"] for m in installed_modules]  # type: ignore
-    return all([module in installed_modules for module in modules])
+async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]) -> bool:
+    try:
+        installed_modules = (await client.info()).get("modules", [])
+        installed_modules = {module["name"]: module for module in installed_modules}
+        for module in modules:
+            assert module["name"] in installed_modules
+            assert int(installed_modules[module["name"]]["ver"]) >= int(module["ver"])
+    except:
+        return False
+    return True
 
 
 class RedisDataStore(DataStore):
@@ -105,7 +112,7 @@ class RedisDataStore(DataStore):
 
         if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):  # type: ignore
             raise ValueError(
-                "You must add the search and json modules in Redis Stack. "
+                "You must add the search (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. "
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
             )
 
@@ -340,7 +347,7 @@ class RedisDataStore(DataStore):
         return results
 
     async def _find_keys(self, pattern: str) -> List[str]:
-        return await self.client.keys(pattern=pattern)
+        return [key for key in await self.client.scan_iter(pattern)]
 
     async def delete(
         self,
