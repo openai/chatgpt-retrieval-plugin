@@ -464,7 +464,7 @@ docker run -p "6333:6333" -p "6334:6334" qdrant/qdrant:v1.0.3
 Then, launch the test suite with this command:
 
 ```bash
-pytest ./tests/datastore/providers/test_qdrant_datastore.py
+pytest ./tests/datastore/providers/qdrant/test_qdrant_datastore.py
 ```
 
 #### Redis
