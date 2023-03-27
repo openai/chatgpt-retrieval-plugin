@@ -18,7 +18,6 @@ from models.models import (
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
-# class that implements the DataStore interface for Supabase Datastore provider
 class PostgresDataStore(DataStore):
     def __init__(self):
         self.conn = connect(DATABASE_URL, sslmode='require')
