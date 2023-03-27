@@ -74,7 +74,7 @@ def unpack_schema(d: dict):
 class RedisDataStore(DataStore):
     def __init__(self, client: redis.Redis):
         self.client = client
-        # Init default metadata with sentinal values in case the document written has no metadata
+        # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
             field: "_null_" for field in REDIS_SEARCH_SCHEMA["metadata"]
         }
