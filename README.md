@@ -495,7 +495,7 @@ Environment Variables:
 
 You can use Postgres as a vector database with the [pgvector](https://github.com/pgvector/pgvector) extension.
 
-- You can use a local Postgres instance or visit [Neon](https://neon.tech/) to create a managed serverless Postgres instance.
+- You can use a local Postgres instance or see the list of hosted providers below.
 - You will need to add your Postgres connection string `export DATABSE_URL=<connection_string>`.
 - The app creates the `vector` and `uuid-ossp` extensions along with the `documents` table.
 - You can also run the following SQL queries manually and remove from the constructor:
@@ -524,6 +524,12 @@ Environment Variables:
 | `BEARER_TOKEN`   | Yes      | Secret token                      |         |
 | `OPENAI_API_KEY` | Yes      | OpenAI API key                    |         |
 | `DATABASE_URL`   | Yes      | Postgres connection string        |         |
+
+Hosted providers:
+- [Neon](https://neon.tech/docs/release-notes/2023-02-14)
+- [Supabase](https://supabase.com/docs/guides/database/extensions)
+- [Bit](https://bit.io/)
+- [Crunchy Bridge](https://docs.crunchybridge.com/extensions-and-languages/extensions/)
 
 ### Running the API locally
 
