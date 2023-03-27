@@ -19,7 +19,7 @@ async def get_embeddings(texts: List[str]) -> List[List[float]]:
         Exception: If the OpenAI API call fails.
     """
     # Call the OpenAI API to get the embeddings
-    response = await openai.Embedding.create(
+    response = await openai.Embedding.acreate(
         input=texts, model="text-embedding-ada-002"
     )
 

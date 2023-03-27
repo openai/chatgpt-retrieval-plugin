@@ -1,11 +1,11 @@
-from typing import Dict, List, Optional, Tuple
+import asyncio
 import uuid
-from models.models import Document, DocumentChunk, DocumentChunkMetadata
+from typing import Dict, List, Optional, Tuple
 
 import tiktoken
 
+from models.models import Document, DocumentChunk, DocumentChunkMetadata
 from services.openai import get_embeddings
-import asyncio
 
 # Global variables
 tokenizer = tiktoken.get_encoding(
@@ -182,17 +182,26 @@ async def get_document_chunks(
         return {}
 
     # async tasks to get embeddings for all chunks
+    async def get_embeddings_with_indices(
+        chunks: List[str], start_index: int
+    ) -> List[Tuple[int, List[float]]]:
+        embeddings = await get_embeddings(chunks)
+        return [(i + start_index, emb) for i, emb in enumerate(embeddings)]
+
     tasks = [
-        get_embeddings(all_chunks[i : i + EMBEDDINGS_BATCH_SIZE].text)
+        get_embeddings_with_indices(
+            [chunk.text for chunk in all_chunks[i : i + EMBEDDINGS_BATCH_SIZE]],
+            i,
+        )
         for i in range(0, len(all_chunks), EMBEDDINGS_BATCH_SIZE)
     ]
-
     # gather all embeddings
-    embeddings = []
-    for result in await asyncio.gather(*tasks):
-        embeddings.extend(result)
+    embeddings_with_indices = [
+        emb for result in await asyncio.gather(*tasks) for emb in result
+    ]
 
-    for i, chunk in enumerate(all_chunks):
-        chunk.embedding = embeddings[i]
+    # Assign embeddings to the corresponding chunks
+    for index, embedding in embeddings_with_indices:
+        all_chunks[index].embedding = embedding
 
     return chunks
