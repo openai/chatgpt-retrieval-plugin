@@ -170,9 +170,9 @@ class MilvusDataStore(DataStore):
         if utility.has_collection(MILVUS_COLLECTION, using=self.alias) and create_new:
             utility.drop_collection(MILVUS_COLLECTION, using=self.alias)
 
-        # Check if the collection doesnt exist
+        # Check if the collection doesn't exist
         if utility.has_collection(MILVUS_COLLECTION, using=self.alias) is False:
-            # If it doesnt exist use the field params from init to create a new schem
+            # If it doesn't exist use the field params from init to create a new schema
             schema = [field[1] for field in SCHEMA]
             schema = CollectionSchema(schema)
             # Use the schema to create a new collection
@@ -267,7 +267,7 @@ class MilvusDataStore(DataStore):
                     print(f"Error upserting batch: {e}")
                     raise e
 
-        # This setting perfoms flushes after insert. Small insert == bad to use
+        # This setting performs flushes after insert. Small insert == bad to use
         # self.col.flush()
 
         return doc_ids
@@ -451,7 +451,7 @@ class MilvusDataStore(DataStore):
             Optional[str]: The filter if valid, otherwise None.
         """
         filters = []
-        # Go through all the fields and thier values
+        # Go through all the fields and their values
         for field, value in filter.dict().items():
             # Check if the Value is empty
             if value is not None:
