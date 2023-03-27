@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, Index, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.future import select
+from sqlalchemy.future import select, delete
 from sqlalchemy.orm import sessionmaker
 
 from datastore.datastore import DataStore
@@ -100,10 +100,10 @@ class PgVectorDataStore(DataStore):
         delete_all: Optional[bool] = None,
     ) -> bool:
         with self.session_factory() as session:
-            stmt = select(VectorDocument)
+            stmt = delete(VectorDocument)
 
             if ids:
-                stmt = stmt.where(VectorDocument.id.in_(ids))
+                stmt = stmt.where(VectorDocument.document_id.in_(ids))
 
             if filter and filter.document_id:
                 stmt = stmt.where(VectorDocument.document_id == filter.document_id)
@@ -111,12 +111,7 @@ class PgVectorDataStore(DataStore):
             if delete_all:
                 stmt = stmt.where(True)
 
-            result = session.execute(stmt)
-            vector_documents = result.scalars().all()
-
-            for vector_document in vector_documents:
-                session.delete(vector_document)
-
+            session.execute(stmt)
             session.commit()
 
         return True
