@@ -471,12 +471,13 @@ pytest ./tests/datastore/providers/qdrant/test_qdrant_datastore.py
 
 #### Redis
 
-Use Redis as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, try [Redis Cloud](https://app.redislabs.com/#/).
+Redis is a real-time data platform that supports a variety of use cases for everyday applications as well as AI/ML workloads. Use Redis as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, try [Redis Cloud](https://app.redislabs.com/#/). See more helpful examples of Redis as a vector database [here](https://github.com/RedisVentures/redis-ai-resources).
 
-- The database needs the RediSearch module (v 2.6 ++), which is included in the self-hosted docker compose above.
+- The database **needs the RediSearch module (>=v2.6) and RedisJSON**, which are included in the self-hosted docker compose above.
 - Run the App with the Redis docker image: `docker compose up -d` in [this dir](/examples/docker/redis/).
 - The app automatically creates a Redis vector search index on the first run. Optionally, create a custom index with a specific name and set it as an environment variable (see below).
 - To enable more hybrid searching capabilities, adjust the document schema [here](/datastore/providers/redis_datastore.py).
+
 
 Environment Variables:
 
