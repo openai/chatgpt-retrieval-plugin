@@ -75,8 +75,24 @@ class PostgresDataStore(DataStore):
                 cur = self.conn.cursor()
                 # Construct the SQL query and data
                 query = """
-                    INSERT INTO documents (id, content, embedding, document_id, source, source_id, url, author, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    MERGE INTO documents d
+                    USING (SELECT %s::text as id, %s::text as content, %s::vector as embedding, %s::text as document_id, 
+                            %s::text as source, %s::text as source_id, %s::text as url, %s::text as author, %s::timestamp with time zone as created_at) 
+                        AS v(id, content, embedding, document_id, source, source_id, url, author, created_at) 
+                    ON d.id = v.id
+                    WHEN MATCHED THEN
+                        UPDATE SET 
+                            content = v.content, 
+                            embedding = v.embedding, 
+                            document_id = v.document_id, 
+                            source = v.source, 
+                            source_id = v.source_id, 
+                            url = v.url, 
+                            author = v.author, 
+                            created_at = v.created_at
+                    WHEN NOT MATCHED THEN
+                        INSERT (id, content, embedding, document_id, source, source_id, url, author, created_at)
+                        VALUES (v.id, v.content, v.embedding, v.document_id, v.source, v.source_id, v.url, v.author, v.created_at);
                 """
 
                 # Execute the query
