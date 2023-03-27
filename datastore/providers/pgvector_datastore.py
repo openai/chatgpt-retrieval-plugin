@@ -1,16 +1,19 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, Index, String, create_engine
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.future import select, delete
+from sqlalchemy import asc, and_
+from sqlalchemy.future import delete
 from sqlalchemy.orm import sessionmaker
 
 from datastore.datastore import DataStore
 from models.models import (
-    Document,
     DocumentChunk,
+    DocumentChunkMetadata,
+    DocumentChunkWithScore,
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
@@ -27,8 +30,9 @@ class VectorDocumentChunk(DataStore):
     __tablename__ = PGVECTOR_COLLECTION
 
     id = Column(String, primary_key=True)
-    document_id = Column(String)
+    document_id = Column(String, index=True)
     text = Column(String)
+    metadata = Column(JSONB)
     embedding = Column(Vector(1536))
 
     # Add a Cosine Distance index for faster querying
@@ -58,6 +62,7 @@ class PgVectorDataStore(DataStore):
                         id=chunk.id,
                         document_id=document_id,
                         text=chunk.text,
+                        metadata=chunk.metadata.dict(),
                         embedding=chunk.embedding,
                     )
                     session.merge(vector_doc)
@@ -70,23 +75,28 @@ class PgVectorDataStore(DataStore):
         with self.session_factory() as session:
             results = []
             for query in queries:
-                query_embedding = query.embedding
-                stmt = (
-                    select(VectorDocumentChunk)
-                    .order_by(VectorDocumentChunk.embedding.cosine_distance(query_embedding))
-                    .limit(query.top_k)
-                )
-                matched_documents = session.execute(stmt)
-                matched_documents = matched_documents.scalars().all()
+                embedding_filter = VectorDocumentChunk.embedding.cosine_distance(query.embedding).label("distance")
 
+                metadata_filter = self._metadata_filter(query.filter)
+                query_filters = and_(embedding_filter, *metadata_filter)
+                
+                query_results = (
+                    session.query(VectorDocumentChunk)
+                    .filter_by(**query_filters)
+                    .order_by(asc("distance"))
+                    .limit(query.top_k)
+                    .all()
+                )
+                
                 # Calculate cosine similarity from cosine distance
                 query_results = [
-                    {
-                        "document_id": doc.document_id,
-                        "text": doc.text,
-                        "score": 1 - doc.embedding.cosine_distance(query_embedding),
-                    }
-                    for doc in matched_documents
+                    DocumentChunkWithScore(
+                        id=doc.id,
+                        text=doc.text,
+                        metadata=DocumentChunkMetadata(**doc.metadata),
+                        score=1 - doc.embedding.cosine_distance(query.embedding),
+                    )
+                    for doc in query_results
                 ]
 
                 results.append(QueryResult(query=query.query, results=query_results))
@@ -105,8 +115,13 @@ class PgVectorDataStore(DataStore):
             if ids:
                 stmt = stmt.where(VectorDocumentChunk.document_id.in_(ids))
 
-            if filter and filter.document_id:
-                stmt = stmt.where(VectorDocumentChunk.document_id == filter.document_id)
+            if filter:
+                stmt_filters = self._metadata_filter(filter)
+            
+                if filter.document_id:
+                    stmt_filters = and_(VectorDocumentChunk.document_id == filter.document_id, *stmt_filters)
+
+            stmt = stmt.where(stmt_filters)
 
             if delete_all:
                 stmt = stmt.where(True)
@@ -115,3 +130,18 @@ class PgVectorDataStore(DataStore):
             session.commit()
 
         return True
+
+    def _metadata_filter(
+        self, filter: Optional[DocumentMetadataFilter] = None
+    ) -> Dict[str, Any]:
+        if filter is None:
+            return {}
+
+        metadata_filter = {}
+
+        # For each field in the MetadataFilter, check if it has a value and add the corresponding filter expression
+        for key, value in filter.dict().items():
+            if value is not None:
+                metadata_filter.append(VectorDocumentChunk.metadata[key].astext == str(value))
+
+        return metadata_filter
