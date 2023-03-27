@@ -187,7 +187,7 @@ The plugin supports several vector database providers, each with different featu
 
 #### Pinecone
 
-[Pinecone](https://www.pinecone.io) is a managed vector database built for speed, scale, and shipping to production sooner. To use Pinecone as your vector database provider, first get an API key by [signing up for an account](https://app.pinecone.io/). You can access your API key from the "API Keys" section in the sidebar of your dashboard.
+[Pinecone](https://www.pinecone.io) is a managed vector database built for speed, scale, and shipping to production sooner. To use Pinecone as your vector database provider, first get an API key by [signing up for an account](https://app.pinecone.io/). You can access your API key from the "API Keys" section in the sidebar of your dashboard. Pinecone also supports hybrid search and at the time of writing is the only datastore to support SPLADE sparse vectors natively.
 
 A full Jupyter notebook walkthrough for the Pinecone flavor of the retrieval plugin can be found [here](https://github.com/openai/chatgpt-retrieval-plugin/blob/main/examples/providers/pinecone/semantic-search.ipynb). There is also a [video walkthrough here](https://youtu.be/hpePPqKxNq8).
 
