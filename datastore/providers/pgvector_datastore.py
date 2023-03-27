@@ -23,7 +23,7 @@ PGVECTOR_COLLECTION = os.getenv("PGVECTOR_COLLECTION", "documents")
 PGVECTOR_URL = os.getenv("PGVECTOR_URL")
 
 
-class VectorDocument(DataStore):
+class VectorDocumentChunk(DataStore):
     __tablename__ = PGVECTOR_COLLECTION
 
     id = Column(String, primary_key=True)
@@ -54,7 +54,7 @@ class PgVectorDataStore(DataStore):
         with self.session_factory() as session:
             for document_id, document_chunks in chunks.items():
                 for chunk in document_chunks:
-                    vector_doc = VectorDocument(
+                    vector_doc = VectorDocumentChunk(
                         id=chunk.id,
                         document_id=document_id,
                         text=chunk.text,
@@ -72,8 +72,8 @@ class PgVectorDataStore(DataStore):
             for query in queries:
                 query_embedding = query.embedding
                 stmt = (
-                    select(VectorDocument)
-                    .order_by(VectorDocument.embedding.cosine_distance(query_embedding))
+                    select(VectorDocumentChunk)
+                    .order_by(VectorDocumentChunk.embedding.cosine_distance(query_embedding))
                     .limit(query.top_k)
                 )
                 matched_documents = session.execute(stmt)
@@ -100,13 +100,13 @@ class PgVectorDataStore(DataStore):
         delete_all: Optional[bool] = None,
     ) -> bool:
         with self.session_factory() as session:
-            stmt = delete(VectorDocument)
+            stmt = delete(VectorDocumentChunk)
 
             if ids:
-                stmt = stmt.where(VectorDocument.document_id.in_(ids))
+                stmt = stmt.where(VectorDocumentChunk.document_id.in_(ids))
 
             if filter and filter.document_id:
-                stmt = stmt.where(VectorDocument.document_id == filter.document_id)
+                stmt = stmt.where(VectorDocumentChunk.document_id == filter.document_id)
 
             if delete_all:
                 stmt = stmt.where(True)
