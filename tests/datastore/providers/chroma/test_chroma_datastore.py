@@ -17,7 +17,9 @@ def chroma_datastore() -> ChromaDataStore:
     client = chromadb.Client()
     return ChromaDataStore(client=client)
 
+
 OUTPUT_DIM = 100
+
 
 @pytest.fixture
 def document_chunk_one():
@@ -138,7 +140,6 @@ def document_chunk_two():
         doc_chunks_2.append(chunk)
 
     return {doc_id_1: doc_chunks_1, doc_id_2: doc_chunks_2}
-
 
 
 @pytest.mark.asyncio

@@ -9,6 +9,7 @@ Consult the Chroma docs and GitHub repo for more information:
 
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import chromadb
@@ -17,6 +18,8 @@ from chromadb.api.models import Collection
 from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
+    DocumentChunkMetadata,
+    DocumentChunkWithScore,
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
@@ -60,7 +63,7 @@ class ChromaDataStore(DataStore):
                 chunk.text for chunk_list in chunks.values() for chunk in chunk_list
             ],
             metadatas=[
-                chunk.metadata.dict()
+                self._process_metadata_for_storage(chunk.metadata)
                 for chunk_list in chunks.values()
                 for chunk in chunk_list
             ],
@@ -73,15 +76,53 @@ class ChromaDataStore(DataStore):
             for (k, v) in query_filter.dict().items()
             if v is not None and k != "start_date" and k != "end_date"
         }
-        if query_filter.start_date:
-            output["created_at"] = {"$gte": query_filter.start_date}
-        if query_filter.end_date:
-            if "created_at" in output:
-                output["created_at"]["$lte"] = query_filter.end_date
-            else:
-                output["created_at"] = {"$lte": query_filter.end_date}
+        if query_filter.start_date and query_filter.end_date:
+            output["$and"] = [
+                {
+                    "created_at": {
+                        "$gte": int(
+                            datetime.fromisoformat(query_filter.start_date).timestamp()
+                        )
+                    }
+                },
+                {
+                    "created_at": {
+                        "$lte": int(
+                            datetime.fromisoformat(query_filter.end_date).timestamp()
+                        )
+                    }
+                },
+            ]
+        elif query_filter.start_date:
+            output["created_at"] = {
+                "$gte": int(datetime.fromisoformat(query_filter.start_date).timestamp())
+            }
+        elif query_filter.end_date:
+            output["created_at"] = {
+                "$lte": int(datetime.fromisoformat(query_filter.end_date).timestamp())
+            }
 
         return output
+
+    def _process_metadata_for_storage(self, metadata: DocumentChunkMetadata) -> Dict:
+        return {
+            "source": metadata.source,
+            "source_id": metadata.source_id,
+            "url": metadata.url,
+            "created_at": int(datetime.fromisoformat(metadata.created_at).timestamp()),
+            "author": metadata.author,
+            "document_id": metadata.document_id,
+        }
+
+    def _process_metadata_from_storage(self, metadata: Dict) -> DocumentChunkMetadata:
+        return DocumentChunkMetadata(
+            source=metadata["source"],
+            source_id=metadata["source_id"],
+            url=metadata["url"],
+            created_at=datetime.fromtimestamp(metadata["created_at"]).isoformat(),
+            author=metadata["author"],
+            document_id=metadata["document_id"],
+        )
 
     async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
         """
@@ -90,7 +131,7 @@ class ChromaDataStore(DataStore):
         results = [
             self.collection.query(
                 query_embeddings=[query.embedding],
-                include=["documents", "distances"],
+                include=["documents", "distances", "metadatas", "embeddings"],
                 n_results=query.top_k,
                 where=(
                     self._where_from_query_filter(query.filter) if query.filter else {}
@@ -99,24 +140,33 @@ class ChromaDataStore(DataStore):
             for query in queries
         ]
 
-        return [
-            QueryResult(
-                query=query.query,
-                results=[
+        output = []
+        for query, result in zip(queries, results):
+            inner_results = []
+            for id_, embedding, text, metadata, distance in zip(
+                result["ids"],
+                result["embeddings"],
+                result["documents"],
+                result["metadatas"],
+                result["distances"],
+            ):
+                (id_,) = id_
+                (embedding,) = embedding
+                (text,) = text
+                (metadata,) = metadata
+                (distance,) = distance
+                inner_results.append(
                     DocumentChunkWithScore(
                         id=id_,
                         text=text,
-                        metadata=metadata,
-                        embedding=query.embedding,
+                        metadata=self._process_metadata_from_storage(metadata),
+                        embedding=embedding,
                         score=distance,
                     )
-                    for id_, text, metadata, distance in zip(
-                        result["documents"], result["metadatas"], result["distances"]
-                    )
-                ],
-            )
-            for (query, result) in zip(queries, results)
-        ]
+                )
+            output.append(QueryResult(query=query.query, results=inner_results))
+
+        return output
 
     async def delete(
         self,
