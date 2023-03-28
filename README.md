@@ -116,17 +116,10 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 5. Create a new virtual environment with Python 3.10: `poetry env use python3.10`
 6. Activate the virtual environment: `poetry shell`
 7. Install app dependencies: `poetry install`
-8. Set the required environment variables:
-
-   ```
-   export DATASTORE=<your_datastore>
-   export BEARER_TOKEN=<your_bearer_token>
-   export OPENAI_API_KEY=<your_openai_api_key>
-   <Add the environment variables for your chosen vector DB here>
-   ```
-
-9. Run the API locally: `poetry run start`
-10. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
+8. Rename the example env file: `mv .env.example .env`
+9. Modify the `.env` file to include your chosen vector database, and your OpenAI API key and bearer token.
+10. Run the API locally: `poetry run start`
+11. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
 
 For more detailed information on setting up, developing, and deploying the ChatGPT Retrieval Plugin, refer to the full Development section below.
 

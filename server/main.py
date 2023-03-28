@@ -15,6 +15,10 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+
 
 app = FastAPI()
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
