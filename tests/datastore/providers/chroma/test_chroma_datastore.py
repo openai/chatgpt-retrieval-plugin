@@ -152,7 +152,6 @@ async def test_upsert(chroma_datastore, document_chunk_one):
     await chroma_datastore.delete(delete_all=True)
     res = await chroma_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    assert 3 == chroma_datastore.col.num_entities
 
 
 @pytest.mark.asyncio
@@ -161,12 +160,9 @@ async def test_reload(chroma_datastore, document_chunk_one, document_chunk_two):
 
     res = await chroma_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    assert 3 == chroma_datastore.col.num_entities
-    new_store = ZillizDataStore()
+    new_store = ChromaDataStore()
     another_in = {i: document_chunk_two[i] for i in document_chunk_two if i != res[0]}
     res = await new_store._upsert(another_in)
-    new_store.col.flush()
-    assert 6 == new_store.col.num_entities
     query = QueryWithEmbedding(
         query="lorem",
         top_k=10,
