@@ -8,7 +8,7 @@ To enable ChatGPT to save information from conversations, follow these steps:
 
 - Copy the contents of [openapi.yaml](openapi.yaml) into the main [openapi.yaml](../../.well-known/openapi.yaml) file.
 
-- Copy the contents of [ai-plugin.json](ai-plugin.json) into the main [ai-plugin.json](../../.well-known/ai-plugin.json) file.
+- Copy the contents of [ai-plugin.json](../../examples/authentication-methods/service-http/ai-plugin.json) into the main [ai-plugin.json](../../.well-known/ai-plugin.json) file.
 
 **Optional:** If you make any changes to the plugin instructions or metadata models, you can also copy the contents of [main.py](main.py) into the main [main.py](../../server/main.py) file. This will allow you to access the openapi.json at `http://0.0.0.0:8000/sub/openapi.json` when you run the app locally. You can convert from JSON to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the openapi.yaml file with an openapi.json file.
 
