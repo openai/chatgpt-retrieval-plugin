@@ -82,7 +82,9 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
             chunks.append(chunk_text_to_append)
 
         # Remove the tokens corresponding to the chunk text from the remaining tokens
-        tokens = tokens[len(tokenizer.encode(chunk_text, disallowed_special=())) :]
+        pos = truncate_pos(tokens, tokenizer.encode(chunk_text, disallowed_special=()))
+        # it's impossible that pos == 0, so not handle this case here
+        tokens = tokens[pos:]
 
         # Increment the number of chunks
         num_chunks += 1
@@ -94,6 +96,23 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
             chunks.append(remaining_text)
 
     return chunks
+
+def truncate_pos(tokens: list[int], sub_tokens: list[int]) -> int:
+    """
+    Truncate the tokens list to the length of the sub_tokens list.
+    Because the tokens of the subtext may be different from the original text, when truncating tokens, keep different tokens to avoid losing some keywords.
+    Case: text = 'refer table: data_lens.employee_information,refer table: data_lens.employee_information'
+
+    Args:
+        tokens: The list of tokens to truncate.
+        sub_tokens: The list of sub-tokens to truncate to.
+    """
+     # Get the position to truncate
+    truncate_pos = len(sub_tokens)
+    while tokens[truncate_pos-1] != sub_tokens[truncate_pos-1] and truncate_pos > 0:
+        truncate_pos -= 1
+
+    return truncate_pos
 
 
 def create_document_chunks(
