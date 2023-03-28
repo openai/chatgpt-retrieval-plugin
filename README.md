@@ -352,6 +352,27 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 [AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
 
+
+#### Elasticsearch
+
+Elasticsearch currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. This allows users to perform an exact kNN search by scanning all documents. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets.
+
+Note: 
+- Elasticsearch does not support vectors with dimensions > 1023 due to the Lucene implementation. See [Lucene Issue 11507](https://github.com/apache/lucene/issues/11507) and [Lucene Issue 854](https://github.com/apache/lucene/issues/854) for updates on this issue.
+
+Environment Variables:
+
+| Name                    | Required | Description                                                                                                            | Default                 |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `DATASTORE`             | Yes      | Datastore name, set to `elasticsearch`                                                                                 |                         |
+| `BEARER_TOKEN`          | Yes      | Secret token                                                                                                           |                         |
+| `OPENAI_API_KEY`        | Yes      | OpenAI API key                                                                                                         |                         |
+| `ELASTICSEARCH_URL`     | Optional | Elasticsearch host and port                                                                                            | `http://localhost:9200` |
+| `ELASTICSEARCH_INDEX`   | Optional | Elasticsearch vector index name                                                                                        | `document_chunks`       |
+| `ELASTICSEARCH_REPLICAS`| Optional | Elasticsearch replicas for index creation                                                                              | `2`                     |
+| `ELASTICSEARCH_SHARDS`  | Optional | Elasticsearch shards for index creation                                                                                | `2`                     |
+
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
