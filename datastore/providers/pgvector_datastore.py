@@ -4,10 +4,9 @@ from typing import Dict, List, Optional, Any
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, Index, String, create_engine
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import asc, and_
-from sqlalchemy.future import delete
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import delete
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -26,13 +25,13 @@ PGVECTOR_COLLECTION = os.getenv("PGVECTOR_COLLECTION", "documents")
 PGVECTOR_URL = os.getenv("PGVECTOR_URL")
 
 
-class VectorDocumentChunk(DataStore):
+class VectorDocumentChunk(Base):
     __tablename__ = PGVECTOR_COLLECTION
 
     id = Column(String, primary_key=True)
     document_id = Column(String, index=True)
     text = Column(String)
-    metadata = Column(JSONB)
+    metadata_ = Column("metadata", JSONB)
     embedding = Column(Vector(1536))
 
     # Add a Cosine Distance index for faster querying
@@ -62,7 +61,7 @@ class PgVectorDataStore(DataStore):
                         id=chunk.id,
                         document_id=document_id,
                         text=chunk.text,
-                        metadata=chunk.metadata.dict(),
+                        metadata_=chunk.metadata.dict(),
                         embedding=chunk.embedding,
                     )
                     session.merge(vector_doc)
@@ -142,6 +141,6 @@ class PgVectorDataStore(DataStore):
         # For each field in the MetadataFilter, check if it has a value and add the corresponding filter expression
         for key, value in filter.dict().items():
             if value is not None:
-                metadata_filter.append(VectorDocumentChunk.metadata[key].astext == str(value))
+                metadata_filter.append(VectorDocumentChunk.metadata_[key].astext == str(value))
 
         return metadata_filter
