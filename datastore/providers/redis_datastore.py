@@ -71,9 +71,10 @@ def unpack_schema(d: dict):
         else:
             yield v
 
+
 async def _check_redis_module_exist(client: redis.Redis, modules: List[str]) -> bool:
     installed_modules = (await client.info()).get("modules", {"name": ""})
-    installed_modules = [m["name"] for m in installed_modules]
+    installed_modules = [m["name"] for m in installed_modules]  # type: ignore
     return all([module in installed_modules for module in modules])
 
 
@@ -102,7 +103,7 @@ class RedisDataStore(DataStore):
             logging.error(f"Error setting up Redis: {e}")
             raise e
 
-        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):
+        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):  # type: ignore
             raise ValueError(
                 "You must add the search and json modules in Redis Stack. "
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
@@ -194,7 +195,6 @@ class RedisDataStore(DataStore):
         Returns:
             RediSearchQuery: Query for RediSearch.
         """
-        query_str: str = ""
         filter_str: str = ""
 
         # RediSearch field type to query string
@@ -368,7 +368,9 @@ class RedisDataStore(DataStore):
             # TODO - extend this to work with other metadata filters?
             if filter.document_id:
                 try:
-                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{filter.document_id}:*")
+                    keys = await self._find_keys(
+                        f"{REDIS_DOC_PREFIX}:{filter.document_id}:*"
+                    )
                     await self._redis_delete(keys)
                     logging.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
@@ -382,7 +384,9 @@ class RedisDataStore(DataStore):
                 keys = []
                 # find all keys associated with the document ids
                 for document_id in ids:
-                    doc_keys = await self._find_keys(pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*")
+                    doc_keys = await self._find_keys(
+                        pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*"
+                    )
                     keys.extend(doc_keys)
                 # delete all keys
                 logging.info(f"Deleting {len(keys)} keys from Redis")
