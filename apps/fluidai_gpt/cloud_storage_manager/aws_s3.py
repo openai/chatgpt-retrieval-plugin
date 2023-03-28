@@ -5,6 +5,7 @@ from botocore.exceptions import ClientError
 import logging
 from apps.fluidai_gpt.models import CloudDownloadMetadata, CloudUploadMetadata, CloudDataMetadata
 
+# For instantiating an AWS StorageManager
 class AWS_S3(StorageManager):
     def __init__(self):
 

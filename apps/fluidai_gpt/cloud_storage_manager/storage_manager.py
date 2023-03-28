@@ -6,9 +6,10 @@ from abc import abstractmethod
 from apps.fluidai_gpt.models import CloudDownloadMetadata, CloudUploadMetadata, CloudDataMetadata
 
 
+# Abstract Base Class for StorageManager
 class StorageManager:
     @abstractmethod
-    def __init__(self, server_name):
+    def __init__(self):
         pass
 
     @abstractmethod
@@ -38,7 +39,8 @@ class StorageManager:
     @abstractmethod
     def delete_folder(self, cloud_folder_path):
         pass
-
+    
+    # Static method to generate file buffer
     @staticmethod
     def generate_file_buffer(data, file_name):
         if os.path.splitext(file_name)[-1] == '.pdf':

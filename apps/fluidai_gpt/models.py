@@ -42,6 +42,3 @@ class CloudDownloadMetadata(BaseModel):
 class CloudDataMetadata(BaseModel):
     cloud_file_path: str
     file_buffer: str
-
-
-
