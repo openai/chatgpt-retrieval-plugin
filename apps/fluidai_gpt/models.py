@@ -28,3 +28,20 @@ class PassageMetadata(BaseModel):
 class QueryResult(BaseModel):
     query: str
     result: str
+
+class CloudUploadMetadata(BaseModel):
+    destination_path: str
+    upload_file_path: Optional[str] = None
+    data_to_upload: Optional[str] = None
+    upload_file_name: Optional[str] = None
+
+class CloudDownloadMetadata(BaseModel):
+    destination_path: str
+    file_path: str
+
+class CloudDataMetadata(BaseModel):
+    cloud_file_path: str
+    file_buffer: str
+
+
+
