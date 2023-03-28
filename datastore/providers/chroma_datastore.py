@@ -23,6 +23,7 @@ from models.models import (
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
+    Source,
 )
 
 CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "False")
@@ -44,7 +45,8 @@ class ChromaDataStore(DataStore):
             else:
                 self.client = chromadb.Client(
                     settings=chromadb.config.Settings(
-                        chroma_server_host=CHROMA_HOST, chroma_server_http_port=CHROMA_PORT
+                        chroma_server_host=CHROMA_HOST,
+                        chroma_server_http_port=CHROMA_PORT,
                     )
                 )
         self.collection = self.client.create_collection(
@@ -78,8 +80,9 @@ class ChromaDataStore(DataStore):
         output = {
             k: v
             for (k, v) in query_filter.dict().items()
-            if v is not None and k != "start_date" and k != "end_date"
+            if v is not None and k != "start_date" and k != "end_date" and k != "source"
         }
+        output["source"] = query_filter.source.value
         if query_filter.start_date and query_filter.end_date:
             output["$and"] = [
                 {
@@ -110,7 +113,7 @@ class ChromaDataStore(DataStore):
 
     def _process_metadata_for_storage(self, metadata: DocumentChunkMetadata) -> Dict:
         return {
-            "source": metadata.source,
+            "source": metadata.source.value,
             "source_id": metadata.source_id,
             "url": metadata.url,
             "created_at": int(datetime.fromisoformat(metadata.created_at).timestamp()),
@@ -120,7 +123,7 @@ class ChromaDataStore(DataStore):
 
     def _process_metadata_from_storage(self, metadata: Dict) -> DocumentChunkMetadata:
         return DocumentChunkMetadata(
-            source=metadata["source"],
+            source=Source(metadata["source"]),
             source_id=metadata["source_id"],
             url=metadata["url"],
             created_at=datetime.fromtimestamp(metadata["created_at"]).isoformat(),
@@ -147,11 +150,11 @@ class ChromaDataStore(DataStore):
         output = []
         for query, result in zip(queries, results):
             inner_results = []
-            ids, = result["ids"]
-            embeddings, = result["embeddings"]
-            documents, = result["documents"]
-            metadatas, = result["metadatas"]
-            distances, = result["distances"]
+            (ids,) = result["ids"]
+            (embeddings,) = result["embeddings"]
+            (documents,) = result["documents"]
+            (metadatas,) = result["metadatas"]
+            (distances,) = result["distances"]
             for id_, embedding, text, metadata, distance in zip(
                 ids, embeddings, documents, metadatas, distances
             ):
