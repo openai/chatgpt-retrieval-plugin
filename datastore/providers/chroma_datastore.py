@@ -42,7 +42,11 @@ class ChromaDataStore(DataStore):
             if CHROMA_IN_MEMORY == "True":
                 self.client = chromadb.Client()
             else:
-                self.client = chromadb.Client(host=CHROMA_HOST, port=CHROMA_PORT)
+                self.client = chromadb.Client(
+                    settings=chromadb.config.Settings(
+                        chroma_server_host=CHROMA_HOST, chroma_server_http_port=CHROMA_PORT
+                    )
+                )
         self.collection = self.client.create_collection(
             name=CHROMA_COLLECTION, embedding_function=None
         )
