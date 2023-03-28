@@ -494,6 +494,27 @@ Environment Variables:
 | `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
 | `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
 
+
+#### Elasticsearch
+
+Elasticsearch currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. This allows users to perform an exact kNN search by scanning all documents. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets.
+
+Note: 
+- Elasticsearch does not support vectors with dimensions > 1023 due to the Lucene implementation. See [Lucene Issue 11507](https://github.com/apache/lucene/issues/11507) and [Lucene Issue 854](https://github.com/apache/lucene/issues/854) for updates on this issue.
+
+Environment Variables:
+
+| Name                    | Required | Description                                                                                                            | Default                 |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `DATASTORE`             | Yes      | Datastore name, set to `elasticsearch`                                                                                 |                         |
+| `BEARER_TOKEN`          | Yes      | Secret token                                                                                                           |                         |
+| `OPENAI_API_KEY`        | Yes      | OpenAI API key                                                                                                         |                         |
+| `ELASTICSEARCH_URL`     | Optional | Elasticsearch host and port                                                                                            | `http://localhost:9200` |
+| `ELASTICSEARCH_INDEX`   | Optional | Elasticsearch vector index name                                                                                        | `document_chunks`       |
+| `ELASTICSEARCH_REPLICAS`| Optional | Elasticsearch replicas for index creation                                                                              | `2`                     |
+| `ELASTICSEARCH_SHARDS`  | Optional | Elasticsearch shards for index creation                                                                                | `2`                     |
+
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
