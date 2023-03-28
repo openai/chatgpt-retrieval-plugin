@@ -82,7 +82,8 @@ class ChromaDataStore(DataStore):
             for (k, v) in query_filter.dict().items()
             if v is not None and k != "start_date" and k != "end_date" and k != "source"
         }
-        output["source"] = query_filter.source.value
+        if query_filter.source:
+            output["source"] = query_filter.source.value
         if query_filter.start_date and query_filter.end_date:
             output["$and"] = [
                 {
@@ -186,8 +187,19 @@ class ChromaDataStore(DataStore):
             self.collection.delete()
             return True
 
-        self.collection.delete(
-            ids=ids,
-            where=(self._where_from_query_filter(filter) if filter else {}),
-        )
+        if ids and len(ids) > 0:
+            if len(ids) > 1:
+                where_clause = {"$or": [{"document_id": id_} for id_ in ids]}
+            else:
+                (id_,) = ids
+                where_clause = {"document_id": id_}
+
+            if filter:
+                where_clause = {
+                    "$and": [self._where_from_query_filter(filter), where_clause]
+                }
+        elif filter:
+            where_clause = self._where_from_query_filter(filter)
+
+        self.collection.delete(where=where_clause)
         return True
