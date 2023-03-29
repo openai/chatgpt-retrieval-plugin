@@ -104,9 +104,7 @@ class LlamaDataStore(DataStore):
                 for doc_chunk in doc_chunks
             ]
                 
-            # TODO: add node insertion method in LlamaIndex 
-            self._index.docstore.add_documents(nodes)
-            self._index._insert(nodes)
+            self._index.insert_nodes(nodes)
             doc_ids.append(doc_id)
         return doc_ids
 
