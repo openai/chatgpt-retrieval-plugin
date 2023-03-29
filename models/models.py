@@ -10,11 +10,14 @@ class Source(str, Enum):
 
 
 class DocumentMetadata(BaseModel):
-    source: Optional[Source] = None
-    source_id: Optional[str] = None
-    url: Optional[str] = None
-    created_at: Optional[str] = None
-    author: Optional[str] = None
+    name: Optional[str] = None
+    parents: Optional[str] = None
+    mimeType: Optional[str] = None
+    originalFileSource: Optional[str] = None
+    originalOwnersName: Optional[str] = None
+    originalModifiedTime: Optional[str] = None
+    originalOwnersEmail: Optional[str] = None
+    originalCreatedTime: Optional[str] = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):
@@ -43,13 +46,18 @@ class DocumentWithChunks(Document):
 
 
 class DocumentMetadataFilter(BaseModel):
-    document_id: Optional[str] = None
-    source: Optional[Source] = None
-    source_id: Optional[str] = None
-    author: Optional[str] = None
-    start_date: Optional[str] = None  # any date string format
-    end_date: Optional[str] = None  # any date string format
-
+    name: Optional[str] = None
+    parents: Optional[str] = None
+    mimeType: Optional[str] = None
+    originalFileSource: Optional[str] = None
+    originalOwnersName: Optional[str] = None
+    originalModifiedTime: Optional[str] = None
+    originalOwnersEmail: Optional[str] = None
+    originalCreatedTime: Optional[str] = None
+    createdTimeStartDate: Optional[str] = None  # any date string format
+    createdTimeEndDate: Optional[str] = None  # any date string format
+    modifiedTimeStartDate: Optional[str] = None  # any date string format
+    modifiedTimeEndDate: Optional[str] = None  # any date string format
 
 class Query(BaseModel):
     query: str

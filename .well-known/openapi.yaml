@@ -3,8 +3,9 @@ info:
   title: Retrieval Plugin API
   description: A retrieval API for querying and filtering documents based on natural language queries and metadata
   version: 1.0.0
-  servers:
-    - url: https://your-app-url.com
+servers:
+  - url: /sub
+  - url: https://your-app-url.com
 paths:
   /query:
     post:
@@ -15,21 +16,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/QueryRequest"
+              $ref: '#/components/schemas/QueryRequest'
         required: true
       responses:
-        "200":
+        '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/QueryResponse"
-        "422":
+                $ref: '#/components/schemas/QueryResponse'
+        '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HTTPValidationError"
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
 components:
@@ -38,19 +39,29 @@ components:
       title: DocumentChunkMetadata
       type: object
       properties:
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
+        name:
+          title: Name
           type: string
-        url:
-          title: Url
+        parents:
+          title: Parents
           type: string
-        created_at:
-          title: Created At
+        mimeType:
+          title: Mimetype
           type: string
-        author:
-          title: Author
+        originalFileSource:
+          title: Originalfilesource
+          type: string
+        originalOwnersName:
+          title: Originalownersname
+          type: string
+        originalModifiedTime:
+          title: Originalmodifiedtime
+          type: string
+        originalOwnersEmail:
+          title: Originalownersemail
+          type: string
+        originalCreatedTime:
+          title: Originalcreatedtime
           type: string
         document_id:
           title: Document Id
@@ -70,7 +81,7 @@ components:
           title: Text
           type: string
         metadata:
-          $ref: "#/components/schemas/DocumentChunkMetadata"
+          $ref: '#/components/schemas/DocumentChunkMetadata'
         embedding:
           title: Embedding
           type: array
@@ -83,22 +94,41 @@ components:
       title: DocumentMetadataFilter
       type: object
       properties:
-        document_id:
-          title: Document Id
+        name:
+          title: Name
           type: string
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
+        parents:
+          title: Parents
           type: string
-        author:
-          title: Author
+        mimeType:
+          title: Mimetype
           type: string
-        start_date:
-          title: Start Date
+        originalFileSource:
+          title: Originalfilesource
           type: string
-        end_date:
-          title: End Date
+        originalOwnersName:
+          title: Originalownersname
+          type: string
+        originalModifiedTime:
+          title: Originalmodifiedtime
+          type: string
+        originalOwnersEmail:
+          title: Originalownersemail
+          type: string
+        originalCreatedTime:
+          title: Originalcreatedtime
+          type: string
+        createdTimeStartDate:
+          title: Createdtimestartdate
+          type: string
+        createdTimeEndDate:
+          title: Createdtimeenddate
+          type: string
+        modifiedTimeStartDate:
+          title: Modifiedtimestartdate
+          type: string
+        modifiedTimeEndDate:
+          title: Modifiedtimeenddate
           type: string
     HTTPValidationError:
       title: HTTPValidationError
@@ -108,7 +138,7 @@ components:
           title: Detail
           type: array
           items:
-            $ref: "#/components/schemas/ValidationError"
+            $ref: '#/components/schemas/ValidationError'
     Query:
       title: Query
       required:
@@ -119,7 +149,7 @@ components:
           title: Query
           type: string
         filter:
-          $ref: "#/components/schemas/DocumentMetadataFilter"
+          $ref: '#/components/schemas/DocumentMetadataFilter'
         top_k:
           title: Top K
           type: integer
@@ -134,7 +164,7 @@ components:
           title: Queries
           type: array
           items:
-            $ref: "#/components/schemas/Query"
+            $ref: '#/components/schemas/Query'
     QueryResponse:
       title: QueryResponse
       required:
@@ -145,7 +175,7 @@ components:
           title: Results
           type: array
           items:
-            $ref: "#/components/schemas/QueryResult"
+            $ref: '#/components/schemas/QueryResult'
     QueryResult:
       title: QueryResult
       required:
@@ -160,15 +190,7 @@ components:
           title: Results
           type: array
           items:
-            $ref: "#/components/schemas/DocumentChunkWithScore"
-    Source:
-      title: Source
-      enum:
-        - email
-        - file
-        - chat
-      type: string
-      description: An enumeration.
+            $ref: '#/components/schemas/DocumentChunkWithScore'
     ValidationError:
       title: ValidationError
       required:
