@@ -170,9 +170,9 @@ class MilvusDataStore(DataStore):
         if utility.has_collection(MILVUS_COLLECTION, using=self.alias) and create_new:
             utility.drop_collection(MILVUS_COLLECTION, using=self.alias)
 
-        # Check if the collection doesnt exist
+        # Check if the collection doesn't exist
         if utility.has_collection(MILVUS_COLLECTION, using=self.alias) is False:
-            # If it doesnt exist use the field params from init to create a new schem
+            # If it doesn't exist use the field params from init to create a new schema
             schema = [field[1] for field in SCHEMA]
             schema = CollectionSchema(schema)
             # Use the schema to create a new collection
@@ -190,7 +190,7 @@ class MilvusDataStore(DataStore):
 
         # If no index on the collection, create one
         if len(self.col.indexes) == 0:
-            if self.index_params != None:
+            if self.index_params is not None:
                 # Create an index on the 'embedding' field with the index params found in init
                 self.col.create_index("embedding", index_params=self.index_params)
             else:
@@ -215,9 +215,7 @@ class MilvusDataStore(DataStore):
                     print("Creation of Zilliz Cloud default index successful")
         # If an index already exists, grab its params
         else:
-            self.index_params = self.col.indexes[0].to_dict()['index_param']
-            
-
+            self.index_params = self.col.indexes[0].to_dict()["index_param"]
 
         self.col.load()
 
@@ -267,7 +265,7 @@ class MilvusDataStore(DataStore):
                     print(f"Error upserting batch: {e}")
                     raise e
 
-        # This setting perfoms flushes after insert. Small insert == bad to use
+        # This setting performs flushes after insert. Small insert == bad to use
         # self.col.flush()
 
         return doc_ids
@@ -327,7 +325,7 @@ class MilvusDataStore(DataStore):
 
             filter = None
             # Set the filter to expression that is valid for Milvus
-            if query.filter != None:
+            if query.filter is not None:
                 # Either a valid filter or None will be returned
                 filter = self._get_filter(query.filter)
 
@@ -404,7 +402,7 @@ class MilvusDataStore(DataStore):
         delete_count = 0
 
         # Check if empty ids
-        if ids != None:
+        if ids is not None:
             if len(ids) != 0:
                 # Add quotation marks around the string format id
                 ids = ['"' + str(id) + '"' for id in ids]
@@ -420,7 +418,7 @@ class MilvusDataStore(DataStore):
                     delete_count += int(res.delete_count)  # type: ignore
 
         # Check if empty filter
-        if filter != None:
+        if filter is not None:
             # Convert filter to milvus expression
             filter = self._get_filter(filter)  # type: ignore
             # Check if there is anything to filter
@@ -451,7 +449,7 @@ class MilvusDataStore(DataStore):
             Optional[str]: The filter if valid, otherwise None.
         """
         filters = []
-        # Go through all the fields and thier values
+        # Go through all the fields and their values
         for field, value in filter.dict().items():
             # Check if the Value is empty
             if value is not None:

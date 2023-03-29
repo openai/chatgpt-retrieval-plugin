@@ -114,14 +114,14 @@ class ZillizDataStore(DataStore):
             ].index({"address": ZILLIZ_URI, "user": ZILLIZ_USER})
             self.alias = connections.list_connections()[i][0]
         except ValueError:
-            # Connect to the Zilliz instance using the passed in Enviroment variables
+            # Connect to the Zilliz instance using the passed in Environment variables
             self.alias = uuid4().hex
             connections.connect(alias=self.alias, uri=ZILLIZ_URI, user=ZILLIZ_USER, password=ZILLIZ_PASSWORD, secure=ZILLIZ_USE_SECURITY)  # type: ignore
 
         self._create_collection(create_new)  # type: ignore
 
     def _create_collection(self, create_new: bool) -> None:
-        """Create a collection based on enviroment and passed in variables.
+        """Create a collection based on environment and passed in variables.
 
         Args:
             create_new (bool): Whether to overwrite if collection already exists.
@@ -131,9 +131,9 @@ class ZillizDataStore(DataStore):
         if utility.has_collection(ZILLIZ_COLLECTION, using=self.alias) and create_new:
             utility.drop_collection(ZILLIZ_COLLECTION, using=self.alias)
 
-        # Check if the collection doesnt exist
+        # Check if the collection doesn't exist
         if utility.has_collection(ZILLIZ_COLLECTION, using=self.alias) is False:
-            # If it doesnt exist use the field params from init to create a new schema
+            # If it doesn't exist use the field params from init to create a new schema
             schema = [field[1] for field in SCHEMA]
             schema = CollectionSchema(schema)
             # Use the schema to create a new collection
@@ -287,7 +287,7 @@ class ZillizDataStore(DataStore):
                 # Grab the values that correspond to our fields, ignore pk and embedding.
                 for x in [field[0] for field in SCHEMA[2:]]:
                     metadata[x] = hit.entity.get(x)
-                # If the source isnt valid, conver to None
+                # If the source isn't valid, convert to None
                 if metadata["source"] not in Source.__members__:
                     metadata["source"] = None
                 # Text falls under the DocumentChunk
@@ -385,7 +385,7 @@ class ZillizDataStore(DataStore):
             Optional[str]: The filter if valid, otherwise None.
         """
         filters = []
-        # Go through all the fields and thier values
+        # Go through all the fields and their values
         for field, value in filter.dict().items():
             # Check if the Value is empty
             if value is not None:

@@ -182,7 +182,7 @@ async def test_upsert_and_query_all(zilliz_datastore, document_chunk_two):
     assert res == list(document_chunk_two.keys())
     zilliz_datastore.col.flush()
 
-    # Num entities currently doesnt track deletes
+    # Num entities currently doesn't track deletes
     query = QueryWithEmbedding(
         query="lorem",
         top_k=9,

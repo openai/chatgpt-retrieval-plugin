@@ -1,10 +1,7 @@
 # This is a version of the main.py file found in ../../../server/main.py without authentication.
 # Copy and paste this into the main file at ../../../server/main.py if you choose to use no authentication for your retrieval plugin.
-
-import os
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, Depends, Body, UploadFile
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, File, HTTPException, Body, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 from models.api import (
