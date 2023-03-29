@@ -177,13 +177,40 @@ The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                |
 | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `deeplake`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
 
 ### Choosing a Vector Database
 
 The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide detailed information and instructions on using each vector database provider.
+
+#### Deep Lake
+
+[DeepLake](https://www.deeplake.ai) is a data lake built for storing data native to AI. To use Deep Lake as your vector database provider, optionally with an API key by [signing up for an account](https://app.activeloop.ai/). You can access your API key from the "API tokens" section in the sidebar of your dashboard.
+
+The app will create a Deep Lake dataset for you automatically when you run it for the first time. Just pick a name for your index and set it as an environment variable
+
+Environment Variables:
+
+| Name                   | Required | Description                                                                                                                      |
+| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`            | Yes      | Datastore name, set this to `deeplake`                                                                                           |
+| `BEARER_TOKEN`         | Yes      | Your secret token for authenticating requests to the API                                                                         |
+| `OPENAI_API_KEY`       | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                            |
+| `DEEPLAKE_PATH`        | Optional | Your chosen Deep Lake dataset path. By default it would be in memory `mem://local`, you can specify fs `./local/path`, cloud path `s3://`, `gcs://` or cloud managed `hub://{username}/{dataset}`|
+| `DEEPLAKE_API_KEY`     | Optional | Your Deep Lake API key, found in the [Deep Lake console](https://app.activeloop.ai/) given `DEEPLAKE_PATH` is `hub://{username}/{dataset}` |
+
+#### Running Deep Lake Integration Tests
+
+A suite of integration tests is available to verify the Deep Lake integration.
+
+Then, launch the test suite with this command:
+
+```bash
+pytest ./tests/datastore/providers/deeplake/test_deeplake_datastore.py
+```
+
 
 #### Pinecone
 
@@ -548,12 +575,13 @@ Before deploying your app, you might want to remove unused dependencies from you
 
 Here are the packages you can remove for each vector database provider:
 
-- **Pinecone:** Remove `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Weaviate:** Remove `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Zilliz:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Milvus:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Qdrant:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
-- **Redis:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
+- **Deep Lake:** Remove `pinecone-client`,`weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Pinecone:** Remove `deeplake`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Weaviate:** Remove `deeplake`, `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Zilliz:** Remove `deeplake`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Milvus:** Remove `deeplake`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Qdrant:** Remove `deeplake`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
+- **Redis:** Remove `deeplake`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
 
 After removing the unnecessary packages from the `pyproject.toml` file, you don't need to run `poetry lock` and `poetry install` manually. The provided Dockerfile takes care of installing the required dependencies using the `requirements.txt` file generated by the `poetry export` command.
 
