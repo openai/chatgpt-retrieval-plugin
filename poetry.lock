@@ -1095,13 +1095,13 @@ llms = ["anthropic (>=0.2.2,<0.3.0)", "cohere (>=3,<4)", "huggingface_hub (>=0,<
 
 [[package]]
 name = "llama-index"
-version = "0.5.0"
+version = "0.5.1"
 description = "Interface between LLMs and your data."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "llama_index-0.5.0.tar.gz", hash = "sha256:016eb8572ad3064bca6d4ed0a13f11f1cfb6c0fa8bfef71338eccf48dbc6d2e0"},
+    {file = "llama_index-0.5.1.tar.gz", hash = "sha256:59fe28005135e692bfe47f46c79606a10876f0bf011bad2b3746a9acedd5752b"},
 ]
 
 [package.dependencies]
@@ -2689,4 +2689,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "954278e9a0e853f578b63576ff360f62f678dc7d2c8210b7e4f71ddbe63358ac"
+content-hash = "e7d4a5d52f826df7345c0d6113dcac9eb03b221d902079e118d69dc5604c9b67"
