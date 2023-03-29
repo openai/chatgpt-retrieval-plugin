@@ -98,11 +98,6 @@ class LlamaDataStore(DataStore):
         doc_ids = []
         for doc_id, doc_chunks in chunks.items():
             logger.debug(f"Upserting {doc_id} with {len(doc_chunks)} chunks")
-            try:
-                self.delete(doc_id)
-            except NotImplementedError:
-                # NOTE: some indices does not support delete yet.
-                logger.warning(f'{type(self._index)} does not support delete yet.')
 
             nodes = [
                 _doc_chunk_to_node(doc_chunk=doc_chunk, source_doc_id=doc_id)
@@ -166,6 +161,11 @@ class LlamaDataStore(DataStore):
 
         if ids is not None:
             for id_ in ids:
-                self._index.delete(id_)
+                try:
+                    self._index.delete(id_)
+                except NotImplementedError:
+                    # NOTE: some indices does not support delete yet.
+                    logger.warning(f'{type(self._index)} does not support delete yet.')
+                    return False
 
         return True
