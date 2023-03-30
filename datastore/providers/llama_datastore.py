@@ -19,6 +19,14 @@ INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
 QUERY_KWARGS_JSON_PATH = os.environ.get('LLAMA_QUERY_KWARGS_JSON_PATH', None)
 RESPONSE_MODE = os.environ.get('LLAMA_RESPONSE_MODE', ResponseMode.NO_TEXT.value)
 
+EXTERNAL_VECTOR_STORE_INDEX_STRUCT_TYPES = [
+    IndexStructType.DICT,
+    IndexStructType.WEAVIATE,
+    IndexStructType.PINECONE,
+    IndexStructType.QDRANT,
+    IndexStructType.CHROMA,
+    IndexStructType.VECTOR_STORE,
+]
 
 def _create_or_load_index(
     index_type_str: Optional[str] = None,
@@ -33,6 +41,10 @@ def _create_or_load_index(
 
     if index_type not in index_type_to_index_cls:
         raise ValueError(f'Unknown index type: {index_type}')
+
+    if index_type in EXTERNAL_VECTOR_STORE_INDEX_STRUCT_TYPES:
+        raise ValueError('Please use vector store directly.')
+
 
     index_cls = index_type_to_index_cls[index_type]
     if index_json_path is None:
