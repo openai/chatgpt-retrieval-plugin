@@ -1,8 +1,10 @@
 import os
 from typing import Any, Dict, List, Optional
 import pinecone
+import arrow
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import asyncio
+from ratelimit import limits, sleep_and_retry
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -65,6 +67,8 @@ class PineconeDataStore(DataStore):
                 raise e
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
+    @sleep_and_retry
+    @limits(calls=2, period=0.25)
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
         Takes in a dict from document id to list of document chunks and inserts them into the index.
@@ -145,6 +149,14 @@ class PineconeDataStore(DataStore):
                     if metadata
                     else None
                 )
+
+                # Convert datetime metadata objects back to str
+                for field, value in metadata_without_text.items():
+                    if value is not None:
+                        if field == "originalCreatedTime":
+                            metadata_without_text['originalCreatedTime'] = str(arrow.get(value))
+                        if field == "originalModifiedTime":
+                            metadata_without_text['originalModifiedTime'] = str(arrow.get(value))
 
                 # If the source is not a valid Source in the Source enum, set it to None
                 if (
@@ -230,12 +242,23 @@ class PineconeDataStore(DataStore):
         # For other fields, uses the $eq operator
         for field, value in filter.dict().items():
             if value is not None:
-                if field == "start_date":
-                    pinecone_filter["date"] = pinecone_filter.get("date", {})
-                    pinecone_filter["date"]["$gte"] = to_unix_timestamp(value)
-                elif field == "end_date":
-                    pinecone_filter["date"] = pinecone_filter.get("date", {})
-                    pinecone_filter["date"]["$lte"] = to_unix_timestamp(value)
+                if field == "createdTimeStartDate":
+                    pinecone_filter["originalCreatedTime"] = pinecone_filter.get("originalCreatedTime", {})
+                    pinecone_filter["originalCreatedTime"]["$gte"] = to_unix_timestamp(value)
+                elif field == "createdTimeEndDate":
+                    pinecone_filter["originalCreatedTime"] = pinecone_filter.get("originalCreatedTime", {})
+                    pinecone_filter["originalCreatedTime"]["$lte"] = to_unix_timestamp(value)
+                elif field == "originalCreatedTime":
+                    pinecone_filter["originalCreatedTime"] = to_unix_timestamp(value)
+                elif field == "modifiedTimeStartDate":
+                    pinecone_filter["originalModifiedTime"] = pinecone_filter.get("originalModifiedTime", {})
+                    pinecone_filter["originalModifiedTime"]["$gte"] = to_unix_timestamp(value)
+                elif field == "modifiedTimeEndDate":
+                    pinecone_filter["originalModifiedTime"] = pinecone_filter.get("originalModifiedTime", {})
+                    pinecone_filter["originalModifiedTime"]["$lte"] = to_unix_timestamp(value)
+                elif field == "originalModifiedTime":
+                    pinecone_filter["originalModifiedTime"] = to_unix_timestamp(value)
+
                 else:
                     pinecone_filter[field] = value
 
@@ -253,7 +276,7 @@ class PineconeDataStore(DataStore):
         # For fields that are dates, convert them to unix timestamps
         for field, value in metadata.dict().items():
             if value is not None:
-                if field in ["created_at"]:
+                if field in ["originalCreatedTime, originalModifiedTime"]:
                     pinecone_metadata[field] = to_unix_timestamp(value)
                 else:
                     pinecone_metadata[field] = value

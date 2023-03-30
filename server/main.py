@@ -1,4 +1,5 @@
 import os
+import traceback
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -85,6 +86,7 @@ async def query_main(
         )
         return QueryResponse(results=results)
     except Exception as e:
+        traceback.print_exc()
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
@@ -104,6 +106,7 @@ async def query(
         )
         return QueryResponse(results=results)
     except Exception as e:
+        traceback.print_exc()
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
