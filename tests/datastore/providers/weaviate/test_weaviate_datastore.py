@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from weaviate import Client
 import weaviate
 import os
-from models.models import DocumentMetadataFilter
+from models.models import DocumentMetadataFilter, Source
 from server.main import app
 from datastore.providers.weaviate_datastore import (
     SCHEMA,
@@ -480,7 +480,7 @@ def test_upsert_same_docid(test_db, weaviate_client):
     document = {
         "id": doc_id,
         "text": text,
-        "metadata": {"source": "email"},
+        "metadata": {"source": Source.email},
     }
 
     response = client.post("/upsert", json=build_upsert_payload(document))
@@ -489,12 +489,12 @@ def test_upsert_same_docid(test_db, weaviate_client):
     weaviate_doc = get_doc_by_document_id(doc_id)
     assert len(weaviate_doc) == 2
     for chunk in weaviate_doc:
-        assert chunk["source"] == "email"
+        assert chunk["source"] == Source.email
 
     # now update the source to file
     # user still has to specify the text
     # because test is a required field
-    document["metadata"]["source"] = "file"
+    document["metadata"]["source"] = Source.file
     response = client.post("/upsert", json=build_upsert_payload(document))
     assert response.status_code == 200
 
