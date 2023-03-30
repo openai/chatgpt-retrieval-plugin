@@ -1,12 +1,10 @@
 import os
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, Index, String, create_engine
+from pgvector.sqlalchemy import Vector  # type: ignore
+from sqlalchemy import Column, Index, String, and_, asc, create_engine, delete
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import asc, and_
-from sqlalchemy import delete
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -16,9 +14,10 @@ from models.models import (
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
+    Source,
 )
 
-Base = declarative_base()
+Base = declarative_base()  # type: Any
 
 # Read environment variables for pgvector configuration
 PGVECTOR_COLLECTION = os.getenv("PGVECTOR_COLLECTION", "documents")
@@ -32,7 +31,7 @@ class VectorDocumentChunk(Base):
     document_id = Column(String, index=True)
     text = Column(String)
     metadata_ = Column("metadata", JSONB)
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector(1536))  # type: ignore
 
     # Add a Cosine Distance index for faster querying
     index = Index(
@@ -44,12 +43,14 @@ class VectorDocumentChunk(Base):
 
 
 class PgVectorDataStore(DataStore):
-    def __init__(self):
+    def __init__(self, recreate_collection: bool = False):
         # Read the database URL from the PGVECTOR_URL environment variable
         if not PGVECTOR_URL:
             raise ValueError("PGVECTOR_URL environment variable is not set")
 
-        self.engine = create_engine(PGVECTOR_URL)
+        self.engine = create_engine(PGVECTOR_URL, echo=False)
+        if recreate_collection:
+            Base.metadata.drop_all(bind=self.engine)
         Base.metadata.create_all(bind=self.engine)
         self.session_factory = sessionmaker(bind=self.engine)
 
@@ -74,28 +75,32 @@ class PgVectorDataStore(DataStore):
         with self.session_factory() as session:
             results = []
             for query in queries:
-                embedding_filter = VectorDocumentChunk.embedding.cosine_distance(query.embedding).label("distance")
+                metadata_filters = self._metadata_filter(query.filter)
 
-                metadata_filter = self._metadata_filter(query.filter)
-                query_filters = and_(embedding_filter, *metadata_filter)
-                
                 query_results = (
-                    session.query(VectorDocumentChunk)
-                    .filter_by(**query_filters)
+                    session.query(
+                        VectorDocumentChunk,
+                        VectorDocumentChunk.embedding.cosine_distance(
+                            query.embedding
+                        ).label("distance"),
+                    )
+                    .filter(*metadata_filters)
                     .order_by(asc("distance"))
                     .limit(query.top_k)
                     .all()
                 )
-                
+
                 # Calculate cosine similarity from cosine distance
                 query_results = [
                     DocumentChunkWithScore(
-                        id=doc.id,
-                        text=doc.text,
-                        metadata=DocumentChunkMetadata(**doc.metadata),
-                        score=1 - doc.embedding.cosine_distance(query.embedding),
+                        id=result.VectorDocumentChunk.id,
+                        text=result.VectorDocumentChunk.text,
+                        metadata=DocumentChunkMetadata(
+                            **result.VectorDocumentChunk.metadata_
+                        ),
+                        score=1 - result.distance,
                     )
-                    for doc in query_results
+                    for result in query_results
                 ]
 
                 results.append(QueryResult(query=query.query, results=query_results))
@@ -116,11 +121,14 @@ class PgVectorDataStore(DataStore):
 
             if filter:
                 stmt_filters = self._metadata_filter(filter)
-            
-                if filter.document_id:
-                    stmt_filters = and_(VectorDocumentChunk.document_id == filter.document_id, *stmt_filters)
 
-            stmt = stmt.where(stmt_filters)
+                if filter.document_id:
+                    stmt_filters = and_(
+                        VectorDocumentChunk.document_id == filter.document_id,
+                        *stmt_filters
+                    )
+
+                stmt = stmt.where(*stmt_filters)
 
             if delete_all:
                 stmt = stmt.where(True)
@@ -132,15 +140,21 @@ class PgVectorDataStore(DataStore):
 
     def _metadata_filter(
         self, filter: Optional[DocumentMetadataFilter] = None
-    ) -> Dict[str, Any]:
+    ) -> List[Any]:
         if filter is None:
-            return {}
-
-        metadata_filter = {}
+            return []
 
         # For each field in the MetadataFilter, check if it has a value and add the corresponding filter expression
-        for key, value in filter.dict().items():
-            if value is not None:
-                metadata_filter.append(VectorDocumentChunk.metadata_[key].astext == str(value))
-
-        return metadata_filter
+        return [
+            (
+                VectorDocumentChunk.metadata_["created_at"].astext >= value
+                if key == "start_date"
+                else VectorDocumentChunk.metadata_["created_at"].astext <= value
+                if key == "end_date"
+                else VectorDocumentChunk.metadata_[key].astext == Source[value]
+                if key == "source"
+                else VectorDocumentChunk.metadata_[key].astext == str(value)
+            )
+            for key, value in filter.dict().items()
+            if value is not None
+        ]
