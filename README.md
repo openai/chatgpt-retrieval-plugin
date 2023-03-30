@@ -95,15 +95,15 @@ The plugin exposes the following endpoints for upserting, querying, and deleting
 
 - `/upsert`: This endpoint allows uploading one or more documents and storing their text and metadata in the vector database. The documents are split into chunks of around 200 tokens, each with a unique ID. The endpoint expects a list of documents in the request body, each with a `text` field, and optional `id` and `metadata` fields. The `metadata` field can contain the following optional subfields: `source`, `source_id`, `url`, `created_at`, and `author`. The endpoint returns a list of the IDs of the inserted documents (an ID is generated if not initially provided).
 
-- `/upsert-file`: This endpoint allows uploading a single file (PDF, TXT, DOCX, PPTX, or MD) and store its text and metadata in the vector database. The file is converted to plain text and split into chunks of around 200 tokens, each with a unique ID. The endpoint returns a list containing the generated id of the inserted file.
+- `/upsert-file`: This endpoint allows uploading a single file (PDF, TXT, DOCX, PPTX, or MD) and storing its text and metadata in the vector database. The file is converted to plain text and split into chunks of around 200 tokens, each with a unique ID. The endpoint returns a list containing the generated id of the inserted file.
 
 - `/query`: This endpoint allows querying the vector database using one or more natural language queries and optional metadata filters. The endpoint expects a list of queries in the request body, each with a `query` and optional `filter` and `top_k` fields. The `filter` field should contain a subset of the following subfields: `source`, `source_id`, `document_id`, `url`, `created_at`, and `author`. The `top_k` field specifies how many results to return for a given query, and the default value is 3. The endpoint returns a list of objects that each contain a list of the most relevant document chunks for the given query, along with their text, metadata and similarity scores.
 
 - `/delete`: This endpoint allows deleting one or more documents from the vector database using their IDs, a metadata filter, or a delete_all flag. The endpoint expects at least one of the following parameters in the request body: `ids`, `filter`, or `delete_all`. The `ids` parameter should be a list of document IDs to delete; all document chunks for the document with these IDS will be deleted. The `filter` parameter should contain a subset of the following subfields: `source`, `source_id`, `document_id`, `url`, `created_at`, and `author`. The `delete_all` parameter should be a boolean indicating whether to delete all documents from the vector database. The endpoint returns a boolean indicating whether the deletion was successful.
 
-The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.yaml). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that give ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
+The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.yaml). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that gives ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
 
-To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [here](/.well-known/openapi.yaml). You can update this easily by running the app locally, copying the json found at http://0.0.0.0:8000/sub/openapi.json, and converting it to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the `openapi.yaml` file with an `openapi.json` file.
+To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [here](/.well-known/openapi.yaml). You can update this easily by running the app locally, copying the JSON found at http://0.0.0.0:8000/sub/openapi.json, and converting it to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the `openapi.yaml` file with an `openapi.json` file.
 
 ## Quickstart
 
@@ -187,7 +187,9 @@ The plugin supports several vector database providers, each with different featu
 
 #### Pinecone
 
-[Pinecone](https://www.pinecone.io) is a managed vector database built for speed, scale, and shipping to production sooner. To use Pinecone as your vector database provider, first get an API key by [signing up for an account](https://app.pinecone.io/). You can access your API key from the "API Keys" section in the sidebar of your dashboard.
+[Pinecone](https://www.pinecone.io) is a managed vector database built for speed, scale, and shipping to production sooner. To use Pinecone as your vector database provider, first get an API key by [signing up for an account](https://app.pinecone.io/). You can access your API key from the "API Keys" section in the sidebar of your dashboard. Pinecone also supports hybrid search and at the time of writing is the only datastore to support SPLADE sparse vectors natively.
+
+A full Jupyter notebook walkthrough for the Pinecone flavor of the retrieval plugin can be found [here](https://github.com/openai/chatgpt-retrieval-plugin/blob/main/examples/providers/pinecone/semantic-search.ipynb). There is also a [video walkthrough here](https://youtu.be/hpePPqKxNq8).
 
 The app will create a Pinecone index for you automatically when you run it for the first time. Just pick a name for your index and set it as an environment variable.
 
@@ -251,8 +253,9 @@ You can run Weaviate in 4 ways:
 - **Self-hosted** – with a Docker container
 
   To set up a Weaviate instance with Docker:
-
-  1.  Download a `docker-compose.yml` file with this `curl` command:
+  1. [Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
+  2. [Install the Docker Compose Plugin](https://docs.docker.com/compose/install/)
+  3.  Download a `docker-compose.yml` file with this `curl` command:
 
       ```
       curl -o docker-compose.yml "https://configuration.weaviate.io/v2/docker-compose/docker-compose.yml?modules=standalone&runtime=docker-compose&weaviate_version=v1.18.0"
@@ -260,9 +263,9 @@ You can run Weaviate in 4 ways:
 
       Alternatively, you can use Weaviate's docker compose [configuration tool](https://weaviate.io/developers/weaviate/installation/docker-compose) to generate your own `docker-compose.yml` file.
 
-  2.  Run `docker-compose up -d` to spin up a Weaviate instance.
+  4.  Run `docker compose up -d` to spin up a Weaviate instance.
 
-      > To shut it down, run `docker-compose down`.
+      > To shut it down, run `docker compose down`.
 
 - **Self-hosted** – with a Kubernetes cluster
 
@@ -339,11 +342,11 @@ Find more information [here](https://zilliz.com).
 
 **Self Hosted vs SaaS**
 
-Zilliz is a SaaS database, but offers an open source solution, Milvus. Both options offer fast searches at the billion scale, but Zilliz handles data management for you. It automatically scales compute and storage resources and creates optimal indexes for your data. See the comparison [here](https://zilliz.com/doc/about_zilliz_cloud).
+Zilliz is a SaaS database, but offers an open-source solution, Milvus. Both options offer fast searches at the billion scale, but Zilliz handles data management for you. It automatically scales compute and storage resources and creates optimal indexes for your data. See the comparison [here](https://zilliz.com/doc/about_zilliz_cloud).
 
 ##### Deploying the Database
 
-Zilliz Cloud is deployable in a few simple steps. First, create an account [here](https://cloud.zilliz.com/signup). Once you have an account set up, follow the guide [here](https://zilliz.com/doc/quick_start) to setup a database and get the parameters needed for this application.
+Zilliz Cloud is deployable in a few simple steps. First, create an account [here](https://cloud.zilliz.com/signup). Once you have an account set up, follow the guide [here](https://zilliz.com/doc/quick_start) to set up a database and get the parameters needed for this application.
 
 Environment Variables:
 
@@ -464,17 +467,18 @@ docker run -p "6333:6333" -p "6334:6334" qdrant/qdrant:v1.0.3
 Then, launch the test suite with this command:
 
 ```bash
-pytest ./tests/datastore/providers/test_qdrant_datastore.py
+pytest ./tests/datastore/providers/qdrant/test_qdrant_datastore.py
 ```
 
 #### Redis
 
-Use Redis as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, try [Redis Cloud](https://app.redislabs.com/#/).
+Redis is a real-time data platform that supports a variety of use cases for everyday applications as well as AI/ML workloads. Use Redis as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, try [Redis Cloud](https://app.redislabs.com/#/). See more helpful examples of Redis as a vector database [here](https://github.com/RedisVentures/redis-ai-resources).
 
-- The database needs the RediSearch module (v 2.6 ++), which is included in the self-hosted docker compose above.
+- The database **needs the RediSearch module (>=v2.6) and RedisJSON**, which are included in the self-hosted docker compose above.
 - Run the App with the Redis docker image: `docker compose up -d` in [this dir](/examples/docker/redis/).
 - The app automatically creates a Redis vector search index on the first run. Optionally, create a custom index with a specific name and set it as an environment variable (see below).
 - To enable more hybrid searching capabilities, adjust the document schema [here](/datastore/providers/redis_datastore.py).
+
 
 Environment Variables:
 
@@ -808,7 +812,7 @@ The scripts are:
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Weaviate, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Pinecone and Weaviate, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
 - **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.

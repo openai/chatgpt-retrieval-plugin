@@ -25,7 +25,7 @@ WEAVIATE_HOST = os.environ.get("WEAVIATE_HOST", "http://127.0.0.1")
 WEAVIATE_PORT = os.environ.get("WEAVIATE_PORT", "8080")
 WEAVIATE_USERNAME = os.environ.get("WEAVIATE_USERNAME", None)
 WEAVIATE_PASSWORD = os.environ.get("WEAVIATE_PASSWORD", None)
-WEAVIATE_SCOPES = os.environ.get("WEAVIATE_SCOPE", None)
+WEAVIATE_SCOPES = os.environ.get("WEAVIATE_SCOPES", None)
 WEAVIATE_INDEX = os.environ.get("WEAVIATE_INDEX", "OpenAIDocument")
 
 WEAVIATE_BATCH_SIZE = int(os.environ.get("WEAVIATE_BATCH_SIZE", 20))

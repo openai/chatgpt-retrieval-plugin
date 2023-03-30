@@ -40,6 +40,7 @@ assert REDIS_INDEX_TYPE in ("FLAT", "HNSW")
 VECTOR_DIMENSION = 1536
 
 # RediSearch constants
+REDIS_REQUIRED_MODULES = ("search", "ReJSON")
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
 REDIS_SEARCH_SCHEMA = {
     "document_id": TagField("$.document_id", as_name="document_id"),
@@ -71,10 +72,16 @@ def unpack_schema(d: dict):
             yield v
 
 
+async def _check_redis_module_exist(client: redis.Redis, modules: List[str]) -> bool:
+    installed_modules = (await client.info()).get("modules", {"name": ""})
+    installed_modules = [m["name"] for m in installed_modules]  # type: ignore
+    return all([module in installed_modules for module in modules])
+
+
 class RedisDataStore(DataStore):
     def __init__(self, client: redis.Redis):
         self.client = client
-        # Init default metadata with sentinal values in case the document written has no metadata
+        # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
             field: "_null_" for field in REDIS_SEARCH_SCHEMA["metadata"]
         }
@@ -95,6 +102,12 @@ class RedisDataStore(DataStore):
         except Exception as e:
             logging.error(f"Error setting up Redis: {e}")
             raise e
+
+        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):  # type: ignore
+            raise ValueError(
+                "You must add the search and json modules in Redis Stack. "
+                "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
+            )
 
         try:
             # Check for existence of RediSearch Index
@@ -182,7 +195,6 @@ class RedisDataStore(DataStore):
         Returns:
             RediSearchQuery: Query for RediSearch.
         """
-        query_str: str = ""
         filter_str: str = ""
 
         # RediSearch field type to query string
@@ -356,7 +368,9 @@ class RedisDataStore(DataStore):
             # TODO - extend this to work with other metadata filters?
             if filter.document_id:
                 try:
-                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{filter.document_id}:*")
+                    keys = await self._find_keys(
+                        f"{REDIS_DOC_PREFIX}:{filter.document_id}:*"
+                    )
                     await self._redis_delete(keys)
                     logging.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
@@ -370,7 +384,9 @@ class RedisDataStore(DataStore):
                 keys = []
                 # find all keys associated with the document ids
                 for document_id in ids:
-                    doc_keys = await self._find_keys(pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*")
+                    doc_keys = await self._find_keys(
+                        pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*"
+                    )
                     keys.extend(doc_keys)
                 # delete all keys
                 logging.info(f"Deleting {len(keys)} keys from Redis")
