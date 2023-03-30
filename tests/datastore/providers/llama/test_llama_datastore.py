@@ -73,10 +73,12 @@ async def test_query(
     assert len(query_0_results) == 1
     assert len(query_1_results) == 2
     
+    # NOTE: this is the correct behavior
     # assert query_0_results[0].id == 'first-doc-4'
     # assert query_1_results[0].id == 'first-doc-5'
     # assert query_1_results[1].id == 'first-doc-4'
 
+    # TODO: this is current buggy behavior, to be fixed in 0.5.2
     assert query_0_results[0].id == 'first-doc'
     assert query_1_results[0].id == 'first-doc'
     assert query_1_results[1].id == 'first-doc'
