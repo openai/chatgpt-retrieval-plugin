@@ -208,7 +208,7 @@ It is light-weight and easy-to-use. All you need to do is specifying a few envir
 | `LLAMA_RESPONSE_MODE`           | Optional | Response mode for query                                            | `no_text`          | 
 
 
-##### Different Index Types
+**Different Index Types**
 By default, we use a `GPTSimpleVectorIndex` to store document chunks in memory, 
 and retrieve top-k nodes by embedding similarity.
 Different index types are optimized for different data and query use-cases.
