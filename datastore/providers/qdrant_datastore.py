@@ -32,7 +32,7 @@ class QdrantDataStore(DataStore):
 
     def __init__(
         self,
-        collection_name: Optional[str] = None,
+        collection_name: Optional[str] = QDRANT_COLLECTION,
         vector_size: int = 1536,
         distance: str = "Cosine",
         recreate_collection: bool = False,
@@ -53,8 +53,7 @@ class QdrantDataStore(DataStore):
             prefer_grpc=True,
             timeout=10,
         )
-        self.collection_name = collection_name or QDRANT_COLLECTION
-
+        
         # Set up the collection so the points might be inserted or queried
         self._set_up_collection(vector_size, distance, recreate_collection)
 
