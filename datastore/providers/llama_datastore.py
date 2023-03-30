@@ -17,7 +17,7 @@ from llama_index.indices.response.builder import ResponseMode
 INDEX_STRUCT_TYPE_STR = os.environ.get('LLAMA_INDEX_TYPE', IndexStructType.SIMPLE_DICT.value)
 INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
 QUERY_KWARGS_JSON_PATH = os.environ.get('LLAMA_QUERY_KWARGS_JSON_PATH', None)
-RESPONSE_MODE = os.environ.get('LLAMA_QUERY_CONFIG_JSON_PATH', ResponseMode.NO_TEXT.value)
+RESPONSE_MODE = os.environ.get('LLAMA_RESPONSE_MODE', ResponseMode.NO_TEXT.value)
 
 
 def _create_or_load_index(
