@@ -73,16 +73,17 @@ def unpack_schema(d: dict):
         else:
             yield v
 
-async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]) -> bool:
-    try:
-        installed_modules = (await client.info()).get("modules", [])
-        installed_modules = {module["name"]: module for module in installed_modules}
-        for module in modules:
-            assert module["name"] in installed_modules
-            assert int(installed_modules[module["name"]]["ver"]) >= int(module["ver"])
-    except:
-        return False
-    return True
+async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
+
+    installed_modules = (await client.info()).get("modules", [])
+    installed_modules = {module["name"]: module for module in installed_modules}
+    for module in modules:
+        if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
+            error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+                "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
 
 
 class RedisDataStore(DataStore):
@@ -110,11 +111,7 @@ class RedisDataStore(DataStore):
             logging.error(f"Error setting up Redis: {e}")
             raise e
 
-        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):
-            raise ValueError(
-                "You must add the search (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. "
-                "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
-            )
+        await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
 
         try:
             # Check for existence of RediSearch Index
@@ -278,7 +275,7 @@ class RedisDataStore(DataStore):
             doc_ids.append(doc_id)
 
             # Write chunks in a pipelines
-            async with self.client.pipeline(transaction=True) as pipe:
+            async with self.client.pipeline(transaction=False) as pipe:
                 for chunk in chunk_list:
                     key = self._redis_key(doc_id, chunk.id)
                     data = self._get_redis_chunk(chunk)
