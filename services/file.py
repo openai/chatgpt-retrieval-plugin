@@ -12,11 +12,13 @@ from models.models import Document, DocumentMetadata, Source
 
 
 async def get_document_from_file(file: UploadFile) -> Document:
-    extracted_text = await extract_text_from_form_file(file)
+    extracted_text, extracted_text_list = await extract_text_from_form_file(file)
     metadata = DocumentMetadata(
         source=Source.file,
     )
-    doc = Document(text=extracted_text, metadata=metadata)
+    print("got metadata")
+    doc = Document(text=extracted_text, textList=extracted_text_list, metadata=metadata)
+    print("returning doc")
 
     return doc
 
@@ -42,6 +44,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
 
 
 def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
+    extracted_text_list = []
     if mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
@@ -60,8 +63,10 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
         extracted_text = ""
         decoded_buffer = (line.decode("utf-8") for line in file)
         reader = csv.reader(decoded_buffer)
-        for row in reader:
-            extracted_text += " ".join(row) + "\n"
+        for index, row in enumerate(reader):
+            print("read line with length", len(row), "in row", index)
+            extracted_text += ",".join(row) + "UNIQUE_ROW_SEPARATOR"
+            extracted_text_list.append(row)
     elif (
         mimetype
         == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -82,7 +87,7 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
         raise ValueError("Unsupported file type: {}".format(mimetype))
 
     file.close()
-    return extracted_text
+    return extracted_text, extracted_text_list
 
 
 # Extract text from a file based on its mimetype
@@ -96,12 +101,14 @@ async def extract_text_from_form_file(file: UploadFile):
 
     file_stream = await file.read()
 
+    print('read file')
     temp_file_path = "/tmp/temp_file"
 
     # write the file to a temporary location
     with open(temp_file_path, "wb") as f:
         f.write(file_stream)
 
+    print('wrote tmp file')
     try:
         extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
     except Exception as e:
@@ -109,7 +116,9 @@ async def extract_text_from_form_file(file: UploadFile):
         os.remove(temp_file_path)
         raise e
 
+    print('removing tmp file')
     # remove file from temp location
     os.remove(temp_file_path)
 
+    print("returning extracted text")
     return extracted_text

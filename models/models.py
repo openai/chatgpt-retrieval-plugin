@@ -35,12 +35,16 @@ class DocumentChunkWithScore(DocumentChunk):
 class Document(BaseModel):
     id: Optional[str] = None
     text: str
+    textList: List[List[str]]
     metadata: Optional[DocumentMetadata] = None
 
 
 class DocumentWithChunks(Document):
     chunks: List[DocumentChunk]
 
+class DocumentMetadataPay(BaseModel):
+    min: float
+    period: str
 
 class DocumentMetadataFilter(BaseModel):
     document_id: Optional[str] = None
@@ -50,10 +54,15 @@ class DocumentMetadataFilter(BaseModel):
     start_date: Optional[str] = None  # any date string format
     end_date: Optional[str] = None  # any date string format
 
+class DocumentQueryMetadataFilter(BaseModel):
+    periodicity: str
+    locations: List[str]
+    specialty: str
+    pay: DocumentMetadataPay
 
 class Query(BaseModel):
     query: str
-    filter: Optional[DocumentMetadataFilter] = None
+    filter: Optional[DocumentQueryMetadataFilter] = None
     top_k: Optional[int] = 3
 
 

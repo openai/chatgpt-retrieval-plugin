@@ -117,8 +117,13 @@ def create_document_chunks(
     # Generate a document id if not provided
     doc_id = doc.id or str(uuid.uuid4())
 
+    print("getting chunk for document's text with size " + str(len(doc.text)) + " and chunk token size " + str(chunk_token_size))
     # Split the document text into chunks
-    text_chunks = get_text_chunks(doc.text, chunk_token_size)
+    text_chunks = [c for c in doc.text.split("UNIQUE_ROW_SEPARATOR")]
+    text_chunks = [x for x in text_chunks if x != '']
+    text_chunks_list = doc.textList
+    print('got text chunks ' + str(len(text_chunks)))
+    print('got text chunks list ' + str(len(text_chunks_list)))
 
     metadata = (
         DocumentChunkMetadata(**doc.metadata.__dict__)
@@ -126,14 +131,14 @@ def create_document_chunks(
         else DocumentChunkMetadata()
     )
 
-    metadata.document_id = doc_id
-
     # Initialize an empty list of chunks for this document
     doc_chunks = []
 
     # Assign each chunk a sequential number and create a DocumentChunk object
     for i, text_chunk in enumerate(text_chunks):
-        chunk_id = f"{doc_id}_{i}"
+        chunk_id = text_chunks_list[i][10] # 10th element is the ID
+        metadata.document_id = chunk_id
+        print('chunk id', chunk_id)
         doc_chunk = DocumentChunk(
             id=chunk_id,
             text=text_chunk,
@@ -168,14 +173,17 @@ def get_document_chunks(
 
     # Loop over each document and create chunks
     for doc in documents:
+        print('creating document chunk for doc with id ' + str(doc.id))
         doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
 
+        print('got doc chunks ' + str(len(doc_chunks)))
         # Append the chunks for this document to the list of all chunks
         all_chunks.extend(doc_chunks)
 
         # Add the list of chunks for this document to the dictionary with the document id as the key
         chunks[doc_id] = doc_chunks
 
+    print('getting all chunk size ' + str(len(all_chunks)))
     # Check if there are no chunks
     if not all_chunks:
         return {}
@@ -189,7 +197,10 @@ def get_document_chunks(
         ]
 
         # Get the embeddings for the batch texts
+        print('getting batch embeddings with index ' + str(i) + ' and size ' + str(len(batch_texts)))
         batch_embeddings = get_embeddings(batch_texts)
+
+        print('got all embeddings', len(batch_embeddings))
 
         # Append the batch embeddings to the embeddings list
         embeddings.extend(batch_embeddings)

@@ -32,7 +32,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
 def get_chat_completion(
     messages,
-    model="gpt-3.5-turbo",  # use "gpt-4" for better results
+    model="gpt-4",  # use "gpt-4" for better results
 ):
     """
     Generate a chat completion using OpenAI's chat completion API.

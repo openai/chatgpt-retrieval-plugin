@@ -37,7 +37,9 @@ class DataStore(ABC):
             ]
         )
 
+        print('getting embeddings for ' + str(len(documents)) + ' with chunk token size ' + str(chunk_token_size))
         chunks = get_document_chunks(documents, chunk_token_size)
+        print('got ' + str(len(chunks)) + ' chunks')
 
         return await self._upsert(chunks)
 

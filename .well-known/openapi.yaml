@@ -8,8 +8,7 @@ info:
 paths:
   /query:
     post:
-      summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.
+      summary: Search for healthcare jobs
       operationId: query_query_post
       requestBody:
         content:
@@ -30,8 +29,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
-      security:
-        - HTTPBearer: []
 components:
   schemas:
     DocumentChunkMetadata:
@@ -190,7 +187,3 @@ components:
         type:
           title: Error Type
           type: string
-  securitySchemes:
-    HTTPBearer:
-      type: http
-      scheme: bearer

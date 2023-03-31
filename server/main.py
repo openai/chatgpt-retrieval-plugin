@@ -1,3 +1,5 @@
+import traceback
+import sys
 import os
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, Depends, Body, UploadFile
@@ -16,17 +18,8 @@ from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
 bearer_scheme = HTTPBearer()
-BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
-assert BEARER_TOKEN is not None
 
-
-def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
-    if credentials.scheme != "Bearer" or credentials.credentials != BEARER_TOKEN:
-        raise HTTPException(status_code=401, detail="Invalid or missing token")
-    return credentials
-
-
-app = FastAPI(dependencies=[Depends(validate_token)])
+app = FastAPI(dependencies=[])
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
 # Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
@@ -35,7 +28,7 @@ sub_app = FastAPI(
     description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
     version="1.0.0",
     servers=[{"url": "https://your-app-url.com"}],
-    dependencies=[Depends(validate_token)],
+    dependencies=[],
 )
 app.mount("/sub", sub_app)
 
@@ -47,10 +40,14 @@ app.mount("/sub", sub_app)
 async def upsert_file(
     file: UploadFile = File(...),
 ):
+    print('uploading file', file)
     document = await get_document_from_file(file)
+    print('uploaded file', file)
 
     try:
+        print('upserting document')
         ids = await datastore.upsert([document])
+        print('got upserted ids')
         return UpsertResponse(ids=ids)
     except Exception as e:
         print("Error:", e)
@@ -80,11 +77,13 @@ async def query_main(
     request: QueryRequest = Body(...),
 ):
     try:
+        print("requests", request)
         results = await datastore.query(
             request.queries,
         )
         return QueryResponse(results=results)
     except Exception as e:
+        traceback.print_exception(*sys.exc_info())
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
