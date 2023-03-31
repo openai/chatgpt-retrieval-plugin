@@ -65,7 +65,7 @@ REDIS_SEARCH_SCHEMA = {
     ),
 }
 
-
+# Helper functions
 def unpack_schema(d: dict):
     for v in d.values():
         if isinstance(v, dict):
@@ -110,7 +110,7 @@ class RedisDataStore(DataStore):
             logging.error(f"Error setting up Redis: {e}")
             raise e
 
-        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):  # type: ignore
+        if not await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES):
             raise ValueError(
                 "You must add the search (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. "
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
@@ -277,19 +277,14 @@ class RedisDataStore(DataStore):
             # Append the id to the ids list
             doc_ids.append(doc_id)
 
-            # Write all chunks associated with a document
-            n = min(len(chunk_list), 50)
-            semaphore = asyncio.Semaphore(n)
-
-            async def _write(chunk: DocumentChunk):
-                async with semaphore:
-                    # Get redis key and chunk object
-                    key = self._redis_key(doc_id, chunk.id)  # type: ignore
+            # Write chunks in a pipelines
+            async with self.client.pipeline(transaction=True) as pipe:
+                for chunk in chunk_list:
+                    key = self._redis_key(doc_id, chunk.id)
                     data = self._get_redis_chunk(chunk)
-                    await self.client.json().set(key, "$", data)
+                    await pipe.json().set(key, "$", data)
+                await pipe.execute()
 
-            # Concurrently gather writes
-            await asyncio.gather(*[_write(chunk) for i, chunk in enumerate(chunk_list)])
         return doc_ids
 
     async def _query(
@@ -300,54 +295,46 @@ class RedisDataStore(DataStore):
         Takes in a list of queries with embeddings and filters and
         returns a list of query results with matching document chunks and scores.
         """
-        # Prepare results object
+        # Prepare query responses and results object
         results: List[QueryResult] = []
 
-        # Use asyncio for concurrent search
-        n = min(len(queries), 50)
-        semaphore = asyncio.Semaphore(n)
+        # Gather query results in a pipeline
+        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        for query in queries:
 
-        async def _single_query(query: QueryWithEmbedding) -> QueryResult:
             logging.info(f"Query: {query.query}")
+            query_results: List[DocumentChunkWithScore] = []
+
             # Extract Redis query
             redis_query: RediSearchQuery = self._get_redis_query(query)
-            # Perform a single query
-            async with semaphore:
-                embedding = np.array(query.embedding, dtype=np.float64).tobytes()
-                # Get vector query response from Redis
-                query_response = await self.client.ft(REDIS_INDEX_NAME).search(
-                    redis_query, {"embedding": embedding}  # type: ignore
-                )
-                return query_response
+            embedding = np.array(query.embedding, dtype=np.float64).tobytes()
 
-        # Concurrently gather query results
-        logging.info(f"Gathering {len(queries)} query results", flush=True)  # type: ignore
-        query_responses = await asyncio.gather(
-            *[_single_query(query) for query in queries]
-        )
+            # Perform vector search
+            query_response = await self.client.ft(REDIS_INDEX_NAME).search(
+                redis_query, {"embedding": embedding}
+            )
 
-        # Iterate through responses and construct results
-        for query, query_response in zip(queries, query_responses):
-
-            # Iterate through nearest neighbor documents
-            query_results: List[DocumentChunkWithScore] = []
+            # Iterate through the most similar documents
             for doc in query_response.docs:
-                # Create a document chunk with score object with the result data
+                # Load JSON data
                 doc_json = json.loads(doc.json)
+                # Create document chunk object with score
                 result = DocumentChunkWithScore(
                     id=doc_json["metadata"]["document_id"],
                     score=doc.score,
                     text=doc_json["text"],
                     metadata=doc_json["metadata"],
+                    embedding=doc_json["embedding"]
                 )
                 query_results.append(result)
 
             # Add to overall results
             results.append(QueryResult(query=query.query, results=query_results))
+
         return results
 
     async def _find_keys(self, pattern: str) -> List[str]:
-        return [key for key in await self.client.scan_iter(pattern)]
+        return [key async for key in self.client.scan_iter(pattern)]
 
     async def delete(
         self,
