@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 from pgvector.sqlalchemy import Vector  # type: ignore
-from sqlalchemy import Column, Index, String, and_, asc, create_engine, delete
+from sqlalchemy import Column, Index, String, and_, asc, create_engine, delete, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -36,14 +36,6 @@ class VectorDocumentChunk(Base):
     metadata_ = Column("metadata", JSONB)
     embedding = Column(Vector(1536))  # type: ignore
 
-    # Add a Cosine Distance index for faster querying
-    index = Index(
-        "vector_cosine_idx",
-        embedding,
-        postgresql_using="ivfflat",
-        postgresql_ops={"embedding": "vector_cosine_ops", "lists": "100"},
-    )
-
 
 class PgVectorDataStore(DataStore):
     def __init__(self, recreate_collection: bool = False):
@@ -57,8 +49,14 @@ class PgVectorDataStore(DataStore):
             connect_args = {"sslmode": "require"}
 
         self.engine = create_engine(PGVECTOR_URL, connect_args=connect_args)
+
         if recreate_collection:
             Base.metadata.drop_all(bind=self.engine)
+
+        with self.engine.connect() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            conn.commit()
+
         Base.metadata.create_all(bind=self.engine)
         self.session_factory = sessionmaker(bind=self.engine)
 
