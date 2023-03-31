@@ -1,22 +1,23 @@
+import csv
+import mimetypes
 import os
 from io import BufferedReader
 from typing import Optional
-from fastapi import UploadFile
-import mimetypes
-from PyPDF2 import PdfReader
+
 import docx2txt
-import csv
 import pptx
+from fastapi import UploadFile
+from PyPDF2 import PdfReader
 
 from models.models import Document, DocumentMetadata, Source
 
 
-async def get_document_from_file(file: UploadFile) -> Document:
+async def get_document_from_file(file: UploadFile, document_id: Optional[str] = None) -> Document:
     extracted_text = await extract_text_from_form_file(file)
     metadata = DocumentMetadata(
         source=Source.file,
     )
-    doc = Document(text=extracted_text, metadata=metadata)
+    doc = Document(text=extracted_text, metadata=metadata, id = document_id)
 
     return doc
 
@@ -92,7 +93,6 @@ async def extract_text_from_form_file(file: UploadFile):
     mimetype = file.content_type
     print(f"mimetype: {mimetype}")
     print(f"file.file: {file.file}")
-    print("file: ", file)
 
     file_stream = await file.read()
 

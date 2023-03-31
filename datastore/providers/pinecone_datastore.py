@@ -1,19 +1,14 @@
+import asyncio
 import os
 from typing import Any, Dict, List, Optional
+
 import pinecone
-from tenacity import retry, wait_random_exponential, stop_after_attempt
-import asyncio
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from datastore.datastore import DataStore
-from models.models import (
-    DocumentChunk,
-    DocumentChunkMetadata,
-    DocumentChunkWithScore,
-    DocumentMetadataFilter,
-    QueryResult,
-    QueryWithEmbedding,
-    Source,
-)
+from models.models import (DocumentChunk, DocumentChunkMetadata,
+                           DocumentChunkWithScore, DocumentMetadataFilter,
+                           QueryResult, QueryWithEmbedding, Source)
 from services.date import to_unix_timestamp
 
 # Read environment variables for Pinecone configuration
@@ -65,7 +60,7 @@ class PineconeDataStore(DataStore):
                 raise e
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]], organization_id: str, index_name: Optional[str] = None) -> List[str]:
         """
         Takes in a dict from document id to list of document chunks and inserts them into the index.
         Return a list of document ids.
@@ -82,7 +77,7 @@ class PineconeDataStore(DataStore):
             for chunk in chunk_list:
                 # Create a vector tuple of (id, embedding, metadata)
                 # Convert the metadata object to a dict with unix timestamps for dates
-                pinecone_metadata = self._get_pinecone_metadata(chunk.metadata)
+                pinecone_metadata = self._get_pinecone_metadata(chunk.metadata, index_name)
                 # Add the text and document id to the metadata dict
                 pinecone_metadata["text"] = chunk.text
                 pinecone_metadata["document_id"] = doc_id
@@ -98,7 +93,7 @@ class PineconeDataStore(DataStore):
         for batch in batches:
             try:
                 print(f"Upserting batch of size {len(batch)}")
-                self.index.upsert(vectors=batch)
+                self.index.upsert(vectors=batch, namespace=organization_id)
                 print(f"Upserted batch successfully")
             except Exception as e:
                 print(f"Error upserting batch: {e}")
@@ -110,22 +105,23 @@ class PineconeDataStore(DataStore):
     async def _query(
         self,
         queries: List[QueryWithEmbedding],
+        organization_id: str,
+        index_name: Optional[str] = None
     ) -> List[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
-
         # Define a helper coroutine that performs a single query and returns a QueryResult
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
             print(f"Query: {query.query}")
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
-            pinecone_filter = self._get_pinecone_filter(query.filter)
+            pinecone_filter = self._get_pinecone_filter(query.filter, index_name)
 
             try:
                 # Query the index with the query embedding, filter, and top_k
                 query_response = self.index.query(
-                    # namespace=namespace,
+                    namespace=organization_id,
                     top_k=query.top_k,
                     vector=query.embedding,
                     filter=pinecone_filter,
@@ -174,6 +170,8 @@ class PineconeDataStore(DataStore):
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
     async def delete(
         self,
+        organization_id: str,
+        index_name: Optional[str] = None,
         ids: Optional[List[str]] = None,
         filter: Optional[DocumentMetadataFilter] = None,
         delete_all: Optional[bool] = None,
@@ -185,7 +183,7 @@ class PineconeDataStore(DataStore):
         if delete_all:
             try:
                 print(f"Deleting all vectors from index")
-                self.index.delete(delete_all=True)
+                self.index.delete(delete_all=True, namespace=organization_id)
                 print(f"Deleted all vectors successfully")
                 return True
             except Exception as e:
@@ -193,38 +191,33 @@ class PineconeDataStore(DataStore):
                 raise e
 
         # Convert the metadata filter object to a dict with pinecone filter expressions
-        pinecone_filter = self._get_pinecone_filter(filter)
+        pinecone_filter = self._get_pinecone_filter(filter, index_name, ids)
         # Delete vectors that match the filter from the index if the filter is not empty
         if pinecone_filter != {}:
             try:
                 print(f"Deleting vectors with filter {pinecone_filter}")
-                self.index.delete(filter=pinecone_filter)
+                self.index.delete(filter=pinecone_filter, namespace=organization_id)
                 print(f"Deleted vectors with filter successfully")
             except Exception as e:
                 print(f"Error deleting vectors with filter: {e}")
-                raise e
-
-        # Delete vectors that match the document ids from the index if the ids list is not empty
-        if ids is not None and len(ids) > 0:
-            try:
-                print(f"Deleting vectors with ids {ids}")
-                pinecone_filter = {"document_id": {"$in": ids}}
-                self.index.delete(filter=pinecone_filter)  # type: ignore
-                print(f"Deleted vectors with ids successfully")
-            except Exception as e:
-                print(f"Error deleting vectors with ids: {e}")
-                raise e
+                raise e      
 
         return True
 
     def _get_pinecone_filter(
-        self, filter: Optional[DocumentMetadataFilter] = None
+        self,
+        filter: Optional[DocumentMetadataFilter] = None,
+        index_name: Optional[str] = None,
+        ids: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
-        if filter is None:
-            return {}
 
         pinecone_filter = {}
-
+        if ids is not None and len(ids) > 0:
+            pinecone_filter["document_id"] = {"$in": ids}
+        if index_name:
+            pinecone_filter["index_name"] = index_name
+        if filter is None:
+            return pinecone_filter
         # For each field in the MetadataFilter, check if it has a value and add the corresponding pinecone filter expression
         # For start_date and end_date, uses the $gte and $lte operators respectively
         # For other fields, uses the $eq operator
@@ -239,16 +232,17 @@ class PineconeDataStore(DataStore):
                 else:
                     pinecone_filter[field] = value
 
+       
         return pinecone_filter
 
     def _get_pinecone_metadata(
-        self, metadata: Optional[DocumentChunkMetadata] = None
+        self, metadata: Optional[DocumentChunkMetadata] = None, index_name: Optional[str] = None
     ) -> Dict[str, Any]:
-        if metadata is None:
-            return {}
-
         pinecone_metadata = {}
-
+        if index_name:
+            pinecone_metadata["index_name"] = index_name
+        if filter is None:
+            return pinecone_metadata
         # For each field in the Metadata, check if it has a value and add it to the pinecone metadata dict
         # For fields that are dates, convert them to unix timestamps
         for field, value in metadata.dict().items():
@@ -258,4 +252,5 @@ class PineconeDataStore(DataStore):
                 else:
                     pinecone_metadata[field] = value
 
+       
         return pinecone_metadata

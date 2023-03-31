@@ -1,22 +1,16 @@
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
-import asyncio
 
-from models.models import (
-    Document,
-    DocumentChunk,
-    DocumentMetadataFilter,
-    Query,
-    QueryResult,
-    QueryWithEmbedding,
-)
+from models.models import (Document, DocumentChunk, DocumentMetadataFilter,
+                           Query, QueryResult, QueryWithEmbedding)
 from services.chunks import get_document_chunks
 from services.openai import get_embeddings
 
 
 class DataStore(ABC):
     async def upsert(
-        self, documents: List[Document], chunk_token_size: Optional[int] = None
+        self, documents: List[Document], organization_id: str, index_name: Optional[str] = None, chunk_token_size: Optional[int] = None
     ) -> List[str]:
         """
         Takes in a list of documents and inserts them into the database.
@@ -27,6 +21,8 @@ class DataStore(ABC):
         await asyncio.gather(
             *[
                 self.delete(
+                    organization_id=organization_id,
+                    index_name=index_name,
                     filter=DocumentMetadataFilter(
                         document_id=document.id,
                     ),
@@ -39,10 +35,10 @@ class DataStore(ABC):
 
         chunks = get_document_chunks(documents, chunk_token_size)
 
-        return await self._upsert(chunks)
+        return await self._upsert(chunks, organization_id, index_name)
 
     @abstractmethod
-    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
+    async def _upsert(self, chunks: Dict[str, List[DocumentChunk]], organization_id: str, index_name: Optional[str] = None) -> List[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
@@ -50,7 +46,7 @@ class DataStore(ABC):
 
         raise NotImplementedError
 
-    async def query(self, queries: List[Query]) -> List[QueryResult]:
+    async def query(self, queries: List[Query], organization_id: str, index_name: Optional[str] = None) -> List[QueryResult]:
         """
         Takes in a list of queries and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -62,10 +58,10 @@ class DataStore(ABC):
             QueryWithEmbedding(**query.dict(), embedding=embedding)
             for query, embedding in zip(queries, query_embeddings)
         ]
-        return await self._query(queries_with_embeddings)
+        return await self._query(queries_with_embeddings, organization_id, index_name)
 
     @abstractmethod
-    async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
+    async def _query(self, queries: List[QueryWithEmbedding], organization_id: str, index_name: Optional[str] = None) -> List[QueryResult]:
         """
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
@@ -74,6 +70,8 @@ class DataStore(ABC):
     @abstractmethod
     async def delete(
         self,
+        organization_id: str,
+        index_name: Optional[str]= None,
         ids: Optional[List[str]] = None,
         filter: Optional[DocumentMetadataFilter] = None,
         delete_all: Optional[bool] = None,

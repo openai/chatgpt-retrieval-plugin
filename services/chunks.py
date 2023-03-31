@@ -1,9 +1,9 @@
-from typing import Dict, List, Optional, Tuple
 import uuid
-from models.models import Document, DocumentChunk, DocumentChunkMetadata
+from typing import Dict, List, Optional, Tuple
 
 import tiktoken
 
+from models.models import Document, DocumentChunk, DocumentChunkMetadata
 from services.openai import get_embeddings
 
 # Global variables

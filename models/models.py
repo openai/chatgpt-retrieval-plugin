@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import List, Optional
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class Source(str, Enum):
@@ -54,7 +55,7 @@ class DocumentMetadataFilter(BaseModel):
 class Query(BaseModel):
     query: str
     filter: Optional[DocumentMetadataFilter] = None
-    top_k: Optional[int] = 3
+    top_k: Optional[int] = 3  
 
 
 class QueryWithEmbedding(Query):
