@@ -506,7 +506,8 @@ Environment Variables:
 | `DATASTORE`          | Yes      | Datastore name, set to `pgvector`                                                          |             |
 | `BEARER_TOKEN`       | Yes      | Secret token                                                                               |             |
 | `OPENAI_API_KEY`     | Yes      | OpenAI API key                                                                             |             |
-| `PGVECTOR_URL`       | Yes | PostgreSQL connection URL with the pgvector extension enabled                              |  |
+| `PGVECTOR_URL`       | Yes      | PostgreSQL connection URL with the pgvector extension enabled                              |             |
+| `PGVECTOR_SSL`       | Yes      | Set the SSL mode to require if set to true                                                 |  true       |  
 | `PGVECTOR_COLLECTION`| Optional | PostgreSQL table name to store the vector documents                                        | `documents` |
 
 ```bash

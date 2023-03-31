@@ -24,6 +24,7 @@ Base = declarative_base()  # type: Any
 # Read environment variables for pgvector configuration
 PGVECTOR_COLLECTION = os.getenv("PGVECTOR_COLLECTION", "documents")
 PGVECTOR_URL = os.getenv("PGVECTOR_URL")
+PGVECTOR_SSL = os.getenv("PGVECTOR_SSL", "true")
 
 
 class VectorDocumentChunk(Base):
@@ -50,7 +51,12 @@ class PgVectorDataStore(DataStore):
         if not PGVECTOR_URL:
             raise ValueError("PGVECTOR_URL environment variable is not set")
 
-        self.engine = create_engine(PGVECTOR_URL, echo=False)
+        # Set the SSL mode to require if PGVECTOR_SSL is set to true
+        connect_args = {}
+        if PGVECTOR_SSL.lower() == "true":
+            connect_args = {"sslmode": "require"}
+
+        self.engine = create_engine(PGVECTOR_URL, connect_args=connect_args)
         if recreate_collection:
             Base.metadata.drop_all(bind=self.engine)
         Base.metadata.create_all(bind=self.engine)
