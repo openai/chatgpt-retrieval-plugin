@@ -40,6 +40,8 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+  - [Choosing a Message Queue](#choosing-a-message-queue)
+    - [Pulsar](#pulsar)
   - [Running the API Locally](#running-the-api-locally)
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
@@ -494,6 +496,47 @@ Environment Variables:
 | `REDIS_DOC_PREFIX`      | Optional | Redis key prefix for the index                                                                                         | `doc`       |
 | `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
 | `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
+
+### Choosing a Message Queue
+
+If you have a large number of documents that need to be upserted, using a message queue for peak shaving and automatic retries would be a good choice to ensure that documents are not lost and to improve the availability of the plugin service. The following sections provide detailed information and instructions on using each message queue provider.
+
+#### Pulsar
+
+Apache Pulsar is an open-source, distributed messaging and streaming platform built for the cloud. 
+
+You can run Pulsar in 3 ways:
+
+- **SaaS** – with [Pulsar Cloud](https://streamnative.io/deployment/hosted)
+ 
+  > You can choose free plan if small traffic.
+
+
+- **Self-hosted** – with a Docker container
+
+  To set up a Pulsar instance with Docker:
+  
+  ```bash
+  docker run -it -p 6650:6650 -p 8080:8080 --mount source=pulsardata,target=/pulsar/data --mount source=pulsarconf,target=/pulsar/conf apachepulsar/pulsar:2.11.0 bin/pulsar standalone
+  ```
+  
+- **Self-hosted** – with a Kubernetes cluster
+
+  To configure a self-hosted instance with Kubernetes, follow Pulsar's [documentation](https://pulsar.apache.org/docs/2.11.x/getting-started-helm/).
+
+Environment Variables:
+
+| Name                        | Required | Description                                                                                                                                                                              | Default                   |
+|-----------------------------| -------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|
+| `MQ`                        | Yes      | Message queue name, set to `pulsar`                                                                                                                                                      |                           |
+| `BEARER_TOKEN`              | Yes      | Secret token                                                                                                                                                                             |                           |
+| `OPENAI_API_KEY`            | Yes      | OpenAI API key                                                                                                                                                                           |                           |
+| `PULSAR_WEBSERVICE_URL`     | Optional | Pulsar webservice url                                                                                                                                                                    | `http://localhost:8080`   |
+| `PULSAR_BROKER_SERVICE_URL` | Optional | Pulsar broker service url                                                                                                                                                                | `pulsar://localhost:6650` |
+| `PULSAR_AUTH_PLUGIN`        | Optional | Pulsar auth plugin                                                                                                                                                                       | none                      |
+| `PULSAR_AUTH_PARAMS`        | Optional | Pulsar auth params(json string), e.g. {"private_key":"/Users/yaalsn/o-7udlj-yaalsn.json", "issuer_url":"https://auth.streamnative.cloud", "audience":"urn:sn:pulsar:o-7udlj:mdinstance"} | none                      |
+| `PULSAR_TOPIC_NAME`         | Optional | Pulsar topic name                                                                                                                                                                        | `chatgpt-retrival-plugin`   |
+
 
 ### Running the API locally
 
