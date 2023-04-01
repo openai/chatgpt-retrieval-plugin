@@ -320,8 +320,7 @@ class RedisDataStore(DataStore):
                     id=doc_json["metadata"]["document_id"],
                     score=doc.score,
                     text=doc_json["text"],
-                    metadata=doc_json["metadata"],
-                    embedding=doc_json["embedding"]
+                    metadata=doc_json["metadata"]
                 )
                 query_results.append(result)
 
