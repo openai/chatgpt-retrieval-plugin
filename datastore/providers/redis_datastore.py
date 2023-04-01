@@ -266,7 +266,6 @@ class RedisDataStore(DataStore):
 
         # Loop through the dict items
         for doc_id, chunk_list in chunks.items():
-
             # Append the id to the ids list
             doc_ids.append(doc_id)
 
@@ -321,7 +320,6 @@ class RedisDataStore(DataStore):
 
         # Iterate through responses and construct results
         for query, query_response in zip(queries, query_responses):
-
             # Iterate through nearest neighbor documents
             query_results: List[DocumentChunkWithScore] = []
             for doc in query_response.docs:

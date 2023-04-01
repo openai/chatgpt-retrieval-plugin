@@ -35,7 +35,6 @@ class PineconeDataStore(DataStore):
     def __init__(self):
         # Check if the index name is specified and exists in Pinecone
         if PINECONE_INDEX and PINECONE_INDEX not in pinecone.list_indexes():
-
             # Get all fields in the metadata object in a list
             fields_to_index = list(DocumentChunkMetadata.__fields__.keys())
 

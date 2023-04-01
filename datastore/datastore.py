@@ -37,7 +37,7 @@ class DataStore(ABC):
             ]
         )
 
-        chunks = get_document_chunks(documents, chunk_token_size)
+        chunks = await get_document_chunks(documents, chunk_token_size)
 
         return await self._upsert(chunks)
 
@@ -56,7 +56,7 @@ class DataStore(ABC):
         """
         # get a list of of just the queries from the Query list
         query_texts = [query.query for query in queries]
-        query_embeddings = get_embeddings(query_texts)
+        query_embeddings = await get_embeddings(query_texts)
         # hydrate the queries with embeddings
         queries_with_embeddings = [
             QueryWithEmbedding(**query.dict(), embedding=embedding)

@@ -320,9 +320,9 @@ class MilvusDataStore(DataStore):
         Returns:
             List[QueryResult]: Results for each search.
         """
+
         # Async to perform the query, adapted from pinecone implementation
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
-
             filter = None
             # Set the filter to expression that is valid for Milvus
             if query.filter is not None:
