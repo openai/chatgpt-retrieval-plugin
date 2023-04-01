@@ -35,8 +35,8 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
             raise Exception("Unsupported file type")
 
     # Open the file in binary mode
-    file = open(filepath, "rb")
-    extracted_text = extract_text_from_file(file, mimetype)
+    with open(filepath, "rb") as file:
+        extracted_text = extract_text_from_file(file, mimetype)
 
     return extracted_text
 
@@ -78,10 +78,8 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                     extracted_text += "\n"
     else:
         # Unsupported file type
-        file.close()
         raise ValueError("Unsupported file type: {}".format(mimetype))
 
-    file.close()
     return extracted_text
 
 
