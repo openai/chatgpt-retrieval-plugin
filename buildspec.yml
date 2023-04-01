@@ -1,0 +1,8 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - docker build -t cgpt-retrieval-plugin-image .
+      - docker tag cgpt-retrieval-plugin-image 011784141224.dkr.ecr.us-east-1.amazonaws.com/cloudadvisor-cgpt:latest
+      - $(aws ecr get-login --no-include-email --region us-east-1)
+      - docker push 011784141224.dkr.ecr.us-east-1.amazonaws.com/cloudadvisor-cgpt:latest
