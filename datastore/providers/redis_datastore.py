@@ -82,7 +82,7 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
             error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
             logging.error(error_message)
-            raise ValueError(error_message)
+            raise AttributeError(error_message)
 
 
 
