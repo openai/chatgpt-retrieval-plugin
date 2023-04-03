@@ -122,7 +122,55 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export DATASTORE=<your_datastore>
    export BEARER_TOKEN=<your_bearer_token>
    export OPENAI_API_KEY=<your_openai_api_key>
-   <Add the environment variables for your chosen vector DB here>
+
+   # Add the environment variables for your chosen vector DB.
+   # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
+
+   # Pinecone
+   export PINECONE_API_KEY=<your_pinecone_api_key>
+   export PINECONE_ENVIRONMENT=<your_pinecone_environment>
+   export PINECONE_INDEX=<your_pinecone_index>
+
+   # Weaviate
+   export WEAVIATE_HOST=<your_weaviate_host>
+   export WEAVIATE_PORT=<your_weaviate_port>
+   export WEAVIATE_INDEX=<your_weaviate_index>
+   export WEAVIATE_USERNAME=<your_weaviate_username>
+   export WEAVIATE_PASSWORD=<your_weaviate_password>
+   export WEAVIATE_SCOPES=<your_weaviate_scopes>
+   export WEAVIATE_BATCH_SIZE=<your_weaviate_batch_size>
+   export WEAVIATE_BATCH_DYNAMIC=<your_weaviate_batch_dynamic>
+   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<your_weaviate_batch_timeout_retries>
+   export WEAVIATE_BATCH_NUM_WORKERS=<your_weaviate_batch_num_workers>
+
+   # Zilliz
+   export ZILLIZ_COLLECTION=<your_zilliz_collection>
+   export ZILLIZ_URI=<your_zilliz_uri>
+   export ZILLIZ_USER=<your_zilliz_username>
+   export ZILLIZ_PASSWORD=<your_zilliz_password>
+
+   # Milvus
+   export MILVUS_COLLECTION=<your_milvus_collection>
+   export MILVUS_HOST=<your_milvus_host>
+   export MILVUS_PORT=<your_milvus_port>
+   export MILVUS_USER=<your_milvus_username>
+   export MILVUS_PASSWORD=<your_milvus_password>
+
+   # Qdrant
+   export QDRANT_URL=<your_qdrant_url>
+   export QDRANT_PORT=<your_qdrant_port>
+   export QDRANT_GRPC_PORT=<your_qdrant_grpc_port>
+   export QDRANT_API_KEY=<your_qdrant_api_key>
+   export QDRANT_COLLECTION=<your_qdrant_collection>
+
+   # Redis
+   export REDIS_HOST=<your_redis_host>
+   export REDIS_PORT=<your_redis_port>
+   export REDIS_PASSWORD=<your_redis_password>
+   export REDIS_INDEX_NAME=<your_redis_index_name>
+   export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
+   export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
+   export REDIS_INDEX_TYPE=<your_redis_index_type>
    ```
 
 9. Run the API locally: `poetry run start`
@@ -183,317 +231,33 @@ The API requires the following environment variables to work:
 
 ### Choosing a Vector Database
 
-The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide detailed information and instructions on using each vector database provider.
+The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide brief introductions to each vector database provider.
+
+For more detailed instructions on setting up and using each vector database provider, please refer to the respective documentation in the `/docs/providers/<datastore_name>/setup.md` file ([folders here](/docs/providers)).
 
 #### Pinecone
 
-[Pinecone](https://www.pinecone.io) is a managed vector database built for speed, scale, and shipping to production sooner. To use Pinecone as your vector database provider, first get an API key by [signing up for an account](https://app.pinecone.io/). You can access your API key from the "API Keys" section in the sidebar of your dashboard. Pinecone also supports hybrid search and at the time of writing is the only datastore to support SPLADE sparse vectors natively.
-
-A full Jupyter notebook walkthrough for the Pinecone flavor of the retrieval plugin can be found [here](https://github.com/openai/chatgpt-retrieval-plugin/blob/main/examples/providers/pinecone/semantic-search.ipynb). There is also a [video walkthrough here](https://youtu.be/hpePPqKxNq8).
-
-The app will create a Pinecone index for you automatically when you run it for the first time. Just pick a name for your index and set it as an environment variable.
-
-Environment Variables:
-
-| Name                   | Required | Description                                                                                                                      |
-| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`            | Yes      | Datastore name, set this to `pinecone`                                                                                           |
-| `BEARER_TOKEN`         | Yes      | Your secret token for authenticating requests to the API                                                                         |
-| `OPENAI_API_KEY`       | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                            |
-| `PINECONE_API_KEY`     | Yes      | Your Pinecone API key, found in the [Pinecone console](https://app.pinecone.io/)                                                 |
-| `PINECONE_ENVIRONMENT` | Yes      | Your Pinecone environment, found in the [Pinecone console](https://app.pinecone.io/), e.g. `us-west1-gcp`, `us-east-1-aws`, etc. |
-| `PINECONE_INDEX`       | Yes      | Your chosen Pinecone index name. **Note:** Index name must consist of lower case alphanumeric characters or '-'                  |
-
-If you want to create your own index with custom configurations, you can do so using the Pinecone SDK, API, or web interface ([see docs](https://docs.pinecone.io/docs/manage-indexes)). Make sure to use a dimensionality of 1536 for the embeddings and avoid indexing on the text field in the metadata, as this will reduce the performance significantly.
-
-```python
-# Creating index with Pinecone SDK - use only if you wish to create the index manually.
-
-import os, pinecone
-
-pinecone.init(api_key=os.environ['PINECONE_API_KEY'],
-              environment=os.environ['PINECONE_ENVIRONMENT'])
-
-pinecone.create_index(name=os.environ['PINECONE_INDEX'],
-                      dimension=1536,
-                      metric='cosine',
-                      metadata_config={
-                          "indexed": ['source', 'source_id', 'url', 'created_at', 'author', 'document_id']})
-```
+[Pinecone](https://www.pinecone.io) is a managed vector database designed for speed, scale, and rapid deployment to production. It supports hybrid search and is currently the only datastore to natively support SPLADE sparse vectors. For detailed setup instructions, refer to [`/docs/providers/pinecone/setup.md`](/docs/providers/pinecone/setup.md).
 
 #### Weaviate
 
-##### Set up a Weaviate Instance
-
-Weaviate is an open-source vector search engine designed to scale seamlessly into billions of data objects. This implementation supports hybrid search out-of-the-box (meaning it will perform better for keyword searches).
-
-You can run Weaviate in 4 ways:
-
-- **SaaS** – with [Weaviate Cloud Services (WCS)](https://weaviate.io/pricing).
-
-  WCS is a fully managed service that takes care of hosting, scaling, and updating your Weaviate instance. You can try it out for free with a sandbox that lasts for 30 days.
-
-  To set up a SaaS Weaviate instance with WCS:
-
-  1.  Navigate to [Weaviate Cloud Console](https://console.weaviate.io/).
-  2.  Register or sign in to your WCS account.
-  3.  Create a new cluster with the following settings:
-      - `Name` – a unique name for your cluster. The name will become part of the URL used to access this instance.
-      - `Subscription Tier` – Sandbox for a free trial, or contact [hello@weaviate.io](mailto:hello@weaviate.io) for other options.
-      - `Weaviate Version` - The latest version by default.
-      - `OIDC Authentication` – Enabled by default. This requires a username and password to access your instance.
-  4.  Wait for a few minutes until your cluster is ready. You will see a green tick ✔️ when it's done. Copy your cluster URL.
-
-- **Hybrid SaaS**
-
-  > If you need to keep your data on-premise for security or compliance reasons, Weaviate also offers a Hybrid SaaS option: Weaviate runs within your cloud instances, but the cluster is managed remotely by Weaviate. This gives you the benefits of a managed service without sending data to an external party.
-
-  The Weaviate Hybrid SaaS is a custom solution. If you are interested in this option, please reach out to [hello@weaviate.io](mailto:hello@weaviate.io).
-
-- **Self-hosted** – with a Docker container
-
-  To set up a Weaviate instance with Docker:
-  1. [Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
-  2. [Install the Docker Compose Plugin](https://docs.docker.com/compose/install/)
-  3.  Download a `docker-compose.yml` file with this `curl` command:
-
-      ```
-      curl -o docker-compose.yml "https://configuration.weaviate.io/v2/docker-compose/docker-compose.yml?modules=standalone&runtime=docker-compose&weaviate_version=v1.18.0"
-      ```
-
-      Alternatively, you can use Weaviate's docker compose [configuration tool](https://weaviate.io/developers/weaviate/installation/docker-compose) to generate your own `docker-compose.yml` file.
-
-  4.  Run `docker compose up -d` to spin up a Weaviate instance.
-
-      > To shut it down, run `docker compose down`.
-
-- **Self-hosted** – with a Kubernetes cluster
-
-  To configure a self-hosted instance with Kubernetes, follow Weaviate's [documentation](https://weaviate.io/developers/weaviate/installation/kubernetes).
-
-##### Configure Weaviate Environment Variables
-
-You need to set some environment variables to connect to your Weaviate instance.
-
-**Retrieval App Environment Variables**
-
-| Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
-| `DATASTORE`      | Yes      | Datastore name. Set this to `weaviate` |
-| `BEARER_TOKEN`   | Yes      | Your secret token                      |
-| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
-
-**Weaviate Datastore Environment Variables**
-
-| Name             | Required | Description                                                        | Default            |
-| ---------------- | -------- | ------------------------------------------------------------------ | ------------------ |
-| `WEAVIATE_HOST`  | Optional | Your Weaviate instance host address (see notes below)              | `http://127.0.0.1` |
-| `WEAVIATE_PORT`  | Optional | Your Weaviate port number                                          | 8080               |
-| `WEAVIATE_INDEX` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
-
-> For **WCS instances**, set `WEAVIATE_PORT` to 443 and `WEAVIATE_HOST` to `https://(wcs-instance-name).weaviate.network`. For example: `https://my-project.weaviate.network/`.
-
-> For **self-hosted instances**, if your instance is not at 127.0.0.1:8080, set `WEAVIATE_HOST` and `WEAVIATE_PORT` accordingly. For example: `WEAVIATE_HOST=http://localhost/` and `WEAVIATE_PORT=4040`.
-
-**Weaviate Auth Environment Variables**
-
-If you enabled OIDC authentication for your Weaviate instance (recommended for WCS instances), set the following environment variables. If you enabled anonymous access, skip this section.
-
-| Name                | Required | Description                    |
-| ------------------- | -------- | ------------------------------ |
-| `WEAVIATE_USERNAME` | Yes      | Your OIDC or WCS username      |
-| `WEAVIATE_PASSWORD` | Yes      | Your OIDC or WCS password      |
-| `WEAVIATE_SCOPES`   | Optional | Space-separated list of scopes |
-
-Learn more about [authentication in Weaviate](https://weaviate.io/developers/weaviate/configuration/authentication#overview) and the [Python client authentication](https://weaviate-python-client.readthedocs.io/en/stable/weaviate.auth.html).
-
-**Weaviate Batch Import Environment Variables**
-
-Weaviate uses a batching mechanism to perform operations in bulk. This makes importing and updating your data faster and more efficient. You can adjust the batch settings with these optional environment variables:
-
-| Name                             | Required | Description                                                  | Default |
-| -------------------------------- | -------- | ------------------------------------------------------------ | ------- |
-| `WEAVIATE_BATCH_SIZE`            | Optional | Number of insert/updates per batch operation                 | 20      |
-| `WEAVIATE_BATCH_DYNAMIC`         | Optional | Lets the batch process decide the batch size                 | False   |
-| `WEAVIATE_BATCH_TIMEOUT_RETRIES` | Optional | Number of retry-on-timeout attempts                          | 3       |
-| `WEAVIATE_BATCH_NUM_WORKERS`     | Optional | The max number of concurrent threads to run batch operations | 1       |
-
-> **Note:** The optimal `WEAVIATE_BATCH_SIZE` depends on the available resources (RAM, CPU). A higher value means faster bulk operations, but also higher demand for RAM and CPU. If you experience failures during the import process, reduce the batch size.
-
-> Setting `WEAVIATE_BATCH_SIZE` to `None` means no limit to the batch size. All insert or update operations would be sent to Weaviate in a single operation. This might be risky, as you lose control over the batch size.
-
-Learn more about [batch configuration in Weaviate](https://weaviate.io/developers/weaviate/client-libraries/python#batch-configuration).
+[Weaviate](https://weaviate.io/) is an open-source vector search engine built to scale seamlessly into billions of data objects. It supports hybrid search out-of-the-box, making it suitable for users who require efficient keyword searches. Weaviate can be self-hosted or managed, offering flexibility in deployment. For detailed setup instructions, refer to [`/docs/providers/weaviate/setup.md`](/docs/providers/weaviate/setup.md).
 
 #### Zilliz
 
-Zilliz is a managed cloud-native vector database designed for the billion scale. Zilliz offers many key features, such as:
-
-- Multiple indexing algorithms
-- Multiple distance metrics
-- Scalar filtering
-- Time travel searches
-- Rollback and with snapshots
-- Full RBAC
-- 99.9% uptime
-- Separated storage and compute
-- Multi-language SDK's
-
-Find more information [here](https://zilliz.com).
-
-**Self Hosted vs SaaS**
-
-Zilliz is a SaaS database, but offers an open-source solution, Milvus. Both options offer fast searches at the billion scale, but Zilliz handles data management for you. It automatically scales compute and storage resources and creates optimal indexes for your data. See the comparison [here](https://zilliz.com/doc/about_zilliz_cloud).
-
-##### Deploying the Database
-
-Zilliz Cloud is deployable in a few simple steps. First, create an account [here](https://cloud.zilliz.com/signup). Once you have an account set up, follow the guide [here](https://zilliz.com/doc/quick_start) to set up a database and get the parameters needed for this application.
-
-Environment Variables:
-
-| Name                | Required | Description                                       |
-| ------------------- | -------- | ------------------------------------------------- |
-| `DATASTORE`         | Yes      | Datastore name, set to `zilliz`                   |
-| `BEARER_TOKEN`      | Yes      | Your secret token                                 |
-| `OPENAI_API_KEY`    | Yes      | Your OpenAI API key                               |
-| `ZILLIZ_COLLECTION` | Optional | Zilliz collection name. Defaults to a random UUID |
-| `ZILLIZ_URI`        | Yes      | URI for the Zilliz instance                       |
-| `ZILLIZ_USER`       | Yes      | Zilliz username                                   |
-| `ZILLIZ_PASSWORD`   | Yes      | Zilliz password                                   |
-
-#### Running Zilliz Integration Tests
-
-A suite of integration tests is available to verify the Zilliz integration. To run the tests, create a Zilliz database and update the environment variables.
-
-Then, launch the test suite with this command:
-
-```bash
-pytest ./tests/datastore/providers/zilliz/test_zilliz_datastore.py
-```
+[Zilliz](https://zilliz.com) is a managed cloud-native vector database designed for billion-scale data. It offers a wide range of features, including multiple indexing algorithms, distance metrics, scalar filtering, time travel searches, rollback with snapshots, full RBAC, 99.9% uptime, separated storage and compute, and multi-language SDKs. For detailed setup instructions, refer to [`/docs/providers/zilliz/setup.md`](/docs/providers/zilliz/setup.md).
 
 #### Milvus
 
-Milvus is the open-source, cloud-native vector database that scales to billions of vectors. It's the open-source version of Zilliz. It supports:
-
-- Various indexing algorithms and distance metrics
-- Scalar filtering and time travel searches
-- Rollback and snapshots
-- Multi-language SDKs
-- Storage and compute separation
-- Cloud scalability
-- A developer-first community with multi-language support
-
-Visit the [Github](https://github.com/milvus-io/milvus) to learn more.
-
-##### Deploying the Database
-
-You can deploy and manage Milvus using Docker Compose, Helm, K8's Operator, or Ansible. Follow the instructions [here](https://milvus.io/docs) to get started.
-
-Environment Variables:
-
-| Name                | Required | Description                                            |
-| ------------------- | -------- | ------------------------------------------------------ |
-| `DATASTORE`         | Yes      | Datastore name, set to `milvus`                        |
-| `BEARER_TOKEN`      | Yes      | Your bearer token                                      |
-| `OPENAI_API_KEY`    | Yes      | Your OpenAI API key                                    |
-| `MILVUS_COLLECTION` | Optional | Milvus collection name, defaults to a random UUID      |
-| `MILVUS_HOST`       | Optional | Milvus host IP, defaults to `localhost`                |
-| `MILVUS_PORT`       | Optional | Milvus port, defaults to `19530`                       |
-| `MILVUS_USER`       | Optional | Milvus username if RBAC is enabled, defaults to `None` |
-| `MILVUS_PASSWORD`   | Optional | Milvus password if required, defaults to `None`        |
-
-#### Running Milvus Integration Tests
-
-A suite of integration tests is available to verify the Milvus integration. To run the tests, run the milvus docker compose found in the examples folder.
-
-Then, launch the test suite with this command:
-
-```bash
-pytest ./tests/datastore/providers/milvus/test_milvus_datastore.py
-```
+[Milvus](https://milvus.io/) is an open-source, cloud-native vector database that scales to billions of vectors. It is the open-source version of Zilliz and shares many of its features, such as various indexing algorithms, distance metrics, scalar filtering, time travel searches, rollback with snapshots, multi-language SDKs, storage and compute separation, and cloud scalability. For detailed setup instructions, refer to [`/docs/providers/milvus/setup.md`](/docs/providers/milvus/setup.md).
 
 #### Qdrant
 
-Qdrant is a vector database that can store documents and vector embeddings. It can run as a self-hosted version or a managed [Qdrant Cloud](https://cloud.qdrant.io/)
-solution. The configuration is almost identical for both options, except for the API key that [Qdrant Cloud](https://cloud.qdrant.io/) provides.
-
-Environment Variables:
-
-| Name                | Required | Description                                                 | Default            |
-| ------------------- | -------- | ----------------------------------------------------------- | ------------------ |
-| `DATASTORE`         | Yes      | Datastore name, set to `qdrant`                             |                    |
-| `BEARER_TOKEN`      | Yes      | Secret token                                                |                    |
-| `OPENAI_API_KEY`    | Yes      | OpenAI API key                                              |                    |
-| `QDRANT_URL`        | Yes      | Qdrant instance URL                                         | `http://localhost` |
-| `QDRANT_PORT`       | Optional | TCP port for Qdrant HTTP communication                      | `6333`             |
-| `QDRANT_GRPC_PORT`  | Optional | TCP port for Qdrant GRPC communication                      | `6334`             |
-| `QDRANT_API_KEY`    | Optional | Qdrant API key for [Qdrant Cloud](https://cloud.qdrant.io/) |                    |
-| `QDRANT_COLLECTION` | Optional | Qdrant collection name                                      | `document_chunks`  |
-
-##### Qdrant Cloud
-
-For a hosted [Qdrant Cloud](https://cloud.qdrant.io/) version, provide the Qdrant instance
-URL and the API key from the [Qdrant Cloud UI](https://cloud.qdrant.io/).
-
-**Example:**
-
-```bash
-QDRANT_URL="https://YOUR-CLUSTER-URL.aws.cloud.qdrant.io"
-QDRANT_API_KEY="<YOUR_QDRANT_CLOUD_CLUSTER_API_KEY>"
-```
-
-The other parameters are optional and can be changed if needed.
-
-##### Self-hosted Qdrant Instance
-
-For a self-hosted version, use Docker containers or the official Helm chart for deployment. The only
-required parameter is the `QDRANT_URL` that points to the Qdrant server URL.
-
-**Example:**
-
-```bash
-QDRANT_URL="http://YOUR_HOST.example.com:6333"
-```
-
-The other parameters are optional and can be changed if needed.
-
-##### Running Qdrant Integration Tests
-
-A suite of integration tests verifies the Qdrant integration. To run it, start a local Qdrant instance in a Docker container.
-
-```bash
-docker run -p "6333:6333" -p "6334:6334" qdrant/qdrant:v1.0.3
-```
-
-Then, launch the test suite with this command:
-
-```bash
-pytest ./tests/datastore/providers/qdrant/test_qdrant_datastore.py
-```
+[Qdrant](https://qdrant.tech/) is a vector database capable of storing documents and vector embeddings. It offers both self-hosted and managed [Qdrant Cloud](https://cloud.qdrant.io/) deployment options, providing flexibility for users with different requirements. For detailed setup instructions, refer to [`/docs/providers/qdrant/setup.md`](/docs/providers/qdrant/setup.md).
 
 #### Redis
 
-Redis is a real-time data platform that supports a variety of use cases for everyday applications as well as AI/ML workloads. Use Redis as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, try [Redis Cloud](https://app.redislabs.com/#/). See more helpful examples of Redis as a vector database [here](https://github.com/RedisVentures/redis-ai-resources).
-
-- The database **needs the RediSearch module (>=v2.6) and RedisJSON**, which are included in the self-hosted docker compose above.
-- Run the App with the Redis docker image: `docker compose up -d` in [this dir](/examples/docker/redis/).
-- The app automatically creates a Redis vector search index on the first run. Optionally, create a custom index with a specific name and set it as an environment variable (see below).
-- To enable more hybrid searching capabilities, adjust the document schema [here](/datastore/providers/redis_datastore.py).
-
-
-Environment Variables:
-
-| Name                    | Required | Description                                                                                                            | Default     |
-| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `DATASTORE`             | Yes      | Datastore name, set to `redis`                                                                                         |             |
-| `BEARER_TOKEN`          | Yes      | Secret token                                                                                                           |             |
-| `OPENAI_API_KEY`        | Yes      | OpenAI API key                                                                                                         |             |
-| `REDIS_HOST`            | Optional | Redis host url                                                                                                         | `localhost` |
-| `REDIS_PORT`            | Optional | Redis port                                                                                                             | `6379`      |
-| `REDIS_PASSWORD`        | Optional | Redis password                                                                                                         | none        |
-| `REDIS_INDEX_NAME`      | Optional | Redis vector index name                                                                                                | `index`     |
-| `REDIS_DOC_PREFIX`      | Optional | Redis key prefix for the index                                                                                         | `doc`       |
-| `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
-| `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
+[Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
 
 ### Running the API locally
 
