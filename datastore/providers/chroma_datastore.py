@@ -13,7 +13,6 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import chromadb
-from chromadb.api.models import Collection
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -26,7 +25,8 @@ from models.models import (
     Source,
 )
 
-CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "False")
+CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "True")
+CHROMA_PERSISTENCE_DIR = os.environ.get("CHROMA_PERSISTENCE_DIR", "openai")
 CHROMA_HOST = os.environ.get("CHROMA_HOST", "http://127.0.0.1")
 CHROMA_PORT = os.environ.get("CHROMA_PORT", "8000")
 CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "openaiembeddings")
@@ -41,10 +41,16 @@ class ChromaDataStore(DataStore):
             self.client = client
         else:
             if CHROMA_IN_MEMORY == "True":
-                self.client = chromadb.Client()
+                self.client = chromadb.Client(
+                    settings=chromadb.config.Settings(
+                        chroma_db_impl="duckdb+parquet",
+                        persist_directory=CHROMA_PERSISTENCE_DIR,
+                    )
+                )
             else:
                 self.client = chromadb.Client(
                     settings=chromadb.config.Settings(
+                        chroma_api_impl="rest",
                         chroma_server_host=CHROMA_HOST,
                         chroma_server_http_port=CHROMA_PORT,
                     )
@@ -58,7 +64,7 @@ class ChromaDataStore(DataStore):
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
-        self.collection.add(
+        self.collection.upsert(
             ids=[chunk.id for chunk_list in chunks.values() for chunk in chunk_list],
             embeddings=[
                 chunk.embedding
