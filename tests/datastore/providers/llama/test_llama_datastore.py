@@ -3,10 +3,12 @@ import pytest
 from datastore.providers.llama_datastore import LlamaDataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, QueryWithEmbedding
 
+
 def create_embedding(non_zero_pos: int, size: int) -> List[float]:
     vector = [0.0] * size
     vector[non_zero_pos % size] = 1.0
     return vector
+
 
 @pytest.fixture
 def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
@@ -22,6 +24,7 @@ def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
     return {
         "first-doc": first_doc_chunks,
     }
+
 
 @pytest.fixture
 def queries() -> List[QueryWithEmbedding]:
@@ -74,14 +77,10 @@ async def test_query(
     assert len(query_1_results) == 2
     
     # NOTE: this is the correct behavior
-    # assert query_0_results[0].id == 'first-doc-4'
-    # assert query_1_results[0].id == 'first-doc-5'
-    # assert query_1_results[1].id == 'first-doc-4'
+    assert query_0_results[0].id == 'first-doc-4'
+    assert query_1_results[0].id == 'first-doc-5'
+    assert query_1_results[1].id == 'first-doc-4'
 
-    # TODO: this is current buggy behavior, to be fixed in 0.5.2
-    assert query_0_results[0].id == 'first-doc'
-    assert query_1_results[0].id == 'first-doc'
-    assert query_1_results[1].id == 'first-doc'
 
 @pytest.mark.asyncio
 async def test_delete(

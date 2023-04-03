@@ -8,8 +8,8 @@ from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWit
 from llama_index.indices.base import BaseGPTIndex
 from llama_index.indices.vector_store.base import GPTVectorStoreIndex
 from llama_index.indices.query.schema import QueryBundle
-from llama_index.response.schema import SourceNode, Response
-from llama_index.data_structs.node_v2 import Node, DocumentRelationship
+from llama_index.response.schema import Response
+from llama_index.data_structs.node_v2 import Node, DocumentRelationship, NodeWithScore
 from llama_index.indices.registry import INDEX_STRUCT_TYPE_TO_INDEX_CLASS
 from llama_index.data_structs.struct_type import IndexStructType
 from llama_index.indices.response.builder import ResponseMode
@@ -80,7 +80,8 @@ def _query_with_embedding_to_query_bundle(query: QueryWithEmbedding) -> QueryBun
         embedding=query.embedding,
     )
 
-def _source_node_to_doc_chunk_with_score(node: SourceNode) -> DocumentChunkWithScore:
+def _source_node_to_doc_chunk_with_score(node_with_score: NodeWithScore) -> DocumentChunkWithScore:
+    node = node_with_score.node
     if node.extra_info is not None:
         metadata = DocumentChunkMetadata(**node.extra_info)
     else:
@@ -88,8 +89,8 @@ def _source_node_to_doc_chunk_with_score(node: SourceNode) -> DocumentChunkWithS
 
     return DocumentChunkWithScore(
         id=node.doc_id,
-        text=node.source_text,
-        score=node.similarity if node.similarity is not None else 1.,
+        text=node.text,
+        score=node_with_score.score if node_with_score.score is not None else 1.,
         metadata=metadata,
     )
 
