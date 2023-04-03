@@ -2,7 +2,7 @@
 Chroma datastore support for the ChatGPT retrieval plugin.
 
 Consult the Chroma docs and GitHub repo for more information:
-- https://docs.trychroma.com/api-reference
+- https://docs.trychroma.com/usage-guide?lang=py
 - https://github.com/chroma-core/chroma
 - https://www.trychroma.com/
 """
@@ -24,6 +24,7 @@ from models.models import (
     QueryWithEmbedding,
     Source,
 )
+from services.chunks import get_document_chunks
 
 CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "True")
 CHROMA_PERSISTENCE_DIR = os.environ.get("CHROMA_PERSISTENCE_DIR", "openai")
@@ -35,36 +36,61 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "openaiembeddings")
 class ChromaDataStore(DataStore):
     def __init__(
         self,
+        in_memory: bool = CHROMA_IN_MEMORY,
+        persistence_dir: Optional[str] = CHROMA_PERSISTENCE_DIR,
+        collection_name: str = CHROMA_COLLECTION,
+        host: str = CHROMA_HOST,
+        port: str = CHROMA_PORT,
         client: Optional[chromadb.Client] = None,
     ):
         if client:
-            self.client = client
+            self._client = client
         else:
-            if CHROMA_IN_MEMORY == "True":
-                self.client = chromadb.Client(
-                    settings=chromadb.config.Settings(
+            if in_memory:
+                settings = (
+                    chromadb.config.Settings(
                         chroma_db_impl="duckdb+parquet",
-                        persist_directory=CHROMA_PERSISTENCE_DIR,
+                        persist_directory=persistence_dir,
                     )
+                    if persistence_dir
+                    else chromadb.config.Settings()
                 )
+
+                self._client = chromadb.Client(settings=settings)
             else:
-                self.client = chromadb.Client(
+                self._client = chromadb.Client(
                     settings=chromadb.config.Settings(
                         chroma_api_impl="rest",
-                        chroma_server_host=CHROMA_HOST,
-                        chroma_server_http_port=CHROMA_PORT,
+                        chroma_server_host=host,
+                        chroma_server_http_port=port,
                     )
                 )
-        self.collection = self.client.create_collection(
-            name=CHROMA_COLLECTION, embedding_function=None
+        self._collection = self._client.get_or_create_collection(
+            name=collection_name,
+            embedding_function=None,
         )
+
+    async def upsert(
+        self, documents: List[DocumentChunk], chunk_token_size: Optional[int] = None
+    ) -> List[str]:
+        """
+        Takes in a list of documents and inserts them into the database.
+        First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
+        Return a list of document ids.
+        """
+
+        chunks = get_document_chunks(documents, chunk_token_size)
+
+        # Chroma has a true upsert, so we don't need to delete first
+        return await self._upsert(chunks)
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
-        self.collection.upsert(
+
+        self._collection.upsert(
             ids=[chunk.id for chunk_list in chunks.values() for chunk in chunk_list],
             embeddings=[
                 chunk.embedding
@@ -119,23 +145,34 @@ class ChromaDataStore(DataStore):
         return output
 
     def _process_metadata_for_storage(self, metadata: DocumentChunkMetadata) -> Dict:
-        return {
-            "source": metadata.source.value,
-            "source_id": metadata.source_id,
-            "url": metadata.url,
-            "created_at": int(datetime.fromisoformat(metadata.created_at).timestamp()),
-            "author": metadata.author,
-            "document_id": metadata.document_id,
-        }
+        stored_metadata = {}
+        if metadata.source:
+            stored_metadata["source"] = metadata.source.value
+        if metadata.source_id:
+            stored_metadata["source_id"] = metadata.source_id
+        if metadata.url:
+            stored_metadata["url"] = metadata.url
+        if metadata.created_at:
+            stored_metadata["created_at"] = int(
+                datetime.fromisoformat(metadata.created_at).timestamp()
+            )
+        if metadata.author:
+            stored_metadata["author"] = metadata.author
+        if metadata.document_id:
+            stored_metadata["document_id"] = metadata.document_id
+
+        return stored_metadata
 
     def _process_metadata_from_storage(self, metadata: Dict) -> DocumentChunkMetadata:
         return DocumentChunkMetadata(
-            source=Source(metadata["source"]),
-            source_id=metadata["source_id"],
-            url=metadata["url"],
-            created_at=datetime.fromtimestamp(metadata["created_at"]).isoformat(),
-            author=metadata["author"],
-            document_id=metadata["document_id"],
+            source=Source(metadata["source"]) if "source" in metadata else None,
+            source_id=metadata.get("source_id", None),
+            url=metadata.get("url", None),
+            created_at=datetime.fromtimestamp(metadata["created_at"]).isoformat()
+            if "created_at" in metadata
+            else None,
+            author=metadata.get("author", None),
+            document_id=metadata.get("document_id", None),
         )
 
     async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
@@ -143,10 +180,10 @@ class ChromaDataStore(DataStore):
         Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
         results = [
-            self.collection.query(
+            self._collection.query(
                 query_embeddings=[query.embedding],
                 include=["documents", "distances", "metadatas", "embeddings"],
-                n_results=min(query.top_k, self.collection.count()),
+                n_results=min(query.top_k, self._collection.count()),
                 where=(
                     self._where_from_query_filter(query.filter) if query.filter else {}
                 ),
@@ -190,7 +227,7 @@ class ChromaDataStore(DataStore):
         Returns whether the operation was successful.
         """
         if delete_all:
-            self.collection.delete()
+            self._collection.delete()
             return True
 
         if ids and len(ids) > 0:
@@ -207,5 +244,5 @@ class ChromaDataStore(DataStore):
         elif filter:
             where_clause = self._where_from_query_filter(filter)
 
-        self.collection.delete(where=where_clause)
+        self._collection.delete(where=where_clause)
         return True
