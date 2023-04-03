@@ -3,7 +3,7 @@ import json
 import argparse
 import asyncio
 
-from models.models import Document, DocumentMetadata, Source
+from models.models import Document, DocumentMetadata
 from datastore.datastore import DataStore
 from datastore.factory import get_datastore
 from services.extract_metadata import extract_metadata_from_document
@@ -116,7 +116,7 @@ async def main():
         "--screen_for_pii",
         default=False,
         type=bool,
-        help="A boolean flag to indicate whether to try to the PII detection function (using a language model)",
+        help="A boolean flag to indicate whether to try the PII detection function (using a language model)",
     )
     parser.add_argument(
         "--extract_metadata",

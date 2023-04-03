@@ -40,6 +40,10 @@ assert REDIS_INDEX_TYPE in ("FLAT", "HNSW")
 VECTOR_DIMENSION = 1536
 
 # RediSearch constants
+REDIS_REQUIRED_MODULES = [
+    {"name": "search", "ver": 20600},
+    {"name": "ReJSON", "ver": 20404}
+]
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
 REDIS_SEARCH_SCHEMA = {
     "document_id": TagField("$.document_id", as_name="document_id"),
@@ -56,13 +60,12 @@ REDIS_SEARCH_SCHEMA = {
             "TYPE": "FLOAT64",
             "DIM": VECTOR_DIMENSION,
             "DISTANCE_METRIC": REDIS_DISTANCE_METRIC,
-            "INITIAL_CAP": 500,
         },
         as_name="embedding",
     ),
 }
 
-
+# Helper functions
 def unpack_schema(d: dict):
     for v in d.values():
         if isinstance(v, dict):
@@ -70,11 +73,23 @@ def unpack_schema(d: dict):
         else:
             yield v
 
+async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
+
+    installed_modules = (await client.info()).get("modules", [])
+    installed_modules = {module["name"]: module for module in installed_modules}
+    for module in modules:
+        if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
+            error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+                "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+
 
 class RedisDataStore(DataStore):
     def __init__(self, client: redis.Redis):
         self.client = client
-        # Init default metadata with sentinal values in case the document written has no metadata
+        # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
             field: "_null_" for field in REDIS_SEARCH_SCHEMA["metadata"]
         }
@@ -95,6 +110,8 @@ class RedisDataStore(DataStore):
         except Exception as e:
             logging.error(f"Error setting up Redis: {e}")
             raise e
+
+        await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
 
         try:
             # Check for existence of RediSearch Index
@@ -182,7 +199,6 @@ class RedisDataStore(DataStore):
         Returns:
             RediSearchQuery: Query for RediSearch.
         """
-        query_str: str = ""
         filter_str: str = ""
 
         # RediSearch field type to query string
@@ -258,19 +274,14 @@ class RedisDataStore(DataStore):
             # Append the id to the ids list
             doc_ids.append(doc_id)
 
-            # Write all chunks associated with a document
-            n = min(len(chunk_list), 50)
-            semaphore = asyncio.Semaphore(n)
-
-            async def _write(chunk: DocumentChunk):
-                async with semaphore:
-                    # Get redis key and chunk object
-                    key = self._redis_key(doc_id, chunk.id)  # type: ignore
+            # Write chunks in a pipelines
+            async with self.client.pipeline(transaction=False) as pipe:
+                for chunk in chunk_list:
+                    key = self._redis_key(doc_id, chunk.id)
                     data = self._get_redis_chunk(chunk)
-                    await self.client.json().set(key, "$", data)
+                    await pipe.json().set(key, "$", data)
+                await pipe.execute()
 
-            # Concurrently gather writes
-            await asyncio.gather(*[_write(chunk) for i, chunk in enumerate(chunk_list)])
         return doc_ids
 
     async def _query(
@@ -281,54 +292,45 @@ class RedisDataStore(DataStore):
         Takes in a list of queries with embeddings and filters and
         returns a list of query results with matching document chunks and scores.
         """
-        # Prepare results object
+        # Prepare query responses and results object
         results: List[QueryResult] = []
 
-        # Use asyncio for concurrent search
-        n = min(len(queries), 50)
-        semaphore = asyncio.Semaphore(n)
+        # Gather query results in a pipeline
+        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        for query in queries:
 
-        async def _single_query(query: QueryWithEmbedding) -> QueryResult:
             logging.info(f"Query: {query.query}")
+            query_results: List[DocumentChunkWithScore] = []
+
             # Extract Redis query
             redis_query: RediSearchQuery = self._get_redis_query(query)
-            # Perform a single query
-            async with semaphore:
-                embedding = np.array(query.embedding, dtype=np.float64).tobytes()
-                # Get vector query response from Redis
-                query_response = await self.client.ft(REDIS_INDEX_NAME).search(
-                    redis_query, {"embedding": embedding}  # type: ignore
-                )
-                return query_response
+            embedding = np.array(query.embedding, dtype=np.float64).tobytes()
 
-        # Concurrently gather query results
-        logging.info(f"Gathering {len(queries)} query results", flush=True)  # type: ignore
-        query_responses = await asyncio.gather(
-            *[_single_query(query) for query in queries]
-        )
+            # Perform vector search
+            query_response = await self.client.ft(REDIS_INDEX_NAME).search(
+                redis_query, {"embedding": embedding}
+            )
 
-        # Iterate through responses and construct results
-        for query, query_response in zip(queries, query_responses):
-
-            # Iterate through nearest neighbor documents
-            query_results: List[DocumentChunkWithScore] = []
+            # Iterate through the most similar documents
             for doc in query_response.docs:
-                # Create a document chunk with score object with the result data
+                # Load JSON data
                 doc_json = json.loads(doc.json)
+                # Create document chunk object with score
                 result = DocumentChunkWithScore(
                     id=doc_json["metadata"]["document_id"],
                     score=doc.score,
                     text=doc_json["text"],
-                    metadata=doc_json["metadata"],
+                    metadata=doc_json["metadata"]
                 )
                 query_results.append(result)
 
             # Add to overall results
             results.append(QueryResult(query=query.query, results=query_results))
+
         return results
 
     async def _find_keys(self, pattern: str) -> List[str]:
-        return await self.client.keys(pattern=pattern)
+        return [key async for key in self.client.scan_iter(pattern)]
 
     async def delete(
         self,
@@ -356,7 +358,9 @@ class RedisDataStore(DataStore):
             # TODO - extend this to work with other metadata filters?
             if filter.document_id:
                 try:
-                    keys = await self._find_keys(f"{REDIS_DOC_PREFIX}:{filter.document_id}:*")
+                    keys = await self._find_keys(
+                        f"{REDIS_DOC_PREFIX}:{filter.document_id}:*"
+                    )
                     await self._redis_delete(keys)
                     logging.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
@@ -370,7 +374,9 @@ class RedisDataStore(DataStore):
                 keys = []
                 # find all keys associated with the document ids
                 for document_id in ids:
-                    doc_keys = await self._find_keys(pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*")
+                    doc_keys = await self._find_keys(
+                        pattern=f"{REDIS_DOC_PREFIX}:{document_id}:*"
+                    )
                     keys.extend(doc_keys)
                 # delete all keys
                 logging.info(f"Deleting {len(keys)} keys from Redis")
