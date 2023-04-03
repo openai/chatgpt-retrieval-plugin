@@ -1,7 +1,8 @@
 # This is a version of the main.py file found in ../../../server/main.py without authentication.
 # Copy and paste this into the main file at ../../../server/main.py if you choose to use no authentication for your retrieval plugin.
+from typing import Optional
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, Body, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 from models.api import (
@@ -14,6 +15,8 @@ from models.api import (
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
+
+from models.models import DocumentMetadata, Source
 
 
 app = FastAPI()
@@ -35,8 +38,18 @@ app.mount("/sub", sub_app)
 )
 async def upsert_file(
     file: UploadFile = File(...),
+    metadata: Optional[str] = Form(None),
 ):
-    document = await get_document_from_file(file)
+    try:
+        metadata_obj = (
+            DocumentMetadata.parse_raw(metadata)
+            if metadata
+            else DocumentMetadata(source=Source.file)
+        )
+    except:
+        metadata_obj = DocumentMetadata(source=Source.file)
+
+    document = await get_document_from_file(file, metadata_obj)
 
     try:
         ids = await datastore.upsert([document])
