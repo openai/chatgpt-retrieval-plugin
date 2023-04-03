@@ -122,7 +122,55 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export DATASTORE=<your_datastore>
    export BEARER_TOKEN=<your_bearer_token>
    export OPENAI_API_KEY=<your_openai_api_key>
-   <Add the environment variables for your chosen vector DB here>
+
+   # Add the environment variables for your chosen vector DB.
+   # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
+
+   # Pinecone
+   export PINECONE_API_KEY=<your_pinecone_api_key>
+   export PINECONE_ENVIRONMENT=<your_pinecone_environment>
+   export PINECONE_INDEX=<your_pinecone_index>
+
+   # Weaviate
+   export WEAVIATE_HOST=<your_weaviate_host>
+   export WEAVIATE_PORT=<your_weaviate_port>
+   export WEAVIATE_INDEX=<your_weaviate_index>
+   export WEAVIATE_USERNAME=<your_weaviate_username>
+   export WEAVIATE_PASSWORD=<your_weaviate_password>
+   export WEAVIATE_SCOPES=<your_weaviate_scopes>
+   export WEAVIATE_BATCH_SIZE=<your_weaviate_batch_size>
+   export WEAVIATE_BATCH_DYNAMIC=<your_weaviate_batch_dynamic>
+   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<your_weaviate_batch_timeout_retries>
+   export WEAVIATE_BATCH_NUM_WORKERS=<your_weaviate_batch_num_workers>
+
+   # Zilliz
+   export ZILLIZ_COLLECTION=<your_zilliz_collection>
+   export ZILLIZ_URI=<your_zilliz_uri>
+   export ZILLIZ_USER=<your_zilliz_username>
+   export ZILLIZ_PASSWORD=<your_zilliz_password>
+
+   # Milvus
+   export MILVUS_COLLECTION=<your_milvus_collection>
+   export MILVUS_HOST=<your_milvus_host>
+   export MILVUS_PORT=<your_milvus_port>
+   export MILVUS_USER=<your_milvus_username>
+   export MILVUS_PASSWORD=<your_milvus_password>
+
+   # Qdrant
+   export QDRANT_URL=<your_qdrant_url>
+   export QDRANT_PORT=<your_qdrant_port>
+   export QDRANT_GRPC_PORT=<your_qdrant_grpc_port>
+   export QDRANT_API_KEY=<your_qdrant_api_key>
+   export QDRANT_COLLECTION=<your_qdrant_collection>
+
+   # Redis
+   export REDIS_HOST=<your_redis_host>
+   export REDIS_PORT=<your_redis_port>
+   export REDIS_PASSWORD=<your_redis_password>
+   export REDIS_INDEX_NAME=<your_redis_index_name>
+   export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
+   export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
+   export REDIS_INDEX_TYPE=<your_redis_index_type>
    ```
 
 9. Run the API locally: `poetry run start`
@@ -253,19 +301,20 @@ You can run Weaviate in 4 ways:
 - **Self-hosted** – with a Docker container
 
   To set up a Weaviate instance with Docker:
+
   1. [Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
   2. [Install the Docker Compose Plugin](https://docs.docker.com/compose/install/)
-  3.  Download a `docker-compose.yml` file with this `curl` command:
+  3. Download a `docker-compose.yml` file with this `curl` command:
 
-      ```
-      curl -o docker-compose.yml "https://configuration.weaviate.io/v2/docker-compose/docker-compose.yml?modules=standalone&runtime=docker-compose&weaviate_version=v1.18.0"
-      ```
+     ```
+     curl -o docker-compose.yml "https://configuration.weaviate.io/v2/docker-compose/docker-compose.yml?modules=standalone&runtime=docker-compose&weaviate_version=v1.18.0"
+     ```
 
-      Alternatively, you can use Weaviate's docker compose [configuration tool](https://weaviate.io/developers/weaviate/installation/docker-compose) to generate your own `docker-compose.yml` file.
+     Alternatively, you can use Weaviate's docker compose [configuration tool](https://weaviate.io/developers/weaviate/installation/docker-compose) to generate your own `docker-compose.yml` file.
 
-  4.  Run `docker compose up -d` to spin up a Weaviate instance.
+  4. Run `docker compose up -d` to spin up a Weaviate instance.
 
-      > To shut it down, run `docker compose down`.
+     > To shut it down, run `docker compose down`.
 
 - **Self-hosted** – with a Kubernetes cluster
 
@@ -478,7 +527,6 @@ Redis is a real-time data platform that supports a variety of use cases for ever
 - Run the App with the Redis docker image: `docker compose up -d` in [this dir](/examples/docker/redis/).
 - The app automatically creates a Redis vector search index on the first run. Optionally, create a custom index with a specific name and set it as an environment variable (see below).
 - To enable more hybrid searching capabilities, adjust the document schema [here](/datastore/providers/redis_datastore.py).
-
 
 Environment Variables:
 
