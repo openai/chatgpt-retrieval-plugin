@@ -8,17 +8,17 @@ Find an example video of a Retrieval Plugin that has access to the UN Annual Rep
 
 The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. The repository is organized into several directories:
 
-| Directory                     | Description                                                                                                      |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| [`datastore`](/datastore)     | Contains the core logic for storing and querying document embeddings using various vector database providers.    |
-| [`docs`](/docs)               | Includes documentation for setting up and using each vector database provider.                                   |
-| [`examples`](/examples)       | Provides example configurations, authentication methods, and provider-specific examples.                         |
-| [`models`](/models)           | Contains the data models used by the plugin, such as document and metadata models.                               |
-| [`scripts`](/scripts)         | Offers scripts for processing and uploading documents from different data sources.                               |
-| [`server`](/server)           | Houses the main FastAPI server implementation.                                                                   |
-| [`services`](/services)       | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                       |
-| [`tests`](/tests)             | Includes integration tests for various vector database providers.                                                |
-| [`.well-known`](/.well-known) | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification. |
+| Directory                     | Description                                                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [`datastore`](/datastore)     | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
+| [`docs`](/docs)               | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
+| [`examples`](/examples)       | Provides example configurations, authentication methods, and provider-specific examples.                                   |
+| [`models`](/models)           | Contains the data models used by the plugin, such as document and metadata models.                                         |
+| [`scripts`](/scripts)         | Offers scripts for processing and uploading documents from different data sources.                                         |
+| [`server`](/server)           | Houses the main FastAPI server implementation.                                                                             |
+| [`services`](/services)       | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                                 |
+| [`tests`](/tests)             | Includes integration tests for various vector database providers.                                                          |
+| [`.well-known`](/.well-known) | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
 
 This README provides detailed information on how to set up, develop, and deploy the ChatGPT Retrieval Plugin.
 
@@ -45,9 +45,6 @@ This README provides detailed information on how to set up, develop, and deploy 
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
 - [Deployment](#deployment)
-  - [Deploying to Fly.io](#deploying-to-flyio)
-  - [Deploying to Heroku](#deploying-to-heroku)
-  - [Other Deployment Options](#other-deployment-options)
 - [Webhooks](#webhooks)
 - [Scripts](#scripts)
 - [Limitations](#limitations)
@@ -313,211 +310,15 @@ Consider the benefits and drawbacks of each authentication method before choosin
 
 You can deploy your app to different cloud providers, depending on your preferences and requirements. However, regardless of the provider you choose, you will need to update two files in your app: [openapi.yaml](/.well-known/openapi.yaml) and [ai-plugin.json](/.well-known/ai-plugin.json). As outlined above, these files define the API specification and the AI plugin configuration for your app, respectively. You need to change the url field in both files to match the address of your deployed app.
 
-Before deploying your app, you might want to remove unused dependencies from your [pyproject.toml](/pyproject.toml) file to reduce the size of your app and improve its performance. Depending on the vector database provider you choose, you can remove the packages that are not needed for your specific provider.
+Before deploying your app, you might want to remove unused dependencies from your [pyproject.toml](/pyproject.toml) file to reduce the size of your app and improve its performance. Depending on the vector database provider you choose, you can remove the packages that are not needed for your specific provider. Refer to the respective documentation in the [`/docs/deployment/removing-unused-dependencies.md`](/docs/deployment/removing-unused-dependencies.md) file for information on removing unused dependencies for each provider.
 
-Here are the packages you can remove for each vector database provider:
+Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
-- **Pinecone:** Remove `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Weaviate:** Remove `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Zilliz:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Milvus:** Remove `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Qdrant:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
-- **Redis:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
+Here are detailed deployment instructions for various platforms:
 
-After removing the unnecessary packages from the `pyproject.toml` file, you don't need to run `poetry lock` and `poetry install` manually. The provided Dockerfile takes care of installing the required dependencies using the `requirements.txt` file generated by the `poetry export` command.
-
-Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint, for example:
-
-```bash
-curl -X POST https://your-app-url.com/upsert \
-  -H "Authorization: Bearer <your_bearer_token>" \
-  -H "Content-type: application/json" \
-  -d '{"documents": [{"id": "doc1", "text": "Hello world", "metadata": {"source_id": "12345", "source": "file"}}, {"text": "How are you?", "metadata": {"source_id": "23456"}}]}'
-```
-
-### Deploying to Fly.io
-
-To deploy the Docker container from this repository to Fly.io, follow
-these steps:
-
-[Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
-
-Install the [Fly.io CLI](https://fly.io/docs/getting-started/installing-flyctl/) on your local machine.
-
-Clone the repository from GitHub:
-
-```
-git clone https://github.com/openai/chatgpt-retrieval-plugin.git
-```
-
-Navigate to the cloned repository directory:
-
-```
-cd path/to/chatgpt-retrieval-plugin
-```
-
-Log in to the Fly.io CLI:
-
-```
-flyctl auth login
-```
-
-Create and launch your Fly.io app:
-
-```
-flyctl launch
-```
-
-Follow the instructions in your terminal:
-
-- Choose your app name
-- Choose your app region
-- Don't add any databases
-- Don't deploy yet (if you do, the first deploy might fail as the environment variables are not yet set)
-
-Set the required environment variables:
-
-```
-flyctl secrets set DATASTORE=your_datastore \
-OPENAI_API_KEY=your_openai_api_key \
-BEARER_TOKEN=your_bearer_token \
-<Add the environment variables for your chosen vector DB here>
-```
-
-Alternatively, you could set environment variables in the [Fly.io Console](https://fly.io/dashboard).
-
-At this point, you can change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml) to the url for your Fly.io app, which will be `https://your-app-name.fly.dev`.
-
-Deploy your app with:
-
-```
-flyctl deploy
-```
-
-After completing these steps, your Docker container should be deployed to Fly.io and running with the necessary environment variables set. You can view your app by running:
-
-```
-flyctl open
-```
-
-which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.yaml` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
-
-To view your app logs:
-
-```
-flyctl logs
-```
-
-Now, make sure you have changed the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `flyctl deploy`. This url will be `https://<your-app-name>.fly.dev`.
-
-**Debugging tips:**
-Fly.io uses port 8080 by default.
-
-If your app fails to deploy, check if the environment variables are set correctly, and then check if your port is configured correctly. You could also try using the [`-e` flag](https://fly.io/docs/flyctl/launch/) with the `flyctl launch` command to set the environment variables at launch.
-
-### Deploying to Heroku
-
-To deploy the Docker container from this repository to Heroku and set the required environment variables, follow these steps:
-
-[Install Docker](https://docs.docker.com/engine/install/) on your local machine if it is not already installed.
-
-Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) on your local machine.
-
-Clone the repository from GitHub:
-
-```
-git clone https://github.com/openai/chatgpt-retrieval-plugin.git
-```
-
-Navigate to the cloned repository directory:
-
-```
-cd path/to/chatgpt-retrieval-plugin
-```
-
-Log in to the Heroku CLI:
-
-```
-heroku login
-```
-
-Create a Heroku app:
-
-```
-heroku create [app-name]
-```
-
-Log in to the Heroku Container Registry:
-
-```
-heroku container:login
-```
-
-Alternatively, you can use a command from the Makefile to log in to the Heroku Container Registry by running:
-
-```
-make heroku-login
-```
-
-Build the Docker image using the Dockerfile:
-
-```
-docker buildx build --platform linux/amd64 -t [image-name] .
-```
-
-(Replace `[image-name]` with the name you want to give your Docker image)
-
-Push the Docker image to the Heroku Container Registry, and release the newly pushed image to your Heroku app.
-
-```
-docker tag [image-name] registry.heroku.com/[app-name]/web
-docker push registry.heroku.com/[app-name]/web
-heroku container:release web -a [app-name]
-```
-
-Alternatively, you can use a command from the to push the Docker image to the Heroku Container Registry by running:
-
-```
-make heroku-push
-```
-
-**Note:** You will need to edit the Makefile and replace `<your app name>` with your actual app name.
-
-Set the required environment variables for your Heroku app:
-
-```
-heroku config:set DATASTORE=your_datastore \
-OPENAI_API_KEY=your_openai_api_key \
-BEARER_TOKEN=your_bearer_token \
-<Add the environment variables for your chosen vector DB here> \
--a [app-name]
-```
-
-You could also set environment variables in the [Heroku Console](https://dashboard.heroku.com/apps).
-
-After completing these steps, your Docker container should be deployed to Heroku and running with the necessary environment variables set. You can view your app by running:
-
-```
-heroku open -a [app-name]
-```
-
-which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.yaml` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
-
-To view your app logs:
-
-```
-heroku logs --tail -a [app-name]
-```
-
-Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
-
-### Other Deployment Options
-
-Some possible other options for deploying the app are:
-
-- Azure Container Apps: This is a cloud platform that allows you to deploy and manage web apps using Docker containers. You can use the Azure CLI or the Azure Portal to create and configure your app service, and then push your Docker image to a container registry and deploy it to your app service. You can also set environment variables and scale your app using the Azure Portal. Learn more [here](https://learn.microsoft.com/en-us/azure/container-apps/get-started-existing-container-image-portal?pivots=container-apps-private-registry).
-- Google Cloud Run: This is a serverless platform that allows you to run stateless web apps using Docker containers. You can use the Google Cloud Console or the gcloud command-line tool to create and deploy your Cloud Run service, and then push your Docker image to the Google Container Registry and deploy it to your service. You can also set environment variables and scale your app using the Google Cloud Console. Learn more [here](https://cloud.google.com/run/docs/quickstarts/build-and-deploy).
-- AWS Elastic Container Service: This is a cloud platform that allows you to run and manage web apps using Docker containers. You can use the AWS CLI or the AWS Management Console to create and configure your ECS cluster, and then push your Docker image to the Amazon Elastic Container Registry and deploy it to your cluster. You can also set environment variables and scale your app using the AWS Management Console. Learn more [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html).
+- [Deploying to Fly.io](/docs/deployment/flyio.md)
+- [Deploying to Heroku](/docs/deployment/heroku.md)
+- [Other Deployment Options](/docs/deployment/other-options.md) (Azure Container Apps, Google Cloud Run, AWS Elastic Container Service, etc.)
 
 After you create your app, make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy.
 
