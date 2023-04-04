@@ -41,6 +41,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [OpenSearch](#OpenSearch)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -119,6 +120,14 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
+   
+   # OpenSearch
+   export OPENSEARCH_HOST=<your_opensearch_host>
+   export OPENSEARCH_PORT=<your_opensearch_port>
+   export OPENSEARCH_AUTH_TYPE=<your_auth_type_for_acessing_cluster>
+   export OPENSEARCH_INDEX_NAME=<your_index_name_in_opensearch>
+   export OPENSEARCH_KNN_ENGINE=<knn_engine_to_be_used_for_search>
+   export OPENSEARCH_KNN_VECTOR_DISTANCE=<your_knn_distance_metric>
    ```
 
 9. Run the API locally: `poetry run start`
@@ -275,6 +284,11 @@ It is light-weight, easy-to-use, and requires no additional deployment.
 All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
+#### OpenSearch
+
+[OpenSearch](https://opensearch.org/) is a scalable, flexible, and extensible open-source software suite for search, analytics, and observability applications licensed under Apache 2.0. Powered by Apache Lucene and driven by the OpenSearch Project community, OpenSearch offers a vendor-agnostic toolset you can use to build secure, high-performance, cost-efficient applications. With [OpenSearch-KNN Plugin](https://opensearch.org/docs/latest/search-plugins/knn/index/) opensearch can be used as a Vector database. It can be used as a low-latency vector engine by creating a Redis database with the [OpenSearch docker container](/examples/docker/opensearch/). For detailed setup instructions, refer to [`/docs/providers/opensearch/setup.md`](/docs/providers/opensearch/setup.md).
+
 
 ### Running the API locally
 

@@ -1,0 +1,32 @@
+version: '3'
+services:
+  opensearch-node1: # This is also the hostname of the container within the Docker network (i.e. https://opensearch-node1/)
+    image: opensearchproject/opensearch:latest # Specifying the latest available image - modify if you want a specific version
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=opensearch-cluster # Name the cluster
+      - node.name=opensearch-node1 # Name the node that will run in this container
+      - discovery.seed_hosts=opensearch-node1  # Nodes to look for when discovering the cluster
+      - cluster.initial_cluster_manager_nodes=opensearch-node1 # Nodes eligible to serve as cluster manager
+      - plugins.security.disabled=true # Disabling the security
+      - bootstrap.memory_lock=true # Disable JVM heap memory swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"  # Set min and max JVM heap sizes to at least 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data # Creates volume called opensearch-data1 and mounts it to the container
+    ports:
+      - 9200:9200 # REST API
+    networks:
+      - opensearch-net # All of the containers will join the same Docker bridge network
+
+volumes:
+  opensearch-data1:
+
+networks:
+  opensearch-net:
