@@ -98,7 +98,7 @@ class OpenSearchDataStore(DataStore):
                     "chunk_text": chunk.text,
                     "document_id": doc_id,
                     "metadata": self.__get_opensearch_metadata(chunk.metadata),
-                    "embedding": chunk.embedding,
+                    OPENSEARCH_KNN_FIELD_NAME: chunk.embedding,
                     "chunk_id": chunk.id
                 }
                 opensearch_documents.append(document)
@@ -382,6 +382,9 @@ def create_opensearch_query(query: QueryWithEmbedding) -> Dict:
                     "k": query.top_k
                 }
             }
+        },
+        "_source": {
+            "exclude": build_exclude_fields_list()
         }
     }
 
@@ -392,6 +395,13 @@ def create_opensearch_query(query: QueryWithEmbedding) -> Dict:
             }
         }
     return query_body
+
+
+def build_exclude_fields_list()-> List[str]:
+    exclude_list = []
+    if not OPENSEARCH_EMBEDDING_IN_RESULT:
+        exclude_list.append(OPENSEARCH_KNN_FIELD_NAME)
+    return exclude_list
 
 
 def create_query_result(response: Any, query_string: str) -> QueryResult:

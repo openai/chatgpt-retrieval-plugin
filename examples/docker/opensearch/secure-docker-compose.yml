@@ -20,7 +20,7 @@ services:
     volumes:
       - opensearch-secure-data1:/usr/share/opensearch/data # Creates volume called opensearch-secure-data1 and mounts it to the container
     ports:
-      - 9500:9200 # REST API
+      - 9200:9200 # REST API
     networks:
       - opensearch-secure-net # All of the containers will join the same Docker bridge network
   opensearch-secure-node2:
