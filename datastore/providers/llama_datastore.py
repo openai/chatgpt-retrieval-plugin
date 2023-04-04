@@ -45,7 +45,6 @@ def _create_or_load_index(
     if index_type in EXTERNAL_VECTOR_STORE_INDEX_STRUCT_TYPES:
         raise ValueError('Please use vector store directly.')
 
-
     index_cls = index_type_to_index_cls[index_type]
     if index_json_path is None:
         return index_cls(nodes=[])  # Create empty index

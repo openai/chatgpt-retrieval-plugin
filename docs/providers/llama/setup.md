@@ -1,5 +1,5 @@
 
-# Llama
+# LlamaIndex
 
 [LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
 It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
@@ -19,6 +19,7 @@ It is light-weight and easy-to-use. All you need to do is specifying a few envir
 | ------------------------------- | -------- | ------------------------------------------------------------------ | ------------------ |
 | `LLAMA_INDEX_TYPE`              | Optional | Index type (see below for details)                                 | `simple_dict`      |
 | `LLAMA_INDEX_JSON_PATH`         | Optional | Path to saved Index json file                                      | None               |
+| `LLAMA_QUERY_KWARGS_JSON_PATH`         | Optional | Path to saved query kwargs json file                                      | None               |
 | `LLAMA_RESPONSE_MODE`           | Optional | Response mode for query                                            | `no_text`          | 
 
 
