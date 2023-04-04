@@ -227,43 +227,7 @@ The API requires the following environment variables to work:
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
 
-### Choosing a Datastore
-
-The plugin supports several datastores ranging from in-memory indices to vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide detailed information and instructions on using each vector database provider.
-
-#### LlamaIndex
-
-[LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
-It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
-It is light-weight and easy-to-use. All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file), no additional deployment necessary.
-
-**Retrieval App Environment Variables**
-
-| Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
-| `DATASTORE`      | Yes      | Datastore name. Set this to `llama` |
-| `BEARER_TOKEN`   | Yes      | Your secret token                      |
-| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
-
-**Llama Datastore Environment Variables**
-
-| Name                            | Required | Description                                                        | Default            |
-| ------------------------------- | -------- | ------------------------------------------------------------------ | ------------------ |
-| `LLAMA_INDEX_TYPE`              | Optional | Index type (see below for details)                                 | `simple_dict`      |
-| `LLAMA_INDEX_JSON_PATH`         | Optional | Path to saved Index json file                                      | None               |
-| `LLAMA_RESPONSE_MODE`           | Optional | Response mode for query                                            | `no_text`          | 
-
-
-**Different Index Types**
-By default, we use a `GPTSimpleVectorIndex` to store document chunks in memory, 
-and retrieve top-k nodes by embedding similarity.
-Different index types are optimized for different data and query use-cases.
-See this guide on [How Each Index Works](https://gpt-index.readthedocs.io/en/latest/guides/primer/index_guide.html) to learn more.
-You can configure the index type via the `LLAMA_INDEX_TYPE`, see [here](https://gpt-index.readthedocs.io/en/latest/reference/indices/composability_query.html#gpt_index.data_structs.struct_type.IndexStructType) for the full list of accepted index type identifiers.
-
-
-Read more details on [readthedocs](https://gpt-index.readthedocs.io/en/latest/), 
-and engage with the community on [discord](https://discord.com/invite/dGcwcsnxhU).
+### Choosing a Vector Database
 
 The plugin supports several vector database providers, each with different features, performance, and pricing. Depending on which one you choose, you will need to use a different Dockerfile and set different environment variables. The following sections provide brief introductions to each vector database provider.
 
@@ -292,6 +256,14 @@ For more detailed instructions on setting up and using each vector database prov
 #### Redis
 
 [Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
+
+
+#### LlamaIndex
+
+[LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
+It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
+It is light-weight and easy-to-use. All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file), no additional deployment necessary.
+For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
 
 ### Running the API locally
 
