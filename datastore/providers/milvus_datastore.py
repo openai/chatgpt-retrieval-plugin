@@ -32,6 +32,8 @@ MILVUS_PORT = os.environ.get("MILVUS_PORT") or 19530
 MILVUS_USER = os.environ.get("MILVUS_USER")
 MILVUS_PASSWORD = os.environ.get("MILVUS_PASSWORD")
 MILVUS_USE_SECURITY = False if MILVUS_PASSWORD is None else True
+MILVUS_FLUSH_TIMEOUT = os.environ.get("MILVUS_FLUSH_TIMEOUT")
+MILVUS_ENABLE_FLUSH = False if MILVUS_FLUSH_TIMEOUT is None else True
 
 UPSERT_BATCH_SIZE = 100
 OUTPUT_DIM = 1536
@@ -266,7 +268,8 @@ class MilvusDataStore(DataStore):
                     raise e
 
         # This setting performs flushes after insert. Small insert == bad to use
-        # self.col.flush()
+        if MILVUS_ENABLE_FLUSH:
+            self.col.flush(timeout=MILVUS_FLUSH_TIMEOUT)
 
         return doc_ids
 
@@ -435,7 +438,8 @@ class MilvusDataStore(DataStore):
                     delete_count += int(res.delete_count)  # type: ignore
 
         # This setting performs flushes after delete. Small delete == bad to use
-        # self.col.flush()
+        if MILVUS_ENABLE_FLUSH:
+            self.col.flush(timeout=MILVUS_FLUSH_TIMEOUT)
 
         return True
 
