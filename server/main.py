@@ -13,8 +13,10 @@ from models.api import (
     UpsertRequest,
     UpsertResponse,
 )
+from typing import Optional
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
+from services.preprocess import get_summary
 
 from models.models import DocumentMetadata, Source
 
@@ -50,6 +52,8 @@ app.mount("/sub", sub_app)
 async def upsert_file(
     file: UploadFile = File(...),
     metadata: Optional[str] = Form(None),
+    token: HTTPAuthorizationCredentials = Depends(validate_token),
+    summary_word_count: Optional[int] = Form(None),
 ):
     try:
         metadata_obj = (
@@ -63,6 +67,8 @@ async def upsert_file(
     document = await get_document_from_file(file, metadata_obj)
 
     try:
+        if summary_word_count:
+            document = get_summary(document, summary_word_count)
         ids = await datastore.upsert([document])
         return UpsertResponse(ids=ids)
     except Exception as e:
@@ -78,7 +84,10 @@ async def upsert(
     request: UpsertRequest = Body(...),
 ):
     try:
-        ids = await datastore.upsert(request.documents)
+        documents = request.documents
+        if request.preprocess_options and request.preprocess_options.summary:
+            documents = [get_summary(doc, request.preprocess_options.summary.num_words) for doc in documents]
+        ids = await datastore.upsert(documents)
         return UpsertResponse(ids=ids)
     except Exception as e:
         print("Error:", e)

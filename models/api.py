@@ -3,6 +3,7 @@ from models.models import (
     DocumentMetadataFilter,
     Query,
     QueryResult,
+    UpsertPreprocessOptions,
 )
 from pydantic import BaseModel
 from typing import List, Optional
@@ -10,6 +11,7 @@ from typing import List, Optional
 
 class UpsertRequest(BaseModel):
     documents: List[Document]
+    preprocess_options: Optional[UpsertPreprocessOptions] = None
 
 
 class UpsertResponse(BaseModel):
