@@ -31,5 +31,9 @@ async def get_datastore() -> DataStore:
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
             return QdrantDataStore()
+        case "typesense":
+            from datastore.providers.typesense_datastore import TypesenseDataStore
+
+            return TypesenseDataStore()
         case _:
             raise ValueError(f"Unsupported vector database: {datastore}")
