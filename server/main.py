@@ -108,7 +108,6 @@ async def query_main(
     token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
-        print(request.queries)
         results = await datastore.query(
             request.queries,
         )
@@ -129,7 +128,6 @@ async def query(
     token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
-        print(request.queries)
         results = await datastore.query(
             request.queries,
         )
