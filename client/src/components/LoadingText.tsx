@@ -8,7 +8,7 @@ type LoadingTextProps = {
 
 function LoadingText(props: LoadingTextProps) {
   return (
-    <div className="text-gray-500 text-md flex flex-row justify-center items-center">
+    <div className="text-gray-500 dark:text-gray-300 text-md flex flex-row justify-center items-center">
       <LoadingSpinner />
       {props.text && <div className="flex">{props.text}</div>}
     </div>

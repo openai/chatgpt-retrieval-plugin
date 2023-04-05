@@ -1,6 +1,4 @@
 import React, {
-  Dispatch,
-  SetStateAction,
   useCallback,
   useState,
   memo,
@@ -12,21 +10,18 @@ import { compact } from "lodash";
 
 import LoadingText from "./LoadingText";
 import { FileLite } from "../types/file";
-import FileViewerList from "./FileViewerList";
 import { SERVER_ADDRESS } from "../types/constants";
 
 type FileUploadAreaProps = {
-  handleSetFiles: Dispatch<SetStateAction<FileLite[]>>;
   maxNumFiles: number;
   maxFileSizeMB: number;
 };
 
 function FileUploadArea(props: FileUploadAreaProps) {
-  const handleSetFiles = props.handleSetFiles;
-
   const [files, setFiles] = useState<FileLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const dropzoneRef = useRef<HTMLLabelElement>(null);
 
@@ -69,22 +64,16 @@ function FileUploadArea(props: FileUploadAreaProps) {
                   {
                     headers: {
                       "Content-Type": "multipart/form-data",
+                      "Authorization": "Bearer " + process.env.NEXT_PUBLIC_BEARER_TOKEN,
                     },
                   }
                 );
 
                 if (
                   processFileResponse.status === 200 &&
-                  processFileResponse.data.success
+                  processFileResponse.data
                 ) {
-                  const fileObject: FileLite = {
-                    name: file.name,
-                    url: URL.createObjectURL(file),
-                    expanded: false,
-                  };
-                  console.log(fileObject);
-
-                  return fileObject;
+                  setSuccess("File uploaded successfully");
                 } else {
                   console.log("Error processing file");
                   return null;
@@ -107,12 +96,10 @@ function FileUploadArea(props: FileUploadAreaProps) {
 
         // Set the files state with the valid files and the existing files
         setFiles((prevFiles) => [...prevFiles, ...validFiles]);
-        handleSetFiles((prevFiles) => [...prevFiles, ...validFiles]);
-
         setLoading(false);
       }
     },
-    [files, handleSetFiles, props.maxFileSizeMB, props.maxNumFiles]
+    [files, props.maxFileSizeMB, props.maxNumFiles]
   );
 
   const handleDragEnter = useCallback((event: React.DragEvent) => {
@@ -143,7 +130,7 @@ function FileUploadArea(props: FileUploadAreaProps) {
     <div className="flex items-center justify-center w-full flex-col">
       <label
         htmlFor="dropzone-file"
-        className={`flex flex-col shadow items-center justify-center w-full h-36 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 relative ${
+        className={`flex flex-col shadow items-center justify-center w-full h-36 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 hover:dark:bg-gray-900 relative ${
           dragOver ? "border-blue-500 bg-blue-50" : ""
         }`}
         ref={dropzoneRef}
@@ -156,7 +143,7 @@ function FileUploadArea(props: FileUploadAreaProps) {
           {loading ? (
             <LoadingText text="Uploading..." />
           ) : (
-            <div className="text-gray-500 flex flex-col items-center text-center">
+            <div className="text-gray-500 dark:text-gray-300 flex flex-col items-center text-center">
               <ArrowUpTrayIcon className="w-7 h-7 mb-4" />
               <p className="mb-2 text-sm">
                 <span className="font-semibold">Click to upload</span> or drag
@@ -181,13 +168,17 @@ function FileUploadArea(props: FileUploadAreaProps) {
         </div>
       </label>
 
+      {success && (
+        <div className="flex items-center justify-center w-full mt-4">
+          <p className="text-sm text-green-500">{success}</p>
+        </div>
+      )}
+
       {error && (
         <div className="flex items-center justify-center w-full mt-4">
           <p className="text-sm text-red-500">{error}</p>
         </div>
       )}
-
-      <FileViewerList files={files} title="Uploaded Files" />
     </div>
   );
 }

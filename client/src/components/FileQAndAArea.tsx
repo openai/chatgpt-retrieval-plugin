@@ -1,24 +1,33 @@
 import React, { memo, useCallback, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
-
-import FileViewerList from "./FileViewerList";
 import LoadingText from "./LoadingText";
-import { isFileNameInString } from "../services/utils";
-import { FileChunk, FileLite } from "../types/file";
 import { SERVER_ADDRESS } from "../types/constants";
 
-type FileQandAAreaProps = {
-  files: FileLite[];
-};
+type Answer = {
+  query: string;
+  results: [{
+    embedding?: [],
+    id: string,
+    metadata: {
+      author?: string,
+      created_at?: string,
+      document_id?: string,
+      source?: string,
+      source_id?: string,
+      url?: string,
+    },
+    score: number,
+    text: string,
+  }]
+}
 
-function FileQandAArea(props: FileQandAAreaProps) {
+function FileQandAArea() {
   const searchBarRef = useRef(null);
   const [answerError, setAnswerError] = useState("");
   const [searchResultsLoading, setSearchResultsLoading] =
     useState<boolean>(false);
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState<Answer|null>(null);
 
   const handleSearch = useCallback(async () => {
     if (searchResultsLoading) {
@@ -26,32 +35,33 @@ function FileQandAArea(props: FileQandAAreaProps) {
     }
 
     const question = (searchBarRef?.current as any)?.value ?? "";
-    setAnswer("");
+    setAnswer(null);
 
     if (!question) {
       setAnswerError("Please ask a question.");
-      return;
-    }
-    if (props.files.length === 0) {
-      setAnswerError("Please upload files before asking a question.");
       return;
     }
 
     setSearchResultsLoading(true);
     setAnswerError("");
 
-    let results: FileChunk[] = [];
-
     try {
       const answerResponse = await axios.post(
         `${SERVER_ADDRESS}/query`,
         {
-          queries: [question],
+          queries: [{
+            "query": question
+        }],
+        },
+        {
+          headers: {
+            "Authorization": "Bearer " + process.env.NEXT_PUBLIC_BEARER_TOKEN,
+          }
         }
       );
 
       if (answerResponse.status === 200) {
-        setAnswer(answerResponse.data.results);
+        setAnswer(answerResponse.data.results[0]);
       } else {
         setAnswerError("Sorry, something went wrong!");
       }
@@ -60,7 +70,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
     }
 
     setSearchResultsLoading(false);
-  }, [props.files, searchResultsLoading]);
+  }, [searchResultsLoading]);
 
   const handleEnterInSearchBar = useCallback(
     async (event: React.SyntheticEvent) => {
@@ -72,7 +82,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
   );
 
   return (
-    <div className="space-y-4 text-gray-800">
+    <div className="space-y-4 text-gray-800 dark:text-gray-50">
       <div className="mt-2">
         Submit a query to see the relevant docs:
       </div>
@@ -85,7 +95,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
           onKeyDown={handleEnterInSearchBar}
         />
         <div
-          className="rounded-md bg-gray-50 py-1 px-4 w-max text-gray-500 hover:bg-gray-100 border border-gray-100 shadow cursor-pointer"
+          className="rounded-md bg-gray-50 dark:bg-gray-800 py-1 px-4 w-max text-gray-500 dark:text-gray-300 hover:bg-gray-100 hover:dark:bg-gray-900 border border-gray-100 shadow cursor-pointer"
           onClick={handleSearch}
         >
           {searchResultsLoading ? (
@@ -95,10 +105,10 @@ function FileQandAArea(props: FileQandAAreaProps) {
           )}
         </div>
       </div>
-      <div className="">
+      <div>
         {answerError && <div className="text-red-500">{answerError}</div>}
         <Transition
-          show={answer !== ""}
+          show={answer !== null}
           enter="transition duration-600 ease-out"
           enterFrom="transform opacity-0"
           enterTo="transform opacity-100"
@@ -107,37 +117,19 @@ function FileQandAArea(props: FileQandAAreaProps) {
           leaveTo="transform opacity-0"
           className="mb-8"
         >
-          {/* answer from files */}
           {answer && (
-            <div className="">
-              <ReactMarkdown className="prose" linkTarget="_blank">
-                {answer}
-              </ReactMarkdown>
+            <div className="space-y-2">
+              {answer.results.map((result) => (
+                <div key={result.id} className="mb-4">
+                  <div>
+                    <p>Score: {result.score}</p>
+                    <p>Text: {result.text}</p>
+                    <p>Metadata: {JSON.stringify(result.metadata)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-
-          <Transition
-            show={
-              props.files.filter((file) =>
-                isFileNameInString(file.name, answer)
-              ).length > 0
-            }
-            enter="transition duration-600 ease-out"
-            enterFrom="transform opacity-0"
-            enterTo="transform opacity-100"
-            leave="transition duration-125 ease-out"
-            leaveFrom="transform opacity-100"
-            leaveTo="transform opacity-0"
-            className="mb-8"
-          >
-            <FileViewerList
-              files={props.files.filter((file) =>
-                isFileNameInString(file.name, answer)
-              )}
-              title="Sources"
-              listExpanded={true}
-            />
-          </Transition>
         </Transition>
       </div>
     </div>

@@ -20,6 +20,7 @@ from services.date import to_unix_timestamp
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.environ.get("PINECONE_ENVIRONMENT")
 PINECONE_INDEX = os.environ.get("PINECONE_INDEX")
+PINECONE_NAMESPACE = os.environ.get("PINECONE_NAMESPACE")
 assert PINECONE_API_KEY is not None
 assert PINECONE_ENVIRONMENT is not None
 assert PINECONE_INDEX is not None
@@ -98,7 +99,7 @@ class PineconeDataStore(DataStore):
         for batch in batches:
             try:
                 print(f"Upserting batch of size {len(batch)}")
-                self.index.upsert(vectors=batch)
+                self.index.upsert(vectors=batch, namespace=PINECONE_NAMESPACE)
                 print(f"Upserted batch successfully")
             except Exception as e:
                 print(f"Error upserting batch: {e}")
@@ -125,7 +126,7 @@ class PineconeDataStore(DataStore):
             try:
                 # Query the index with the query embedding, filter, and top_k
                 query_response = self.index.query(
-                    # namespace=namespace,
+                    namespace=PINECONE_NAMESPACE,
                     top_k=query.top_k,
                     vector=query.embedding,
                     filter=pinecone_filter,
