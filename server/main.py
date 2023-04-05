@@ -40,14 +40,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create a sub-application, in order to access just the upsert and query endpoints in the OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
+# Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
 sub_app = FastAPI(
     title="Retrieval Plugin API",
     description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
     version="1.0.0",
     servers=[{"url": "https://your-app-url.com"}],
+    dependencies=[Depends(validate_token)],
 )
 app.mount("/sub", sub_app)
+
 
 @app.post(
     "/upsert-file",
