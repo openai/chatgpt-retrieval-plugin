@@ -3,24 +3,7 @@ import { Transition } from "@headlessui/react";
 import axios from "axios";
 import LoadingText from "./LoadingText";
 import { SERVER_ADDRESS } from "../types/constants";
-
-type Answer = {
-  query: string;
-  results: [{
-    embedding?: [],
-    id: string,
-    metadata: {
-      author?: string,
-      created_at?: string,
-      document_id?: string,
-      source?: string,
-      source_id?: string,
-      url?: string,
-    },
-    score: number,
-    text: string,
-  }]
-}
+import { Answer } from "../types/answer";
 
 function FileQandAArea() {
   const searchBarRef = useRef(null);
