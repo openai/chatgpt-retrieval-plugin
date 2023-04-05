@@ -15,5 +15,5 @@
   },
   "logo_url": "https://your-app-url.com/.well-known/logo.png",
   "contact_email": "hello@contact.com", 
-  "legal_info_url": "hello@legal.com"
+  "legal_info_url": "http://example.com/legal-info"
 }

@@ -8,14 +8,14 @@ import docx2txt
 import csv
 import pptx
 
-from models.models import Document, DocumentMetadata, Source
+from models.models import Document, DocumentMetadata
 
 
-async def get_document_from_file(file: UploadFile) -> Document:
+async def get_document_from_file(
+    file: UploadFile, metadata: DocumentMetadata
+) -> Document:
     extracted_text = await extract_text_from_form_file(file)
-    metadata = DocumentMetadata(
-        source=Source.file,
-    )
+
     doc = Document(text=extracted_text, metadata=metadata)
 
     return doc
@@ -34,9 +34,12 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         else:
             raise Exception("Unsupported file type")
 
-    # Open the file in binary mode
-    file = open(filepath, "rb")
-    extracted_text = extract_text_from_file(file, mimetype)
+    try:
+        with open(filepath, "rb") as file:
+            extracted_text = extract_text_from_file(file, mimetype)
+    except Exception as e:
+        print(f"Error: {e}")
+        raise e
 
     return extracted_text
 
@@ -78,10 +81,8 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                     extracted_text += "\n"
     else:
         # Unsupported file type
-        file.close()
         raise ValueError("Unsupported file type: {}".format(mimetype))
 
-    file.close()
     return extracted_text
 
 
