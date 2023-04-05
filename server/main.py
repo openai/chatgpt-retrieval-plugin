@@ -94,7 +94,7 @@ async def upsert_file(
     "/upsert",
     response_model=UpsertResponse,
 )
-async def upsert_main(
+async def upsert(
     request: UpsertRequest = Body(...),
     token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
