@@ -41,6 +41,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Typesense](#typesense)
   - [Running the API Locally](#running-the-api-locally)
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
@@ -117,6 +118,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
+   
+   # Typesense
+   export TYPESENSE_HOST=<your_typesense_host>
+   export TYPESENSE_PROTOCOL=<your_typesense_protocol>
+   export TYPESENSE_PORT=<your_typesense_port>
+   export TYPESENSE_COLLECTION_NAME=<your_typesense_collection_name>
    ```
 
 9. Run the API locally: `poetry run start`
@@ -221,11 +228,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
+| Name             | Required | Description                                                                                                                                                                                  |
+| ---------------- | -------- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, or `typesense`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                  |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).   |
 
 ### Choosing a Vector Database
 
@@ -256,6 +263,11 @@ For more detailed instructions on setting up and using each vector database prov
 #### Redis
 
 [Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
+
+#### Typesense
+
+[Typesense](https://typesense.org) is an open source, in-memory search engine, that you can either self-host or run on [Typesense Cloud](https://cloud.typesense.org). It focuses on performance by storing the entire index in RAM (with a backup on disk) and also focuses on providing an out-of-the-box developer experience by simplifying available options and setting good defaults. It also lets you combine attribute-based filtering together with vector queries. For detailed setup instructions, refer to [`/docs/providers/typesense/setup.md`](/docs/providers/typesense/setup.md).
+
 
 ### Running the API locally
 
@@ -422,3 +434,5 @@ We would like to extend our gratitude to the following contributors for their co
 - [Redis](https://redis.io/)
   - [spartee](https://github.com/spartee)
   - [tylerhutcherson](https://github.com/tylerhutcherson)
+- [Typesense](https://typesense.org/)
+  - [jasonbosco](https://github.com/jasonbosco)
