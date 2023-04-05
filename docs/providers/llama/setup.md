@@ -3,7 +3,16 @@
 
 [LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
 It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
-It is light-weight and easy-to-use. All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file), no additional deployment necessary.
+Unlike standard vector databases, LlamaIndex supports a wide range of indexing strategies (e.g. tree, keyword table, knowledge graph) optimized for different use-cases.
+It is light-weight, easy-to-use, and requires no additional deployment.
+All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
+Note that metadata filters in queries are not yet supported.
+
+## Setup
+Currently, LlamaIndex requires no additional deployment
+and runs as a part of the Retrieval Plugin.
+It is super easy to setup and great for quick prototyping
+with ChatGPT and your external data.
 
 **Retrieval App Environment Variables**
 
@@ -33,3 +42,10 @@ You can configure the index type via the `LLAMA_INDEX_TYPE`, see [here](https://
 
 Read more details on [readthedocs](https://gpt-index.readthedocs.io/en/latest/), 
 and engage with the community on [discord](https://discord.com/invite/dGcwcsnxhU).
+
+## Running Tests
+You can launch the test suite with this command:
+
+```bash
+pytest ./tests/datastore/providers/llama/test_llama_datastore.py
+```
