@@ -30,7 +30,7 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
     return credentials
 
 
-app = FastAPI()
+app = FastAPI(dependencies=[Depends(validate_token)])
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 app.add_middleware(
     CORSMiddleware,
@@ -84,7 +84,6 @@ async def upsert_file(
 )
 async def upsert(
     request: UpsertRequest = Body(...),
-    token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
         ids = await datastore.upsert(request.documents)
