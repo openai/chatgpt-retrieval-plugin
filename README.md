@@ -257,6 +257,17 @@ For more detailed instructions on setting up and using each vector database prov
 
 [Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
 
+
+#### LlamaIndex
+
+[LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
+It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
+Unlike standard vector databases, LlamaIndex supports a wide range of indexing strategies (e.g. tree, keyword table, knowledge graph) optimized for different use-cases.
+It is light-weight, easy-to-use, and requires no additional deployment.
+All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
+Note that metadata filters in queries are not yet supported.
+For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
