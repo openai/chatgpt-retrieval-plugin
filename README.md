@@ -262,7 +262,10 @@ For more detailed instructions on setting up and using each vector database prov
 
 [LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
 It provides a suite of in-memory indices over your unstructured and structured data for use with ChatGPT.
-It is light-weight and easy-to-use. All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file), no additional deployment necessary.
+Unlike standard vector databases, LlamaIndex supports a wide range of indexing strategies (e.g. tree, keyword table, knowledge graph) optimized for different use-cases.
+It is light-weight, easy-to-use, and requires no additional deployment.
+All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
+Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
 
 ### Running the API locally
