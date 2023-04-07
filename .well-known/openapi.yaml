@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: This API lets you search through the LangChain Documentation.
 servers:
-  - url: https://lobster-app-znw6z.ondigitalocean.app
+  - url: https://lobster-app-6nwzq.ondigitalocean.app
 paths:
   /query:
     post:
