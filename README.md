@@ -117,6 +117,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
+   
+   # Llama
+   export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
+   export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
+   export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
+   export LLAMA_RESPONSE_MODE=<response_mode_for_query> 
    ```
 
 9. Run the API locally: `poetry run start`
@@ -433,3 +439,6 @@ We would like to extend our gratitude to the following contributors for their co
 - [Redis](https://redis.io/)
   - [spartee](https://github.com/spartee)
   - [tylerhutcherson](https://github.com/tylerhutcherson)
+- [LlamaIndex](https://github.com/jerryjliu/llama_index)
+  - [jerryjliu](https://github.com/jerryjliu)
+  - [Disiok](https://github.com/Disiok)
