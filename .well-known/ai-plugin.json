@@ -1,19 +1,19 @@
 {
   "schema_version": "v1",
-  "name_for_model": "langchain_docs_db",
-  "name_for_human": "LangChain Docs",
-  "description_for_model": "Use this tool to get up to date information about the LangChain Python library. Do not use this tool if the user did not ask about LangChain",
-  "description_for_human": "Up to date information about the LangChaing Python libary",
+  "name_for_model": "content_docs_db",
+  "name_for_human": "Content Docs",
+  "description_for_model": "Use this tool to get outsell marketing articles. Do not use this tool if the user did not ask about outsell",
+  "description_for_human": "Outsell Content Library",
   "auth": {
     "type": "user_http",
     "authorization_type": "bearer"
   },
   "api": {
     "type": "openapi",
-    "url": "https://lobster-app-6nwzq.ondigitalocean.app/.well-known/openapi.yaml",
+    "url": "https://shark-app-fqnnl.ondigitalocean.app/.well-known/openapi.yaml",
     "has_user_authentication": false
   },
-  "logo_url": "https://lobster-app-6nwzq.ondigitalocean.app/.well-known/logo.png",
+  "logo_url": "https://shark-app-fqnnl.ondigitalocean.app/.well-known/logo.png",
   "contact_email": "hello@contact.com", 
   "legal_info_url": "http://example.com/legal-info"
 }
