@@ -30,6 +30,7 @@ llama-index = "0.5.4"
 
 [tool.poetry.scripts]
 start = "server.main:start"
+dev = "local-server.main:start"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"

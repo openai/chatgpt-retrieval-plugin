@@ -42,9 +42,11 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Qdrant](#qdrant)
     - [Redis](#redis)
   - [Running the API Locally](#running-the-api-locally)
+  - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
 - [Deployment](#deployment)
+- [Installing a Developer Plugin](#installing-a-developer-plugin)
 - [Webhooks](#webhooks)
 - [Scripts](#scripts)
 - [Limitations](#limitations)
@@ -121,6 +123,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 
 9. Run the API locally: `poetry run start`
 10. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
+
+### Testing in ChatGPT
+
+To test a locally hosted plugin in ChatGPT, follow these steps:
+
+1. Run the API on localhost: `poetry run dev`
+2. Follow the instructions in the [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt) section of the README.
 
 For more detailed information on setting up, developing, and deploying the ChatGPT Retrieval Plugin, refer to the full Development section below.
 
@@ -257,7 +266,6 @@ For more detailed instructions on setting up and using each vector database prov
 
 [Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
 
-
 #### LlamaIndex
 
 [LlamaIndex](https://github.com/jerryjliu/llama_index) is a central interface to connect your LLM's with external data.
@@ -288,6 +296,22 @@ poetry run start
 Append `docs` to the URL shown in the terminal and open it in a browser to access the API documentation and try out the endpoints (i.e. http://0.0.0.0:8000/docs). Make sure to enter your bearer token and test the API endpoints.
 
 **Note:** If you add new dependencies to the pyproject.toml file, you need to run `poetry lock` and `poetry install` to update the lock file and install the new dependencies.
+
+### Testing a Localhost Plugin in ChatGPT
+
+To test a localhost plugin in ChatGPT, use the provided [`local-server/main.py`](/local-server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
+
+Follow these steps to test your localhost plugin:
+
+1. Run the localhost server using the `poetry run dev` command. This starts the server at the default address (e.g. `localhost:3333`).
+
+2. Visit [ChatGPT](https://chat.openai.com/), select "Plugins" from the model picker, click on the plugins picker, and click on "Plugin store" at the bottom of the list.
+
+3. Choose "Develop your own plugin" and enter your localhost URL (e.g. `localhost:3333`) when prompted.
+
+4. Your localhost plugin is now enabled for your ChatGPT session.
+
+For more information, refer to the [OpenAI documentation](https://platform.openai.com/docs/plugins/getting-started/openapi-definition).
 
 ### Personalization
 
