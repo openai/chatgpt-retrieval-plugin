@@ -28,9 +28,11 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         # Get the mimetype of the file based on its extension
         mimetype, _ = mimetypes.guess_type(filepath)
 
-    if not mimetype:
+    if not mimetype or mimetype == "application/octet-stream":
         if filepath.endswith(".md"):
             mimetype = "text/markdown"
+        elif filepath.endswith(".txt"):
+            mimetype = "text/plain"
         else:
             raise Exception("Unsupported file type")
 
