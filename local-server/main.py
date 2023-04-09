@@ -48,7 +48,7 @@ async def get_manifest(request):
 @app.route("/.well-known/logo.png")
 async def get_logo(request):
     file_path = "./local-server/logo.png"
-    return FileResponse(file_path, media_type="text/json")
+    return FileResponse(file_path, media_type="image/png")
 
 
 @app.route("/.well-known/openapi.yaml")
