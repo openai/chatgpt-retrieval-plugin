@@ -182,7 +182,7 @@ class PineconeDataStore(DataStore):
         Removes vectors by ids, filter, or everything from the index.
         """
         # Delete all vectors from the index if delete_all is True
-        if delete_all == True:
+        if delete_all:
             try:
                 print(f"Deleting all vectors from index")
                 self.index.delete(delete_all=True)
@@ -205,7 +205,7 @@ class PineconeDataStore(DataStore):
                 raise e
 
         # Delete vectors that match the document ids from the index if the ids list is not empty
-        if ids != None and len(ids) > 0:
+        if ids is not None and len(ids) > 0:
             try:
                 print(f"Deleting vectors with ids {ids}")
                 pinecone_filter = {"document_id": {"$in": ids}}

@@ -16,7 +16,6 @@ def to_unix_timestamp(date_str: str) -> int:
     # Try to parse the date string using arrow, which supports many common date formats
     try:
         date_obj = arrow.get(date_str)
-        print()
         return int(date_obj.timestamp())
     except arrow.parser.ParserError:
         # If the parsing fails, return the current unix timestamp and print a warning

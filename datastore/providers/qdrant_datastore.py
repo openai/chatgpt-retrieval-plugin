@@ -51,6 +51,7 @@ class QdrantDataStore(DataStore):
             grpc_port=int(QDRANT_GRPC_PORT),
             api_key=QDRANT_API_KEY,
             prefer_grpc=True,
+            timeout=10,
         )
         self.collection_name = collection_name or QDRANT_COLLECTION
 
