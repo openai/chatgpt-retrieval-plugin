@@ -283,9 +283,8 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 #### pgvector
 
-pgvector is a PostgreSQL extension that provides fast vector similarity search. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled or use a managed solution that provides pgvector, such as [Supabase](https://supabase.com/), [Neon](https://neon.tech/), [Crunchy Bridge](https://www.crunchydata.com/products/crunchy-bridge), or [bit.io](https://bit.io/).
-
-- For more information about pgvector, visit the [official repository](https://github.com/pgvector/pgvector).
+pgvector is a PostgreSQL extension that provides fast vector similarity search. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled or use a managed solution that provides pgvector.
+For detailed setup instructions, refer to [`/docs/providers/pgvector/setup.md`](/docs/providers/pgvector/setup.md).
 
 ### Running the API locally
 
@@ -470,3 +469,4 @@ We would like to extend our gratitude to the following contributors for their co
   - [tylerhutcherson](https://github.com/tylerhutcherson)
 - [pgvector](https://github.com/pgvector/pgvector-python)
   - [mmmaia](https://github.com/mmmaia)
+  - [raoufchebri](https://github.com/raoufchebri)
