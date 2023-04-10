@@ -4,9 +4,10 @@ import os
 
 async def get_datastore() -> DataStore:
     datastore = os.environ.get("DATASTORE")
-    assert datastore is not None
+    assert datastore is not None, "The DATASTORE environment variable must be set."
 
-    match datastore:
+    datastore_lower = datastore.lower()
+    match datastore_lower:
         case "llama":
             from datastore.providers.llama_datastore import LlamaDataStore
             return LlamaDataStore()
