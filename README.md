@@ -118,6 +118,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export QDRANT_GRPC_PORT=<your_qdrant_grpc_port>
    export QDRANT_API_KEY=<your_qdrant_api_key>
    export QDRANT_COLLECTION=<your_qdrant_collection>
+      
+   # AnalyticDB
+   export PGHOST=<your_analyticdb_host>
+   export PGPORT=<your_analyticdb_port>
+   export PGUSER=<your_analyticdb_username>
+   export PGPASSWORD=<your_analyticdb_password>
+   export PGDATABASE=<your_analyticdb_database>
 
    # Redis
    export REDIS_HOST=<your_redis_host>
@@ -337,6 +344,13 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Postgres
 
 [Postgres](https://www.postgresql.org) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled. For example, you can [use docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) to run locally. For a hosted/managed solution, you can use any of the cloud vendors which support [pgvector](https://github.com/pgvector/pgvector#hosted-postgres). For detailed setup instructions, refer to [`/docs/providers/postgres/setup.md`](/docs/providers/postgres/setup.md).
+
+#### AnalyticDB
+[AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. 
+As a high-performance vector database, it is fully compatible with PostgreSQL syntax, making it easy to use. Managed by Alibaba Cloud, AnalyticDB is a cloud-native database with a powerful vector compute engine. 
+Its out-of-the-box experience enables processing of billions of data vectors and offers a wide range of features, including indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. 
+Additionally, it provides full OLAP database functionality and an SLA commitment for production use.
+For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
 
 ### Running the API locally
 
