@@ -45,25 +45,6 @@ REDIS_REQUIRED_MODULES = [
     {"name": "ReJSON", "ver": 20404}
 ]
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
-REDIS_SEARCH_SCHEMA = {
-    "document_id": TagField("$.document_id", as_name="document_id"),
-    "metadata": {
-        # "source_id": TagField("$.metadata.source_id", as_name="source_id"),
-        "source": TagField("$.metadata.source", as_name="source"),
-        # "author": TextField("$.metadata.author", as_name="author"),
-        # "created_at": NumericField("$.metadata.created_at", as_name="created_at"),
-    },
-    "embedding": VectorField(
-        "$.embedding",
-        REDIS_INDEX_TYPE,
-        {
-            "TYPE": "FLOAT64",
-            "DIM": VECTOR_DIMENSION,
-            "DISTANCE_METRIC": REDIS_DISTANCE_METRIC,
-        },
-        as_name="embedding",
-    ),
-}
 
 # Helper functions
 def unpack_schema(d: dict):
@@ -82,22 +63,23 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
             error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
             logging.error(error_message)
-            raise ValueError(error_message)
+            raise AttributeError(error_message)
 
 
 
 class RedisDataStore(DataStore):
-    def __init__(self, client: redis.Redis):
+    def __init__(self, client: redis.Redis, redisearch_schema):
         self.client = client
+        self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
-            field: "_null_" for field in REDIS_SEARCH_SCHEMA["metadata"]
+            field: "_null_" for field in redisearch_schema["metadata"]
         }
 
     ### Redis Helper Methods ###
 
     @classmethod
-    async def init(cls):
+    async def init(cls, **kwargs):
         """
         Setup the index if it does not exist.
         """
@@ -112,7 +94,27 @@ class RedisDataStore(DataStore):
             raise e
 
         await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
-
+       
+        dim = kwargs.get("dim", VECTOR_DIMENSION)
+        redisearch_schema = {
+            "document_id": TagField("$.document_id", as_name="document_id"),
+            "metadata": {
+                "source_id": TagField("$.metadata.source_id", as_name="source_id"),
+                "source": TagField("$.metadata.source", as_name="source"),
+                "author": TextField("$.metadata.author", as_name="author"),
+                "created_at": NumericField("$.metadata.created_at", as_name="created_at"),
+            },
+            "embedding": VectorField(
+                "$.embedding",
+                REDIS_INDEX_TYPE,
+                {
+                    "TYPE": "FLOAT64",
+                    "DIM": dim,
+                    "DISTANCE_METRIC": REDIS_DISTANCE_METRIC,
+                },
+                as_name="embedding",
+            ),
+        }
         try:
             # Check for existence of RediSearch Index
             await client.ft(REDIS_INDEX_NAME).info()
@@ -123,11 +125,12 @@ class RedisDataStore(DataStore):
             definition = IndexDefinition(
                 prefix=[REDIS_DOC_PREFIX], index_type=IndexType.JSON
             )
-            fields = list(unpack_schema(REDIS_SEARCH_SCHEMA))
+            fields = list(unpack_schema(redisearch_schema))
+            logging.info(f"Creating index with fields: {fields}")
             await client.ft(REDIS_INDEX_NAME).create_index(
                 fields=fields, definition=definition
             )
-        return cls(client)
+        return cls(client, redisearch_schema)
 
     @staticmethod
     def _redis_key(document_id: str, chunk_id: str) -> str:
@@ -217,20 +220,21 @@ class RedisDataStore(DataStore):
 
         # Build filter
         if query.filter:
+            redisearch_schema = self._schema
             for field, value in query.filter.__dict__.items():
                 if not value:
                     continue
-                if field in REDIS_SEARCH_SCHEMA:
-                    filter_str += _typ_to_str(REDIS_SEARCH_SCHEMA[field], field, value)
-                elif field in REDIS_SEARCH_SCHEMA["metadata"]:
+                if field in redisearch_schema:
+                    filter_str += _typ_to_str(redisearch_schema[field], field, value)
+                elif field in redisearch_schema["metadata"]:
                     if field == "source":  # handle the enum
                         value = value.value
                     filter_str += _typ_to_str(
-                        REDIS_SEARCH_SCHEMA["metadata"][field], field, value
+                        redisearch_schema["metadata"][field], field, value
                     )
                 elif field in ["start_date", "end_date"]:
                     filter_str += _typ_to_str(
-                        REDIS_SEARCH_SCHEMA["metadata"]["created_at"], field, value
+                        redisearch_schema["metadata"]["created_at"], field, value
                     )
 
         # Postprocess filter string
