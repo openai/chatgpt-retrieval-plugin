@@ -36,9 +36,9 @@ class DataStore(ABC):
                 if document.id
             ]
         )
-
+        print("Deleted existing vectors for documents with the input document ids")
         chunks = get_document_chunks(documents, chunk_token_size)
-
+        print("Got document chunks")
         return await self._upsert(chunks)
 
     @abstractmethod
