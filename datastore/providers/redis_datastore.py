@@ -99,10 +99,10 @@ class RedisDataStore(DataStore):
         redisearch_schema = {
             "document_id": TagField("$.document_id", as_name="document_id"),
             "metadata": {
-                # "source_id": TagField("$.metadata.source_id", as_name="source_id"),
+                "source_id": TagField("$.metadata.source_id", as_name="source_id"),
                 "source": TagField("$.metadata.source", as_name="source"),
-                # "author": TextField("$.metadata.author", as_name="author"),
-                # "created_at": NumericField("$.metadata.created_at", as_name="created_at"),
+                "author": TextField("$.metadata.author", as_name="author"),
+                "created_at": NumericField("$.metadata.created_at", as_name="created_at"),
             },
             "embedding": VectorField(
                 "$.embedding",
