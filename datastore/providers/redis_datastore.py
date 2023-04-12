@@ -300,7 +300,7 @@ class RedisDataStore(DataStore):
         results: List[QueryResult] = []
 
         # Gather query results in a pipeline
-        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        logging.info(f"Gathering {len(queries)} query results")
         for query in queries:
 
             logging.info(f"Query: {query.query}")
