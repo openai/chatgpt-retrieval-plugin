@@ -55,7 +55,6 @@ def unpack_schema(d: dict):
             yield v
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
-
     installed_modules = (await client.info()).get("modules", [])
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
@@ -66,9 +65,8 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
             raise AttributeError(error_message)
 
 
-
 class RedisDataStore(DataStore):
-    def __init__(self, client: redis.Redis, redisearch_schema):
+    def __init__(self, client: redis.Redis, redisearch_schema: dict):
         self.client = client
         self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
