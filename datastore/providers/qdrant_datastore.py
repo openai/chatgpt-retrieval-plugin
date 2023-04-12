@@ -126,7 +126,7 @@ class QdrantDataStore(DataStore):
             collection_name=self.collection_name,
             points_selector=points_selector,  # type: ignore
         )
-        return response.status in [UpdateStatus.ACKNOWLEDGED, UpdateStatus.COMPLETED]
+        return UpdateStatus.COMPLETED == response.status
 
     def _convert_document_chunk_to_point(
         self, document_chunk: DocumentChunk
