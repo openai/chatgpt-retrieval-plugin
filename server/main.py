@@ -4,10 +4,12 @@ import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from services.google_cloud_storage import get_index_documents_from_gcs_file
 
 from models.api import (
     DeleteRequest,
     DeleteResponse,
+    GCSFileUpsertRequest,
     QueryRequest,
     QueryResponse,
     UpsertRequest,
@@ -79,6 +81,22 @@ async def upsert(
 ):
     try:
         ids = await datastore.upsert(request.documents)
+        return UpsertResponse(ids=ids)
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/upsert-gcs-file",
+    response_model=UpsertResponse,
+)
+async def upsert_gcs_file(
+    request: GCSFileUpsertRequest = Body(...),
+):
+    try:
+        documents = await get_index_documents_from_gcs_file(request.bucket, request.file_name)
+        ids = await datastore.upsert(documents)
         return UpsertResponse(ids=ids)
     except Exception as e:
         print("Error:", e)

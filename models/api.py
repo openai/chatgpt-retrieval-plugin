@@ -11,6 +11,9 @@ from typing import List, Optional
 class UpsertRequest(BaseModel):
     documents: List[Document]
 
+class GCSFileUpsertRequest(BaseModel):
+    bucket: str
+    file_name: str
 
 class UpsertResponse(BaseModel):
     ids: List[str]
