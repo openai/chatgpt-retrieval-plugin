@@ -1,7 +1,6 @@
 import os
 import json
 
-
 import boto3
 from opensearchpy import AsyncOpenSearch, AWSV4SignerAuth, RequestsHttpConnection
 from requests_kerberos import HTTPKerberosAuth, OPTIONAL
@@ -31,6 +30,7 @@ OPENSEARCH_INDEX_REPLICAS = int(os.environ.get("OPENSEARCH_INDEX_REPLICAS", 0))
 OPENSEARCH_KNN_ENGINE = os.environ.get("OPENSEARCH_KNN_ENGINE", "nmslib")
 OPENSEARCH_KNN_VECTOR_DISTANCE = os.environ.get("OPENSEARCH_KNN_VECTOR_DISTANCE", "l2")
 OPENSEARCH_EMBEDDING_IN_RESULT = bool(os.environ.get("OPENSEARCH_EMBEDDING_IN_RESULT", False))
+OPENSEARCH_SEARCH_TYPE = os.environ.get("OPENSEARCH_SEARCH_TYPE", "vector_search")  # other values can be keyword_search(for text search), hybrid(both keyword and vector search)
 CA_CERTS_FULL_PATH = os.environ.get("CA_CERTS_FULL_PATH")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-2")
 CLOUD_SEARCH_SERVICE = os.environ.get("CLOUD_SEARCH_SERVICE", "aoss")  # use es for Amazon Elastic Search
@@ -268,15 +268,15 @@ class OpenSearchDataStore(DataStore):
         if metadata is None:
             return {}
         opensearch_metadata = {}
-
         for field, value in metadata.dict().items():
-            if type(value) is Source:
-                opensearch_metadata[field] = value.value
-            elif field == "created_at":
-                if validate_date_str(date_str=value):
+            if value is not None:
+                if type(value) is Source:
+                    opensearch_metadata[field] = value.value
+                elif field == "created_at":
+                    if validate_date_str(date_str=value):
+                        opensearch_metadata[field] = value
+                else:
                     opensearch_metadata[field] = value
-            elif value is not None:
-                opensearch_metadata[field] = value
 
         return opensearch_metadata
 
@@ -376,28 +376,71 @@ def build_bulk_indexing_body(batch) -> str:
 def create_opensearch_query(query: QueryWithEmbedding) -> Dict:
     query_body = {
         "query": {
-            "knn": {
-                OPENSEARCH_KNN_FIELD_NAME: {
-                    "vector": query.embedding,
-                    "k": query.top_k
-                }
-            }
         },
         "_source": {
             "exclude": build_exclude_fields_list()
-        }
+        },
+        "size": query.top_k
     }
-
-    if query.filter:
-        query_body["post_filter"] = {
+    if OPENSEARCH_SEARCH_TYPE == "vector_search":
+        query_body["query"] = dict(knn={
+            OPENSEARCH_KNN_FIELD_NAME: {
+                "vector": query.embedding,
+                "k": query.top_k
+            }
+        })
+        if query.filter:
+            query_body["post_filter"] = {
+                "bool": {
+                    "must": create_clause_for_filters(query.filter)
+                }
+            }
+    elif OPENSEARCH_SEARCH_TYPE == "keyword_search":
+        query_body["query"] = {
             "bool": {
-                "must": create_clause_for_filters(query.filter)
+                "must": {
+                    "match": {
+                        "chunk_text": query.query
+                    }
+                }
             }
         }
+        if query.filter:
+            query_body["query"]["bool"]["filter"] = create_clause_for_filters(query.filter)
+    elif OPENSEARCH_SEARCH_TYPE == "hybrid":
+        query_body["query"] = {
+            "bool": {
+                "should": [
+                    {
+                        "match": {
+                            "chunk_text": query.query
+                        }
+                    },
+                    {
+                        "knn": {
+                            OPENSEARCH_KNN_FIELD_NAME: {
+                                "vector": query.embedding,
+                                "k": query.top_k
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+        if query.filter:
+            query_body['query']['bool']['filter'] = create_clause_for_filters(query.filter)
+            query_body["post_filter"] = {
+                "bool": {
+                    "must": create_clause_for_filters(query.filter)
+                }
+            }
+    else:
+        raise Exception(
+            f"The {OPENSEARCH_SEARCH_TYPE} is not supported. Please use : vector_search, keyword_search, hybrid")
     return query_body
 
 
-def build_exclude_fields_list()-> List[str]:
+def build_exclude_fields_list() -> List[str]:
     exclude_list = []
     if not OPENSEARCH_EMBEDDING_IN_RESULT:
         exclude_list.append(OPENSEARCH_KNN_FIELD_NAME)
@@ -414,7 +457,7 @@ def create_query_result(response: Any, query_string: str) -> QueryResult:
             score=hit["_score"],
             text=doc_source["chunk_text"],
             metadata=doc_source["metadata"],
-            embedding= doc_source[OPENSEARCH_KNN_FIELD_NAME] if OPENSEARCH_EMBEDDING_IN_RESULT else None
+            embedding=doc_source[OPENSEARCH_KNN_FIELD_NAME] if OPENSEARCH_EMBEDDING_IN_RESULT else None
         ))
     if len(results) == 0:
         print(f"No results found for the query string: {query_string}, response: {response}")
