@@ -58,8 +58,15 @@ optional = true
 [tool.poetry.group.redis.dependencies]
 redis = "4.5.1"
 
+# only used for llama index database provider
+[tool.poetry.group.llama]
+optional = true
+[tool.poetry.group.llama.dependencies]
+llama-index = "0.5.4"
+
 [tool.poetry.scripts]
 start = "server.main:start"
+dev = "local-server.main:start"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"
@@ -70,3 +77,9 @@ pytest-asyncio = "^0.20.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+asyncio_mode="auto"

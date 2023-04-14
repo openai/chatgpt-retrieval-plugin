@@ -1,9 +1,8 @@
-# This is a version of the main.py file found in ../../../server/main.py without authentication.
-# Copy and paste this into the main file at ../../../server/main.py if you choose to use no authentication for your retrieval plugin.
+# This is a version of the main.py file found in ../../../server/main.py for testing the plugin locally.
+# Use the command `poetry run dev` to run this.
 from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
-from fastapi.staticfiles import StaticFiles
 
 from models.api import (
     DeleteRequest,
@@ -16,20 +15,46 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
+from starlette.responses import FileResponse
+
 from models.models import DocumentMetadata, Source
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
-app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
-# Create a sub-application, in order to access just the query endpoints in the OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
-sub_app = FastAPI(
-    title="Retrieval Plugin API",
-    description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
-    version="1.0.0",
-    servers=[{"url": "https://your-app-url.com"}],
+PORT = 3333
+
+origins = [
+    f"http://localhost:{PORT}",
+    "https://chat.openai.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-app.mount("/sub", sub_app)
+
+
+@app.route("/.well-known/ai-plugin.json")
+async def get_manifest(request):
+    file_path = "./local-server/ai-plugin.json"
+    return FileResponse(file_path, media_type="text/json")
+
+
+@app.route("/.well-known/logo.png")
+async def get_logo(request):
+    file_path = "./local-server/logo.png"
+    return FileResponse(file_path, media_type="text/json")
+
+
+@app.route("/.well-known/openapi.yaml")
+async def get_openapi(request):
+    file_path = "./local-server/openapi.yaml"
+    return FileResponse(file_path, media_type="text/json")
 
 
 @app.post(
@@ -74,31 +99,8 @@ async def upsert(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.post(
-    "/query",
-    response_model=QueryResponse,
-)
-async def query_main(
-    request: QueryRequest = Body(...),
-):
-    try:
-        results = await datastore.query(
-            request.queries,
-        )
-        return QueryResponse(results=results)
-    except Exception as e:
-        print("Error:", e)
-        raise HTTPException(status_code=500, detail="Internal Service Error")
-
-
-@sub_app.post(
-    "/query",
-    response_model=QueryResponse,
-    description="Accepts search query objects with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.",
-)
-async def query(
-    request: QueryRequest = Body(...),
-):
+@app.post("/query", response_model=QueryResponse)
+async def query_main(request: QueryRequest = Body(...)):
     try:
         results = await datastore.query(
             request.queries,
@@ -140,4 +142,4 @@ async def startup():
 
 
 def start():
-    uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("local-server.main:app", host="localhost", port=PORT, reload=True)
