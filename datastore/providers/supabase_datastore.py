@@ -215,7 +215,8 @@ class SupabaseDataStore(DataStore):
                                                                        , in_author text default '%%'
                                                                        , in_start_date timestamptz default '-infinity'
                                                                        , in_end_date timestamptz default 'infinity')
-                          returns table (source text
+                          returns table (id text
+                                       , source text
                                        , source_id text
                                        , document_id text
                                        , url text
@@ -230,6 +231,7 @@ class SupabaseDataStore(DataStore):
                           begin
                             return query
                             select
+                              documents.id,
                               documents.source,
                               documents.source_id,
                               documents.document_id,
