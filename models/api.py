@@ -32,3 +32,21 @@ class DeleteRequest(BaseModel):
 
 class DeleteResponse(BaseModel):
     success: bool
+
+
+class InitializePlaidRequest(BaseModel):
+    client: str
+
+
+class InitializePlaidResponse(BaseModel):
+    success: bool
+    link_token: str
+
+
+class ExchangePublicTokenRequest(BaseModel):
+    public_token: str
+
+
+class ExchangePublicTokenResponse(BaseModel):
+    success: bool
+    access_token: str

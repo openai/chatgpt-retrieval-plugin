@@ -1,8 +1,23 @@
 # This is a version of the main.py file found in ../../../server/main.py for testing the plugin locally.
 # Use the command `poetry run dev` to run this.
+import os
 from typing import Optional
+
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
+
+import plaid
+from plaid.api import plaid_api
+from plaid.model.link_token_create_request import LinkTokenCreateRequest
+from plaid.model.products import Products
+from plaid.model.country_code import CountryCode
+from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.link_token_account_filters import LinkTokenAccountFilters
+from plaid.model.depository_filter import DepositoryFilter
+from plaid.model.depository_account_subtypes import DepositoryAccountSubtypes
+from plaid.model.depository_account_subtype import DepositoryAccountSubtype
+from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+
 
 from models.api import (
     DeleteRequest,
@@ -11,6 +26,10 @@ from models.api import (
     QueryResponse,
     UpsertRequest,
     UpsertResponse,
+    InitializePlaidRequest,
+    InitializePlaidResponse,
+    ExchangePublicTokenRequest,
+    ExchangePublicTokenResponse,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -21,6 +40,17 @@ from models.models import DocumentMetadata, Source
 from fastapi.middleware.cors import CORSMiddleware
 
 
+plaid_configuration = plaid.Configuration(
+    host=plaid.Environment.Sandbox,
+    api_key={
+        'clientId': os.environ.get("PLAID_CLIENT_ID"),
+        'secret': os.environ.get("PLAID_SECRET"),
+    }
+)
+
+plaid_api_client = plaid.ApiClient(plaid_configuration)
+plaid_client = plaid_api.PlaidApi(plaid_api_client)
+
 app = FastAPI()
 
 PORT = 3333
@@ -28,11 +58,13 @@ PORT = 3333
 origins = [
     f"http://localhost:{PORT}",
     "https://chat.openai.com",
+    "http://localhost:3000",  # for ui
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    # allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -133,6 +165,52 @@ async def delete(
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/create-link-token",
+    response_model=InitializePlaidResponse,
+)
+async def create_link_token(
+    request: InitializePlaidRequest = Body(...),
+):
+    request = LinkTokenCreateRequest(
+        products=[Products('auth'), Products('transactions')],
+        client_name="Plaid Test App",
+        country_codes=[CountryCode('US')],
+        # redirect_uri='',
+        language='en',
+        webhook='https://example.com',
+        link_customization_name='default',
+        account_filters=LinkTokenAccountFilters(
+            depository=DepositoryFilter(
+                account_subtypes=DepositoryAccountSubtypes(
+                    [DepositoryAccountSubtype('checking'), DepositoryAccountSubtype('savings')]
+                )
+            )
+        ),
+        user=LinkTokenCreateRequestUser(
+            client_user_id='123-test-user-id'
+        ),
+    )
+    response = plaid_client.link_token_create(request)
+    link_token = response['link_token']
+    print(f"link_token: {link_token}")
+    return InitializePlaidResponse(success=True, link_token=link_token)
+
+
+@app.post(
+    "/exchange-public-token",
+    response_model=ExchangePublicTokenResponse,
+)
+async def exchange_public_token(
+    request: ExchangePublicTokenRequest = Body(...),
+):
+    exchange_token_request = ItemPublicTokenExchangeRequest(
+        public_token=request.public_token,
+    )
+    response = plaid_client.item_public_token_exchange(exchange_token_request)
+    return ExchangePublicTokenResponse(success=True, access_token=response['access_token'])
 
 
 @app.on_event("startup")
