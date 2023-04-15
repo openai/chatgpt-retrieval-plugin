@@ -17,6 +17,8 @@ from plaid.model.depository_filter import DepositoryFilter
 from plaid.model.depository_account_subtypes import DepositoryAccountSubtypes
 from plaid.model.depository_account_subtype import DepositoryAccountSubtype
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+from plaid.model.transactions_sync_request import TransactionsSyncRequest
+from plaid.model.accounts_get_request import AccountsGetRequest
 
 
 from models.api import (
@@ -30,6 +32,8 @@ from models.api import (
     InitializePlaidResponse,
     ExchangePublicTokenRequest,
     ExchangePublicTokenResponse,
+    SyncItemRequest,
+    SyncItemResponse,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -178,7 +182,7 @@ async def delete(
     response_model=InitializePlaidResponse,
 )
 async def create_link_token(
-    request: InitializePlaidRequest = Body(...),
+    body: InitializePlaidRequest = Body(...),
 ):
     request = LinkTokenCreateRequest(
         products=[Products('auth'), Products('transactions')],
@@ -218,6 +222,40 @@ async def exchange_public_token(
     response = plaid_client.item_public_token_exchange(exchange_token_request)
     return ExchangePublicTokenResponse(success=True, access_token=response['access_token'])
 
+
+@app.post(
+    "/sync-item",
+    response_model=SyncItemResponse,
+)
+async def sync_item(
+    body: SyncItemRequest = Body(...),
+):
+    # 1. Get transactions
+    transactions_request = TransactionsSyncRequest(
+        access_token=body.access_token,
+    )
+
+    transactions_response = plaid_client.transactions_sync(transactions_request)
+    transactions = transactions_response['added']
+
+    while (transactions_response['has_more']):
+        transactions_request = TransactionsSyncRequest(
+            access_token=body.access_token,
+            cursor=transactions_response['next_cursor']
+        )
+        transactions_response = plaid_client.transactions_sync(transactions_request)
+        transactions += transactions_response['added']
+    dict_transactions = [t.to_dict() for t in transactions]
+
+    # 2. Get accounts
+    accounts_request = AccountsGetRequest(
+        access_token=body.access_token,
+    )
+    accounts_response = plaid_client.accounts_get(accounts_request)
+    accounts = accounts_response['accounts']
+    dict_accounts = [a.to_dict() for a in accounts]
+
+    return SyncItemResponse(success=True, transactions=dict_transactions, accounts=dict_accounts)
 
 @app.on_event("startup")
 async def startup():
