@@ -30,6 +30,8 @@ from models.api import (
     InitializePlaidResponse,
     ExchangePublicTokenRequest,
     ExchangePublicTokenResponse,
+    TransactionResponse,
+    AccountResponse
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -215,7 +217,7 @@ async def exchange_public_token(
 
 @app.get(
     "/transactions",
-    response_model=None,
+    response_model=TransactionResponse,
 )
 async def get_transactions():
     """
@@ -234,7 +236,7 @@ async def get_transactions():
 
 @app.get(
     "/all_transactions",
-    response_model=None,
+    response_model=TransactionResponse,
 )
 async def get_all_transactions():
     """
@@ -253,7 +255,7 @@ async def get_all_transactions():
 
 @app.get(
     "/account",
-    response_model=None,
+    response_model=AccountResponse,
 )
 async def get_account():
     """
