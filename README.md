@@ -128,8 +128,9 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 
 To test a locally hosted plugin in ChatGPT, follow these steps:
 
-1. Run the API on localhost: `poetry run dev`
-2. Follow the instructions in the [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt) section of the README.
+1. Add environment variables: `source ./scripts/add_envvar.sh`
+2. Run the API on localhost: `poetry run dev`
+3. Follow the instructions in the [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt) section of the README.
 
 For more detailed information on setting up, developing, and deploying the ChatGPT Retrieval Plugin, refer to the full Development section below.
 

@@ -1385,6 +1385,18 @@ files = [
 ]
 
 [[package]]
+name = "nulltype"
+version = "2.3.1"
+description = "Null values and sentinels like (but not) None, False & True"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "nulltype-2.3.1-py2.py3-none-any.whl", hash = "sha256:16ae565745118e37e0558441f5821c76351d8c3a789640b5bca277cf65b2271b"},
+    {file = "nulltype-2.3.1.zip", hash = "sha256:64aa3cb2ab5e904d1b37175b9b922bea268c13f9ce32e3d373313150ab5ef272"},
+]
+
+[[package]]
 name = "numpy"
 version = "1.24.2"
 description = "Fundamental package for array computing in Python"
@@ -1644,6 +1656,22 @@ urllib3 = ">=1.21.1"
 
 [package.extras]
 grpc = ["googleapis-common-protos (>=1.53.0)", "grpc-gateway-protoc-gen-openapiv2 (==0.1.0)", "grpcio (>=1.44.0)", "lz4 (>=3.1.3)", "protobuf (==3.19.3)"]
+
+[[package]]
+name = "plaid-python"
+version = "12.0.0"
+description = "Python client library for the Plaid API and Link"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "plaid-python-12.0.0.tar.gz", hash = "sha256:9bf53b3bce7da56381faa1783d5717837a48eccd99a65dae58f8dab9b795d9d1"},
+]
+
+[package.dependencies]
+nulltype = "*"
+python-dateutil = "*"
+urllib3 = ">=1.25.3"
 
 [[package]]
 name = "pluggy"
@@ -2681,4 +2709,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1deeebef9085bc05c5b1238071dd97ede71d15e2b95bfef46e27c1d72841996a"
+content-hash = "9b5f1f99d20910a67991c4ccf29071e8ea9fce64fe8aea54a1c0d67d71d33b24"
