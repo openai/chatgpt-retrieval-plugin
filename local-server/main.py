@@ -40,11 +40,17 @@ from models.models import DocumentMetadata, Source
 from fastapi.middleware.cors import CORSMiddleware
 
 
+plaid_client_id = os.environ.get("PLAID_CLIENT_ID")
+plaid_secret = os.environ.get("PLAID_SECRET")
+
+if plaid_client_id is None or plaid_secret is None:
+    raise Exception("Plaid client id and secret must be set in environment variables")
+
 plaid_configuration = plaid.Configuration(
     host=plaid.Environment.Sandbox,
     api_key={
-        'clientId': os.environ.get("PLAID_CLIENT_ID"),
-        'secret': os.environ.get("PLAID_SECRET"),
+        'clientId': plaid_client_id,
+        'secret': plaid_secret,
     }
 )
 
