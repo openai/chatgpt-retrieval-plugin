@@ -3,6 +3,8 @@ from models.models import (
     DocumentMetadataFilter,
     Query,
     QueryResult,
+    Transaction,
+    Account
 )
 from pydantic import BaseModel
 from typing import List, Optional
@@ -50,3 +52,9 @@ class ExchangePublicTokenRequest(BaseModel):
 class ExchangePublicTokenResponse(BaseModel):
     success: bool
     access_token: str
+
+class TransactionResponse(BaseModel):
+    transactions: List[Transaction]
+
+class AccountResponse(BaseModel):
+    account: Account

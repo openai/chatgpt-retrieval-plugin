@@ -30,6 +30,8 @@ from models.api import (
     InitializePlaidResponse,
     ExchangePublicTokenRequest,
     ExchangePublicTokenResponse,
+    TransactionResponse,
+    AccountResponse
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -212,6 +214,62 @@ async def exchange_public_token(
     response = plaid_client.item_public_token_exchange(exchange_token_request)
     return ExchangePublicTokenResponse(success=True, access_token=response['access_token'])
 
+
+@app.get(
+    "/transactions",
+    response_model=TransactionResponse,
+)
+async def get_transactions():
+    """
+    Get most recent 20 transactions.
+    TODO: Shove to LLAMAIndex for Text to SQL
+    # https://gpt-index.readthedocs.io/en/latest/guides/tutorials/sql_guide.html#text-to-sql-basic
+    """
+    # response = datastore.query(
+    #     "What are the 20 most recent transactions?"
+    # )
+    # return response, response.extra_info['sql_query']
+    return datastore.query(
+        "SELECT * FROM transactions ORDER BY date DESC LIMIT 20"
+    )
+
+
+@app.get(
+    "/all_transactions",
+    response_model=TransactionResponse,
+)
+async def get_all_transactions():
+    """
+    Get all of the transactions.
+    TODO: Shove to LLAMAIndex for Text to SQL
+    # https://gpt-index.readthedocs.io/en/latest/guides/tutorials/sql_guide.html#text-to-sql-basic
+    """
+    # response = datastore.query(
+    #     "What are all of the transactions?"
+    # )
+    # return response, response.extra_info['sql_query']
+    return datastore.query(
+        "SELECT * FROM transactions"
+    )
+
+
+@app.get(
+    "/account",
+    response_model=AccountResponse,
+)
+async def get_account():
+    """
+    Get all of the transactions.
+    TODO: Shove to LLAMAIndex for Text to SQL
+    # https://gpt-index.readthedocs.io/en/latest/guides/tutorials/sql_guide.html#text-to-sql-basic
+    """
+    # response = datastore.query(
+    #     "What are all of my account information?"
+    # )
+    # return response, response.extra_info['sql_query']
+    return datastore.query(
+        "SELECT * FROM accounts"
+    )
 
 @app.on_event("startup")
 async def startup():
