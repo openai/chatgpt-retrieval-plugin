@@ -28,6 +28,7 @@ with ChatGPT and your external data.
 | ------------------------------- | -------- | ------------------------------------------------------------------ | ------------------ |
 | `LLAMA_INDEX_TYPE`              | Optional | Index type (see below for details)                                 | `simple_dict`      |
 | `LLAMA_INDEX_JSON_PATH`         | Optional | Path to saved Index json file                                      | None               |
+| `LLAMA_INDEX_AUTO_SAVE`         | Optional | Save index automatically when index is added or deleted            | None               |
 | `LLAMA_QUERY_KWARGS_JSON_PATH`         | Optional | Path to saved query kwargs json file                                      | None               |
 | `LLAMA_RESPONSE_MODE`           | Optional | Response mode for query                                            | `no_text`          | 
 
