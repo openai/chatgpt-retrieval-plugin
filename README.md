@@ -82,7 +82,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    # Weaviate
    export WEAVIATE_HOST=<your_weaviate_host>
    export WEAVIATE_PORT=<your_weaviate_port>
-   export WEAVIATE_INDEX=<your_weaviate_index>
+   export WEAVIATE_CLASS=<your_optional_weaviate_class>
    export WEAVIATE_USERNAME=<your_weaviate_username>
    export WEAVIATE_PASSWORD=<your_weaviate_password>
    export WEAVIATE_SCOPES=<your_weaviate_scopes>

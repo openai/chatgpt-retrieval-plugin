@@ -64,10 +64,10 @@ You need to set some environment variables to connect to your Weaviate instance.
 **Weaviate Datastore Environment Variables**
 
 | Name             | Required | Description                                                        | Default            |
-| ---------------- | -------- | ------------------------------------------------------------------ | ------------------ |
+|------------------| -------- | ------------------------------------------------------------------ | ------------------ |
 | `WEAVIATE_HOST`  | Optional | Your Weaviate instance host address (see notes below)              | `http://127.0.0.1` |
 | `WEAVIATE_PORT`  | Optional | Your Weaviate port number                                          | 8080               |
-| `WEAVIATE_INDEX` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
+| `WEAVIATE_CLASS` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
 
 > For **WCS instances**, set `WEAVIATE_PORT` to 443 and `WEAVIATE_HOST` to `https://(wcs-instance-name).weaviate.network`. For example: `https://my-project.weaviate.network/`.
 
