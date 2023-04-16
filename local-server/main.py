@@ -1,7 +1,7 @@
 # This is a version of the main.py file found in ../../../server/main.py for testing the plugin locally.
 # Use the command `poetry run dev` to run this.
 import os
-from typing import Optional
+from typing import List, Optional
 
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
@@ -40,7 +40,7 @@ from services.file import get_document_from_file
 
 from starlette.responses import FileResponse
 
-from models.models import DocumentMetadata, Source
+from models.models import Document, DocumentMetadata, Source
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -254,6 +254,25 @@ async def sync_item(
     accounts_response = plaid_client.accounts_get(accounts_request)
     accounts = accounts_response['accounts']
     dict_accounts = [a.to_dict() for a in accounts]
+
+    # 3. Store transactions and accounts
+    documents: List[Document] = []
+    for t in transactions:
+        documents.append(Document(text=str(t.to_dict()),
+                                  metadata=DocumentMetadata(
+                                        source=Source.plaid,
+                                        source_id=t.transaction_id,
+                                        # author=t.item_id,
+                                  )))
+    for a in accounts:
+        documents.append(Document(text=str(a.to_dict()),
+                                  metadata=DocumentMetadata(
+                                        source=Source.plaid,
+                                        source_id=a.account_id,
+                                        # author=a.item_id,
+                                  )))
+
+    ids = await datastore.upsert(documents)
 
     return SyncItemResponse(success=True, transactions=dict_transactions, accounts=dict_accounts)
 
