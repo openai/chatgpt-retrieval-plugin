@@ -26,9 +26,11 @@ weaviate-client = "^3.12.0"
 pymilvus = "^2.2.2"
 qdrant-client = {version = "^1.0.4", python = "<3.12"}
 redis = "4.5.1"
+llama-index = "0.5.4"
 
 [tool.poetry.scripts]
 start = "server.main:start"
+dev = "local-server.main:start"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"
@@ -39,3 +41,9 @@ pytest-asyncio = "^0.20.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+asyncio_mode="auto"

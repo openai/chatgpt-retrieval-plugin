@@ -21,3 +21,17 @@
 | `REDIS_DOC_PREFIX`      | Optional | Redis key prefix for the index                                                                                         | `doc`       |
 | `REDIS_DISTANCE_METRIC` | Optional | Vector similarity distance metric                                                                                      | `COSINE`    |
 | `REDIS_INDEX_TYPE`      | Optional | [Vector index algorithm type](https://redis.io/docs/stack/search/reference/vectors/#creation-attributes-per-algorithm) | `FLAT`      |
+
+
+## Redis Datastore development & testing
+In order to test your changes to the Redis Datastore, you can run the following commands:
+
+```bash
+# Run the Redis stack docker image
+docker run -it --rm -p 6379:6379 redis/redis-stack-server:latest
+```
+    
+```bash
+# Run the Redis datastore tests
+poetry run pytest -s ./tests/datastore/providers/redis/test_redis_datastore.py
+```

@@ -24,15 +24,16 @@ Zilliz Cloud is deployable in a few simple steps. First, create an account [here
 
 Environment Variables:
 
-| Name                | Required | Description                                       |
-| ------------------- | -------- | ------------------------------------------------- |
-| `DATASTORE`         | Yes      | Datastore name, set to `zilliz`                   |
-| `BEARER_TOKEN`      | Yes      | Your secret token                                 |
-| `OPENAI_API_KEY`    | Yes      | Your OpenAI API key                               |
-| `ZILLIZ_COLLECTION` | Optional | Zilliz collection name. Defaults to a random UUID |
-| `ZILLIZ_URI`        | Yes      | URI for the Zilliz instance                       |
-| `ZILLIZ_USER`       | Yes      | Zilliz username                                   |
-| `ZILLIZ_PASSWORD`   | Yes      | Zilliz password                                   |
+| Name                       | Required | Description                                                      |
+|----------------------------| -------- |------------------------------------------------------------------|
+| `DATASTORE`                | Yes      | Datastore name, set to `zilliz`                                  |
+| `BEARER_TOKEN`             | Yes      | Your secret token                                                |
+| `OPENAI_API_KEY`           | Yes      | Your OpenAI API key                                              |
+| `ZILLIZ_COLLECTION`        | Optional | Zilliz collection name. Defaults to a random UUID                |
+| `ZILLIZ_URI`               | Yes      | URI for the Zilliz instance                                      |
+| `ZILLIZ_USER`              | Yes      | Zilliz username                                                  |
+| `ZILLIZ_PASSWORD`          | Yes      | Zilliz password                                                  |
+| `ZILLIZ_CONSISTENCY_LEVEL` | Optional | Data consistency level for the collection, defaults to `Bounded` |
 
 ## Running Zilliz Integration Tests
 

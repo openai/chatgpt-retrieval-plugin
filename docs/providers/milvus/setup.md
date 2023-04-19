@@ -18,16 +18,19 @@ You can deploy and manage Milvus using Docker Compose, Helm, K8's Operator, or A
 
 **Environment Variables:**
 
-| Name                | Required | Description                                            |
-| ------------------- | -------- | ------------------------------------------------------ |
-| `DATASTORE`         | Yes      | Datastore name, set to `milvus`                        |
-| `BEARER_TOKEN`      | Yes      | Your bearer token                                      |
-| `OPENAI_API_KEY`    | Yes      | Your OpenAI API key                                    |
-| `MILVUS_COLLECTION` | Optional | Milvus collection name, defaults to a random UUID      |
-| `MILVUS_HOST`       | Optional | Milvus host IP, defaults to `localhost`                |
-| `MILVUS_PORT`       | Optional | Milvus port, defaults to `19530`                       |
-| `MILVUS_USER`       | Optional | Milvus username if RBAC is enabled, defaults to `None` |
-| `MILVUS_PASSWORD`   | Optional | Milvus password if required, defaults to `None`        |
+| Name                       | Required | Description                                                                                                                                  |
+|----------------------------| -------- |----------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATASTORE`                | Yes      | Datastore name, set to `milvus`                                                                                                              |
+| `BEARER_TOKEN`             | Yes      | Your bearer token                                                                                                                            |
+| `OPENAI_API_KEY`           | Yes      | Your OpenAI API key                                                                                                                          |
+| `MILVUS_COLLECTION`        | Optional | Milvus collection name, defaults to a random UUID                                                                                            |
+| `MILVUS_HOST`              | Optional | Milvus host IP, defaults to `localhost`                                                                                                      |
+| `MILVUS_PORT`              | Optional | Milvus port, defaults to `19530`                                                                                                             |
+| `MILVUS_USER`              | Optional | Milvus username if RBAC is enabled, defaults to `None`                                                                                       |
+| `MILVUS_PASSWORD`          | Optional | Milvus password if required, defaults to `None`                                                                                              |
+| `MILVUS_INDEX_PARAMS`      | Optional | Custom index options for the collection, defaults to `{"metric_type": "IP", "index_type": "HNSW", "params": {"M": 8, "efConstruction": 64}}` |
+| `MILVUS_SEARCH_PARAMS`     | Optional | Custom search options for the collection, defaults to `{"metric_type": "IP", "params": {"ef": 10}}`                                          |
+| `MILVUS_CONSISTENCY_LEVEL` | Optional | Data consistency level for the collection, defaults to `Bounded`                                                                             |
 
 ## Running Milvus Integration Tests
 
