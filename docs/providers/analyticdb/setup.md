@@ -13,11 +13,11 @@ Additionally, it provides full OLAP database functionality and an SLA commitment
 | `DATASTORE`      | Yes      | Datastore name, set to `analyticdb` |                   |
 | `BEARER_TOKEN`   | Yes      | Secret token                        |                   |
 | `OPENAI_API_KEY` | Yes      | OpenAI API key                      |                   |
-| `PGHOST`         | Yes      | AnalyticDB instance URL             | `localhost`       |
-| `PGUSER`         | Yes      | Database user                       | `user`            |
-| `PGPASSWORD`     | Yes      | Database password                   | `password`        |
-| `PGPORT`         | Optional | Port for AnalyticDB communication   | `5432`            |
-| `PGDATABASE`     | Optional | Database name                       | `postgres`        |
+| `PG_HOST`        | Yes      | AnalyticDB instance URL             | `localhost`       |
+| `PG_USER`        | Yes      | Database user                       | `user`            |
+| `PG_PASSWORD`    | Yes      | Database password                   | `password`        |
+| `PG_PORT`        | Optional | Port for AnalyticDB communication   | `5432`            |
+| `PG_DATABASE`    | Optional | Database name                       | `postgres`        |
 | `PG_COLLECTION`  | Optional | AnalyticDB relation name            | `document_chunks` |
 
 ## AnalyticDB Cloud
@@ -28,14 +28,14 @@ URL
 **Example:**
 
 ```bash
-PGHOST="https://YOUR-CLUSTER-URL.gpdb.rds.aliyuncs.com"
-PGUSER="YOUR-USER-NAME"
-PGPASSWORD="YOUR-PASSWORD"
+PG_HOST="https://YOUR-CLUSTER-URL.gpdb.rds.aliyuncs.com"
+PG_USER="YOUR-USER-NAME"
+PG_PASSWORD="YOUR-PASSWORD"
 ```
 
 The other parameters are optional and can be changed if needed.
 
-## Running Qdrant Integration Tests
+## Running AnalyticDB Integration Tests
 
 A suite of integration tests verifies the AnalyticDB integration. Launch the test suite with this command:
 

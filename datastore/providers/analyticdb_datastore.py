@@ -2,8 +2,8 @@ import os
 import asyncio
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
-import psycopg2
-from psycopg2.extras import DictCursor
+import psycopg2cffi as psycopg2
+from psycopg2cffi.extras import DictCursor
 
 from services.date import to_unix_timestamp
 from datastore.datastore import DataStore
@@ -18,11 +18,11 @@ from models.models import (
 
 PG_CONFIG = {
     "collection": os.environ.get("PG_COLLECTION", "document_chunks"),
-    "database": os.environ.get("PGDATABASE", "postgres"),
-    "user": os.environ.get("PGUSER", "user"),
-    "password": os.environ.get("PGPASSWORD", "password"),
-    "host": os.environ.get("PGHOST", "localhost"),
-    "port": int(os.environ.get("PGPORT", "5432")),
+    "database": os.environ.get("PG_DATABASE", "postgres"),
+    "user": os.environ.get("PG_USER", "user"),
+    "password": os.environ.get("PG_PASSWORD", "password"),
+    "host": os.environ.get("PG_HOST", "localhost"),
+    "port": int(os.environ.get("PG_PORT", "5432")),
 }
 OUTPUT_DIM = 1536
 
@@ -95,7 +95,6 @@ class AnalyticDBDataStore(DataStore):
                 """
             )
 
-    import asyncio
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """

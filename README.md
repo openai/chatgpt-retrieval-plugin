@@ -120,11 +120,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export QDRANT_COLLECTION=<your_qdrant_collection>
       
    # AnalyticDB
-   export PGHOST=<your_analyticdb_host>
-   export PGPORT=<your_analyticdb_port>
-   export PGUSER=<your_analyticdb_username>
-   export PGPASSWORD=<your_analyticdb_password>
-   export PGDATABASE=<your_analyticdb_database>
+   export PG_HOST=<your_analyticdb_host>
+   export PG_PORT=<your_analyticdb_port>
+   export PG_USER=<your_analyticdb_username>
+   export PG_PASSWORD=<your_analyticdb_password>
+   export PG_DATABASE=<your_analyticdb_database>
+   export PG_COLLECTION=<your_analyticdb_collection>
+   
 
    # Redis
    export REDIS_HOST=<your_redis_host>
