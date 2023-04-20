@@ -34,8 +34,7 @@ assert SEARCHIUM_CLIENT_API_URL is not None  # str
 
 UPSERT_BATCH_SIZE = 100
 
-searchium.init(SEARCHIUM_INSTANCE_ID, SEARCHIUM_CLIENT_API_URL,
-               cloud=False)  # TODO remove cloud=False, for local test only
+searchium.init(SEARCHIUM_INSTANCE_ID, SEARCHIUM_CLIENT_API_URL)
 
 
 class SearchiumDataStore(DataStore):
@@ -60,10 +59,6 @@ class SearchiumDataStore(DataStore):
             raise e
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
-        """
-        Takes in a list of list of document chunks and inserts them into the database.
-        Return a list of document ids.
-        """
         # Initialize a list of ids to return
         doc_ids: List[str] = []
         # Initialize a list of vectors to upsert

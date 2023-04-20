@@ -276,6 +276,13 @@ All you need to do is specifying a few environment variables (optionally point t
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
 
+#### Searchium
+
+[Searchium](https://www.searchium.ai/) is a vector search accelerator based on in memory compute APU (Associative Processing Unit)
+Searchium makes it easy to scale seamlessly to billions of vectors.
+Searchium is based on the first purpose built accelerator for vector databases, to enable high-throughput, fast and scalable search.
+For detailed setup instructions, refer to [`/docs/providers/searchium/setup.md`](/docs/providers/searchium/setup.md).
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
