@@ -245,7 +245,7 @@ class RedisDataStore(DataStore):
         query_str = (
             f"({filter_str})=>[KNN {query.top_k} @embedding $embedding as score]"
         )
-        print(query_str)
+
         return (
             RediSearchQuery(query_str)
             .sort_by("score")
