@@ -209,7 +209,7 @@ class RedisDataStore(DataStore):
             if isinstance(typ, TagField):
                 return f"@{field}:{{{self._escape(value)}}} "
             elif isinstance(typ, TextField):
-                return f"@{field}:{(value)} "
+                return f"@{field}:{value} "
             elif isinstance(typ, NumericField):
                 num = to_unix_timestamp(value)
                 match field:
