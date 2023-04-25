@@ -64,7 +64,8 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 5. Create a new virtual environment with Python 3.10: `poetry env use python3.10`
 6. Activate the virtual environment: `poetry shell`
 7. Install app dependencies: `poetry install`
-8. Set the required environment variables:
+8. Create a [bearer token](#general-environment-variables)
+9. Set the required environment variables:
 
    ```
    export DATASTORE=<your_datastore>
@@ -80,16 +81,16 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PINECONE_INDEX=<your_pinecone_index>
 
    # Weaviate
-   export WEAVIATE_HOST=<your_weaviate_host>
-   export WEAVIATE_PORT=<your_weaviate_port>
-   export WEAVIATE_INDEX=<your_weaviate_index>
-   export WEAVIATE_USERNAME=<your_weaviate_username>
-   export WEAVIATE_PASSWORD=<your_weaviate_password>
-   export WEAVIATE_SCOPES=<your_weaviate_scopes>
-   export WEAVIATE_BATCH_SIZE=<your_weaviate_batch_size>
-   export WEAVIATE_BATCH_DYNAMIC=<your_weaviate_batch_dynamic>
-   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<your_weaviate_batch_timeout_retries>
-   export WEAVIATE_BATCH_NUM_WORKERS=<your_weaviate_batch_num_workers>
+   export WEAVIATE_HOST=<your_weaviate_instance_url>
+   export WEAVIATE_PORT=<your_weaviate_port_443_for_WCS>
+   export WEAVIATE_CLASS=<your_optional_weaviate_class>
+   export WEAVIATE_USERNAME=<your_weaviate_WCS_username>
+   export WEAVIATE_PASSWORD=<your_weaviate_WCS_password>
+   export WEAVIATE_SCOPES=<your_optional_weaviate_scopes>
+   export WEAVIATE_BATCH_SIZE=<optional_weaviate_batch_size>
+   export WEAVIATE_BATCH_DYNAMIC=<optional_weaviate_batch_dynamic>
+   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<optional_weaviate_batch_timeout_retries>
+   export WEAVIATE_BATCH_NUM_WORKERS=<optional_weaviate_batch_num_workers>
 
    # Zilliz
    export ZILLIZ_COLLECTION=<your_zilliz_collection>
@@ -121,8 +122,8 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_INDEX_TYPE=<your_redis_index_type>
    ```
 
-9. Run the API locally: `poetry run start`
-10. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
+10. Run the API locally: `poetry run start`
+11. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
 
 ### Testing in ChatGPT
 
