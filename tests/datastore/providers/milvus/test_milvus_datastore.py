@@ -8,7 +8,6 @@ from models.models import (
     DocumentChunkMetadata,
     DocumentMetadataFilter,
     DocumentChunk,
-    Query,
     QueryWithEmbedding,
     Source,
 )
@@ -20,8 +19,22 @@ from datastore.providers.milvus_datastore import (
 
 @pytest.fixture
 def milvus_datastore():
-    return MilvusDataStore()
+    return MilvusDataStore(consistency_level = "Strong")
 
+
+def sample_embedding(one_element_poz: int):
+    embedding = [0] * OUTPUT_DIM
+    embedding[one_element_poz % OUTPUT_DIM] = 1
+    return embedding
+
+def sample_embeddings(num: int, one_element_start: int = 0):
+    # since metric type is consine, we create vector contains only one element 1, others 0
+    embeddings = []
+    for x in range(num):
+        embedding = [0] * OUTPUT_DIM
+        embedding[(x + one_element_start) % OUTPUT_DIM] = 1
+        embeddings.append(embedding)
+    return embeddings
 
 @pytest.fixture
 def document_chunk_one():
@@ -43,7 +56,8 @@ def document_chunk_one():
         "2021-01-21T10:00:00-02:00",
     ]
     authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3)]
+
+    embeddings = sample_embeddings(len(texts))
 
     for i in range(3):
         chunk = DocumentChunk(
@@ -85,7 +99,7 @@ def document_chunk_two():
         "3021-01-21T10:00:00-02:00",
     ]
     authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3)]
+    embeddings = sample_embeddings(len(texts))
 
     for i in range(3):
         chunk = DocumentChunk(
@@ -122,7 +136,7 @@ def document_chunk_two():
         "6021-01-21T10:00:00-02:00",
     ]
     authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3, 6)]
+    embeddings = sample_embeddings(len(texts), 3)
 
     for i in range(3):
         chunk = DocumentChunk(
@@ -151,7 +165,7 @@ async def test_upsert(milvus_datastore, document_chunk_one):
     assert res == list(document_chunk_one.keys())
     milvus_datastore.col.flush()
     assert 3 == milvus_datastore.col.num_entities
-   
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -162,21 +176,20 @@ async def test_reload(milvus_datastore, document_chunk_one, document_chunk_two):
     assert res == list(document_chunk_one.keys())
     milvus_datastore.col.flush()
     assert 3 == milvus_datastore.col.num_entities
+
     new_store = MilvusDataStore()
-    another_in = {i:document_chunk_two[i] for i in document_chunk_two if i!=res[0]}
+    another_in = {i: document_chunk_two[i] for i in document_chunk_two if i != res[0]}
     res = await new_store._upsert(another_in)
     new_store.col.flush()
     assert 6 == new_store.col.num_entities
     query = QueryWithEmbedding(
         query="lorem",
         top_k=10,
-        embedding=[0.5] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
     assert 1 == len(query_results)
-
-    
-
+    new_store.col.drop()
 
 
 @pytest.mark.asyncio
@@ -190,14 +203,13 @@ async def test_upsert_query_all(milvus_datastore, document_chunk_two):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=10,
-        embedding=[0.5] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 6 == len(query_results[0].results)
-
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -209,15 +221,15 @@ async def test_query_accuracy(milvus_datastore, document_chunk_one):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=1,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 1 == len(query_results[0].results)
-    assert 0 == query_results[0].results[0].score
+    assert 1.0 == query_results[0].results[0].score
     assert "abc_123" == query_results[0].results[0].id
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -229,7 +241,7 @@ async def test_query_filter(milvus_datastore, document_chunk_one):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=1,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
         filter=DocumentMetadataFilter(
             start_date="2000-01-03T16:39:57-08:00", end_date="2010-01-03T16:39:57-08:00"
         ),
@@ -238,9 +250,9 @@ async def test_query_filter(milvus_datastore, document_chunk_one):
 
     assert 1 == len(query_results)
     assert 1 == len(query_results[0].results)
-    assert 0 != query_results[0].results[0].score
+    assert 1.0 != query_results[0].results[0].score
     assert "def_456" == query_results[0].results[0].id
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -258,14 +270,14 @@ async def test_delete_with_date_filter(milvus_datastore, document_chunk_one):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=9,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 1 == len(query_results[0].results)
     assert "ghi_789" == query_results[0].results[0].id
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -283,14 +295,14 @@ async def test_delete_with_source_filter(milvus_datastore, document_chunk_one):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=9,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 2 == len(query_results[0].results)
     assert "def_456" == query_results[0].results[0].id
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -307,13 +319,13 @@ async def test_delete_with_document_id_filter(milvus_datastore, document_chunk_o
     query = QueryWithEmbedding(
         query="lorem",
         top_k=9,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 0 == len(query_results[0].results)
-    
+    milvus_datastore.col.drop()
 
 
 @pytest.mark.asyncio
@@ -327,13 +339,13 @@ async def test_delete_with_document_id(milvus_datastore, document_chunk_one):
     query = QueryWithEmbedding(
         query="lorem",
         top_k=9,
-        embedding=[0] * OUTPUT_DIM,
+        embedding=sample_embedding(0),
     )
     query_results = await milvus_datastore._query(queries=[query])
 
     assert 1 == len(query_results)
     assert 0 == len(query_results[0].results)
-    
+    milvus_datastore.col.drop()
 
 
 # if __name__ == '__main__':
