@@ -1,5 +1,6 @@
 from typing import List
 import openai
+import os
 
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -20,7 +21,10 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
         Exception: If the OpenAI API call fails.
     """
     # Call the OpenAI API to get the embeddings
-    response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
+    if openai.api_type == "azure":        
+        response = openai.Embedding.create(input=texts, deployment_id=os.environ["AZURE_OPENAI_DEPLOYMENT_ID"])
+    else:
+        response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
 
     # Extract the embedding data from the response
     data = response["data"]  # type: ignore
