@@ -3,10 +3,12 @@ from io import BufferedReader
 from typing import Optional
 from fastapi import UploadFile
 import mimetypes
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 import docx2txt
 import csv
 import pptx
+from PIL import Image, ImageOps
+import pytesseract
 
 from models.models import Document, DocumentMetadata
 
@@ -79,6 +81,19 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                         for run in paragraph.runs:
                             extracted_text += run.text + " "
                     extracted_text += "\n"
+    elif mimetype.startswith("image/"):
+        # Read image from bytes buffer
+        image = Image.open(file)
+
+        # Convert image to grayscale
+        gray = ImageOps.grayscale(image)
+
+        # Apply adaptive thresholding
+        thresh = gray.point(lambda p: p > 128 and 255)
+        thresh = ImageOps.invert(thresh)
+
+        # Extract text using pytesseract
+        extracted_text = pytesseract.image_to_string(image)
     else:
         # Unsupported file type
         raise ValueError("Unsupported file type: {}".format(mimetype))
