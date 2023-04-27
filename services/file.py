@@ -1,12 +1,15 @@
-import os
-from io import BufferedReader
-from typing import Optional
-from fastapi import UploadFile
-import mimetypes
-from PyPDF2 import PdfReader
-import docx2txt
 import csv
+import mimetypes
+import os
+import tempfile
+from contextlib import contextmanager
+from io import BufferedReader
+from typing import Iterator, Optional
+
+import docx2txt
 import pptx
+from fastapi import UploadFile
+from PyPDF2 import PdfReader
 
 from models.models import Document, DocumentMetadata
 
@@ -97,20 +100,30 @@ async def extract_text_from_form_file(file: UploadFile):
 
     file_stream = await file.read()
 
-    temp_file_path = "/tmp/temp_file"
 
-    # write the file to a temporary location
-    with open(temp_file_path, "wb") as f:
-        f.write(file_stream)
+    with temp_file() as temp_file_path:
 
-    try:
-        extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
-    except Exception as e:
-        print(f"Error: {e}")
-        os.remove(temp_file_path)
-        raise e
+        # write the file to a temporary location
+        with open(temp_file_path, "wb") as f:
+            f.write(file_stream)
 
-    # remove file from temp location
-    os.remove(temp_file_path)
+        try:
+            extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
+
 
     return extracted_text
+
+
+
+@contextmanager
+def temp_file(*args, **kwargs) -> Iterator[str]:
+    "Wrapper over `tempfile.mkstemp`:func: that closes and removes the temp file."
+    fd, name = tempfile.mkstemp(*args, **kwargs)
+    try:
+        yield name
+    finally:
+        os.close(fd)
+        os.remove(name)
