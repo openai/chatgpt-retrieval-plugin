@@ -49,7 +49,13 @@ def _create_or_load_index(
     if index_json_path is None:
         return index_cls(nodes=[])  # Create empty index
     else:
-        return index_cls.load_from_disk(index_json_path) # Load index from disk
+        try:
+            return index_cls.load_from_disk(index_json_path) # Load index from disk
+        except FileNotFoundError:
+            logger.warning(f"{index_json_path} not found. Creating new index.")
+            new_index = index_cls(nodes=[])
+            new_index.save_to_disk(index_json_path)
+            return new_index
 
 def _create_or_load_query_kwargs(query_kwargs_json_path: Optional[str] = None) -> Optional[dict]:
     """Create or load query kwargs from json path."""
