@@ -533,4 +533,4 @@ def test_upsert_same_docid(test_db, weaviate_client):
     ],
 )
 def test_is_wcs_domain(url, expected_result):
-    WeaviateDataStore._is_wcs_domain(url) == expected_result
+    assert WeaviateDataStore._is_wcs_domain(url) == expected_result

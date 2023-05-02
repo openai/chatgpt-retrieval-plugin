@@ -375,7 +375,7 @@ class WeaviateDataStore(DataStore):
     @staticmethod
     def _is_wcs_domain(url: str) -> bool:
         """
-        Check if the given URL ends with "weaviate.network" or "weaviate.network/".
+        Check if the given URL ends with ".weaviate.network" or ".weaviate.network/".
 
         Args:
             url (str): The URL to check.
@@ -383,5 +383,5 @@ class WeaviateDataStore(DataStore):
         Returns:
             bool: True if the URL ends with the specified strings, False otherwise.
         """
-        pattern = r"weaviate\.network(/)?$"
+        pattern = r"\.weaviate\.network(/)?$"
         return bool(re.search(pattern, url))
