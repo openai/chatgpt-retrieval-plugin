@@ -245,7 +245,7 @@ The API requires the following environment variables to work:
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
 
 
-### Using the plugin with Azure Open AI
+### Using the plugin with Azure OpenAI
 
 The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
 
