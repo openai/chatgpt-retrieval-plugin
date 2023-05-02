@@ -21,7 +21,7 @@ from models.models import (
     Source,
 )
 
-
+WEAVIATE_URL_DEFAULT = "http://localhost:8080"
 WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
 
 WEAVIATE_BATCH_SIZE = int(os.environ.get("WEAVIATE_BATCH_SIZE", 20))
@@ -105,7 +105,7 @@ class WeaviateDataStore(DataStore):
     def __init__(self):
         auth_credentials = self._build_auth_credentials()
 
-        url = f"{WEAVIATE_HOST}:{WEAVIATE_PORT}"
+        url = os.environ.get("WEAVIATE_URL", WEAVIATE_URL_DEFAULT)
 
         logger.debug(
             f"Connecting to weaviate instance at {url} with credential type {type(auth_credentials).__name__}"
@@ -136,7 +136,7 @@ class WeaviateDataStore(DataStore):
 
     @staticmethod
     def _build_auth_credentials():
-        url = os.environ.get("WEAVIATE_URL", "http://localhost:8080")
+        url = os.environ.get("WEAVIATE_URL", WEAVIATE_URL_DEFAULT)
 
         if WeaviateDataStore._is_wcs_domain(url):
             api_key = os.environ.get("WEAVIATE_API_KEY")
