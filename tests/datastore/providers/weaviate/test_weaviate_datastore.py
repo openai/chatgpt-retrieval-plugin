@@ -519,3 +519,18 @@ def test_upsert_same_docid(test_db, weaviate_client):
     # but it is None right now because an
     # update function is out of scope
     assert weaviate_doc[0]["source"] is None
+
+
+@pytest.mark.parametrize(
+    "url, expected_result",
+    [
+        ("https://example.weaviate.network", True),
+        ("https://example.weaviate.network/", True),
+        ("https://example.notweaviate.network", False),
+        ("https://weaviate.network.example.com", False),
+        ("https://example.weaviate.network/somepage", False),
+        ("", False),
+    ],
+)
+def test_is_wcs_domain(url, expected_result):
+    WeaviateDataStore._is_wcs_domain(url) == expected_result

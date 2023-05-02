@@ -1,5 +1,6 @@
 # TODO
 import asyncio
+import re
 from typing import Dict, List, Optional
 from loguru import logger
 from weaviate import Client
@@ -370,3 +371,17 @@ class WeaviateDataStore(DataStore):
                 return True
         except ValueError:
             return False
+
+    @staticmethod
+    def _is_wcs_domain(url: str) -> bool:
+        """
+        Check if the given URL ends with "weaviate.network" or "weaviate.network/".
+
+        Args:
+            url (str): The URL to check.
+
+        Returns:
+            bool: True if the URL ends with the specified strings, False otherwise.
+        """
+        pattern = r"weaviate\.network(/)?$"
+        return bool(re.search(pattern, url))
