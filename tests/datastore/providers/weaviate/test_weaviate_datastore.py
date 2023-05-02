@@ -8,8 +8,11 @@ from fastapi.testclient import TestClient
 from loguru import logger
 from weaviate import Client
 
-from datastore.providers.weaviate_datastore import (SCHEMA, WeaviateDataStore,
-                                                    extract_schema_properties)
+from datastore.providers.weaviate_datastore import (
+    SCHEMA,
+    WeaviateDataStore,
+    extract_schema_properties,
+)
 from models.models import DocumentMetadataFilter, Source
 from server.main import app
 

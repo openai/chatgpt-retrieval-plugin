@@ -10,9 +10,15 @@ from weaviate import Client
 from weaviate.util import generate_uuid5
 
 from datastore.datastore import DataStore
-from models.models import (DocumentChunk, DocumentChunkMetadata,
-                           DocumentChunkWithScore, DocumentMetadataFilter,
-                           QueryResult, QueryWithEmbedding, Source)
+from models.models import (
+    DocumentChunk,
+    DocumentChunkMetadata,
+    DocumentChunkWithScore,
+    DocumentMetadataFilter,
+    QueryResult,
+    QueryWithEmbedding,
+    Source,
+)
 
 WEAVIATE_URL_DEFAULT = "http://localhost:8080"
 WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
