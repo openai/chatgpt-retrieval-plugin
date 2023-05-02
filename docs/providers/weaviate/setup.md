@@ -65,25 +65,18 @@ You need to set some environment variables to connect to your Weaviate instance.
 
 | Name             | Required | Description                                                        | Default            |
 |------------------| -------- | ------------------------------------------------------------------ | ------------------ |
-| `WEAVIATE_HOST`  | Optional | Your Weaviate instance host address (see notes below)              | `http://127.0.0.1` |
-| `WEAVIATE_PORT`  | Optional | Your Weaviate port number (use 443 for WCS)                        | 8080               |
+| `WEAVIATE_URL`  | Optional | Your weaviate instance's url/WCS endpoint              | `http://localhost:8080` |           |
 | `WEAVIATE_CLASS` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
-
-> For **WCS instances**, set `WEAVIATE_PORT` to 443 and `WEAVIATE_HOST` to `https://(wcs-instance-name).weaviate.network`. For example: `https://my-project.weaviate.network/`.
-
-> For **self-hosted instances**, if your instance is not at 127.0.0.1:8080, set `WEAVIATE_HOST` and `WEAVIATE_PORT` accordingly. For example: `WEAVIATE_HOST=http://localhost/` and `WEAVIATE_PORT=4040`.
 
 **Weaviate Auth Environment Variables**
 
-If you enabled OIDC authentication for your Weaviate instance (recommended for WCS instances), set the following environment variables. If you enabled anonymous access, skip this section.
+If using WCS instances, set the following environment variables:
 
 | Name                | Required | Description                    |
 | ------------------- | -------- | ------------------------------ |
-| `WEAVIATE_USERNAME` | Yes      | Your OIDC or WCS username      |
-| `WEAVIATE_PASSWORD` | Yes      | Your OIDC or WCS password      |
-| `WEAVIATE_SCOPES`   | Optional | Space-separated list of scopes |
+| `WEAVIATE_API_KEY` | Yes      | Your API key WCS      |
 
-Learn more about [authentication in Weaviate](https://weaviate.io/developers/weaviate/configuration/authentication#overview) and the [Python client authentication](https://weaviate-python-client.readthedocs.io/en/stable/weaviate.auth.html).
+Learn more about accessing your [WCS API key](https://weaviate.io/developers/wcs/guides/authentication#access-api-keys).
 
 **Weaviate Batch Import Environment Variables**
 
