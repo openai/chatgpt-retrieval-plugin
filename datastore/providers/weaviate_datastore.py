@@ -141,10 +141,14 @@ class WeaviateDataStore(DataStore):
 
     @staticmethod
     def _build_auth_credentials():
-        if WEAVIATE_USERNAME and WEAVIATE_PASSWORD:
-            return weaviate.auth.AuthClientPassword(
-                WEAVIATE_USERNAME, WEAVIATE_PASSWORD, WEAVIATE_SCOPES
-            )
+        url = os.environ.get("WEAVIATE_URL", "http://localhost:8080")
+
+        if WeaviateDataStore._is_wcs_domain(url):
+            api_key = os.environ.get("WEAVIATE_API_KEY")
+            if api_key is not None:
+                return weaviate.auth.AuthApiKey(api_key=api_key)
+            else:
+                raise ValueError("WEAVIATE_API_KEY environment variable is not set")
         else:
             return None
 

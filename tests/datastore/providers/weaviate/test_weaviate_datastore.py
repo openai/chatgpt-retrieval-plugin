@@ -100,30 +100,6 @@ def documents():
 
 
 @pytest.fixture
-def mock_env_public_access(monkeypatch):
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_USERNAME", None
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_PASSWORD", None
-    )
-
-
-@pytest.fixture
-def mock_env_resource_owner_password_flow(monkeypatch):
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_SCOPES",
-        ["schema:read", "schema:write"],
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_USERNAME", "admin"
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_PASSWORD", "abc123"
-    )
-
-
-@pytest.fixture
 def caplog(caplog: LogCaptureFixture):
     handler_id = logger.add(caplog.handler, format="{message}")
     yield caplog
@@ -337,16 +313,38 @@ def test_delete(test_db, weaviate_client, caplog):
     assert not weaviate_client.data_object.get()["objects"]
 
 
-def test_access_with_username_password(mock_env_resource_owner_password_flow):
-    auth_credentials = WeaviateDataStore._build_auth_credentials()
+def test_build_auth_credentials(monkeypatch):
+    # Test when WEAVIATE_URL ends with weaviate.network and WEAVIATE_API_KEY is set
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.weaviate.network")
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is not None
+        assert isinstance(auth_credentials, weaviate.auth.AuthApiKey)
+        assert auth_credentials.api_key == "your_api_key"
 
-    assert isinstance(auth_credentials, weaviate.auth.AuthClientPassword)
+    # Test when WEAVIATE_URL ends with weaviate.network and WEAVIATE_API_KEY is not set
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.weaviate.network")
+        m.delenv("WEAVIATE_API_KEY", raising=False)
+        with pytest.raises(
+            ValueError, match="WEAVIATE_API_KEY environment variable is not set"
+        ):
+            WeaviateDataStore._build_auth_credentials()
 
+    # Test when WEAVIATE_URL does not end with weaviate.network
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.notweaviate.network")
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is None
 
-def test_public_access(mock_env_public_access):
-    auth_credentials = WeaviateDataStore._build_auth_credentials()
-
-    assert auth_credentials is None
+    # Test when WEAVIATE_URL is not set
+    with monkeypatch.context() as m:
+        m.delenv("WEAVIATE_URL", raising=False)
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is None
 
 
 def test_extract_schema_properties():
