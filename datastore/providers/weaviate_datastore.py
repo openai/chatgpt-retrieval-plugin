@@ -22,7 +22,6 @@ from models.models import (
 )
 
 
-WEAVIATE_SCOPES = os.environ.get("WEAVIATE_SCOPES", "offline_access")
 WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
 
 WEAVIATE_BATCH_SIZE = int(os.environ.get("WEAVIATE_BATCH_SIZE", 20))
