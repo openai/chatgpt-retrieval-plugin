@@ -72,6 +72,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export BEARER_TOKEN=<your_bearer_token>
    export OPENAI_API_KEY=<your_openai_api_key>
 
+   # Optional environment variables used when running Azure OpenAI
+   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/ 
+   export OPENAI_API_TYPE=azure
+   export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
+   export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
+   export OPENAI_COMPLETIONMODEL_DEPLOYMENTID=<Name of general model deployment used for completion>
+
    # Add the environment variables for your chosen vector DB.
    # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
 
@@ -236,6 +243,17 @@ The API requires the following environment variables to work:
 | `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
+
+
+### Using the plugin with Azure OpenAI
+
+The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
+
+In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here. 
+
+If you wish to use the data preparation scripts, you will also need to set  OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and 
+OPENAI_COMPLETIONMODEL_DEPLOYMENTID, used for PII handling.
+
 
 ### Choosing a Vector Database
 
