@@ -1,18 +1,17 @@
-import pytest
-from fastapi.testclient import TestClient
-from weaviate import Client
-import weaviate
+import logging
 import os
+
+import pytest
+import weaviate
+from _pytest.logging import LogCaptureFixture
+from fastapi.testclient import TestClient
+from loguru import logger
+from weaviate import Client
+
+from datastore.providers.weaviate_datastore import (SCHEMA, WeaviateDataStore,
+                                                    extract_schema_properties)
 from models.models import DocumentMetadataFilter, Source
 from server.main import app
-from datastore.providers.weaviate_datastore import (
-    SCHEMA,
-    WeaviateDataStore,
-    extract_schema_properties,
-)
-import logging
-from loguru import logger
-from _pytest.logging import LogCaptureFixture
 
 BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 

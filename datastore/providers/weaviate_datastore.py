@@ -1,24 +1,18 @@
 import asyncio
+import os
 import re
+import uuid
 from typing import Dict, List, Optional
+
+import weaviate
 from loguru import logger
 from weaviate import Client
-import weaviate
-import os
-import uuid
-
 from weaviate.util import generate_uuid5
 
 from datastore.datastore import DataStore
-from models.models import (
-    DocumentChunk,
-    DocumentChunkMetadata,
-    DocumentMetadataFilter,
-    QueryResult,
-    QueryWithEmbedding,
-    DocumentChunkWithScore,
-    Source,
-)
+from models.models import (DocumentChunk, DocumentChunkMetadata,
+                           DocumentChunkWithScore, DocumentMetadataFilter,
+                           QueryResult, QueryWithEmbedding, Source)
 
 WEAVIATE_URL_DEFAULT = "http://localhost:8080"
 WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
