@@ -22,10 +22,6 @@ from models.models import (
 )
 
 
-WEAVIATE_HOST = os.environ.get("WEAVIATE_HOST", "http://127.0.0.1")
-WEAVIATE_PORT = os.environ.get("WEAVIATE_PORT", "8080")
-WEAVIATE_USERNAME = os.environ.get("WEAVIATE_USERNAME", None)
-WEAVIATE_PASSWORD = os.environ.get("WEAVIATE_PASSWORD", None)
 WEAVIATE_SCOPES = os.environ.get("WEAVIATE_SCOPES", "offline_access")
 WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
 
