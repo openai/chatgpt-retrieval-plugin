@@ -92,10 +92,11 @@ class SearchiumDataStore(DataStore):
                 if ((self.d_size + 10) >= int(SEARCHIUM_DATASET_SIZE)) and self.d_train:
                     print("start train dataset..")
                     searchium.train_dataset(self.dataset_id)
+                    self.d_train = False
                     while searchium.train_status(self.dataset_id).datasetStatus is DatasetStatus.training:
                         print("waiting for train..")
                         time.sleep(5)
-                    self.d_train = False
+
                     print("start load..")
                     searchium.load_dataset(self.dataset_id)
                     print("dataset was loaded successfully.")
