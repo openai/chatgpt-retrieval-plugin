@@ -10,7 +10,7 @@ packages = [{include = "server"}]
 python = "^3.10"
 fastapi = "^0.92.0"
 uvicorn = "^0.20.0"
-openai = "^0.27.2"
+openai = "^0.27.5"
 python-dotenv = "^0.21.1"
 pydantic = "^1.10.5"
 tenacity = "^8.2.1"
