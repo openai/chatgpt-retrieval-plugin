@@ -77,20 +77,3 @@ If using WCS instances, set the following environment variables:
 | `WEAVIATE_API_KEY` | Yes      | Your API key WCS      |
 
 Learn more about accessing your [WCS API key](https://weaviate.io/developers/wcs/guides/authentication#access-api-keys).
-
-**Weaviate Batch Import Environment Variables**
-
-Weaviate uses a batching mechanism to perform operations in bulk. This makes importing and updating your data faster and more efficient. You can adjust the batch settings with these optional environment variables:
-
-| Name                             | Required | Description                                                  | Default |
-| -------------------------------- | -------- | ------------------------------------------------------------ | ------- |
-| `WEAVIATE_BATCH_SIZE`            | Optional | Number of insert/updates per batch operation                 | 20      |
-| `WEAVIATE_BATCH_DYNAMIC`         | Optional | Lets the batch process decide the batch size                 | False   |
-| `WEAVIATE_BATCH_TIMEOUT_RETRIES` | Optional | Number of retry-on-timeout attempts                          | 3       |
-| `WEAVIATE_BATCH_NUM_WORKERS`     | Optional | The max number of concurrent threads to run batch operations | 1       |
-
-> **Note:** The optimal `WEAVIATE_BATCH_SIZE` depends on the available resources (RAM, CPU). A higher value means faster bulk operations, but also higher demand for RAM and CPU. If you experience failures during the import process, reduce the batch size.
-
-> Setting `WEAVIATE_BATCH_SIZE` to `None` means no limit to the batch size. All insert or update operations would be sent to Weaviate in a single operation. This might be risky, as you lose control over the batch size.
-
-Learn more about [batch configuration in Weaviate](https://weaviate.io/developers/weaviate/client-libraries/python#batch-configuration).

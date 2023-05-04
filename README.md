@@ -84,10 +84,6 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export WEAVIATE_URL=<your_weaviate_instance_url>
    export WEAVIATE_API_KEY=<your_api_key_for_WCS>
    export WEAVIATE_CLASS=<your_optional_weaviate_class>
-   export WEAVIATE_BATCH_SIZE=<optional_weaviate_batch_size>
-   export WEAVIATE_BATCH_DYNAMIC=<optional_weaviate_batch_dynamic>
-   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<optional_weaviate_batch_timeout_retries>
-   export WEAVIATE_BATCH_NUM_WORKERS=<optional_weaviate_batch_num_workers>
 
    # Zilliz
    export ZILLIZ_COLLECTION=<your_zilliz_collection>
