@@ -36,6 +36,8 @@ client or cloud interface as needed."
 | `SEARCHIUM_DATASET_ID`           | Yes      | Vector dataset ID (UUID)                     | None          | 
 
 
+**The actual minimum dataset size should be at least 4,001.**
+
 **Searchium cloud platform**
 To start using our client, you need to [sign up at searchium.ai](https://app.searchium.ai/signup). 
 You can use the free tier for a few hours. 
