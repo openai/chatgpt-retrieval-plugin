@@ -1,0 +1,52 @@
+version: '3'
+services:
+  opensearch-secure-node1: # This is also the hostname of the container within the Docker network (i.e. https://opensearch-secure-node1/)
+    image: opensearchproject/opensearch:latest # Specifying the latest available image - modify if you want a specific version
+    container_name: opensearch-secure-node1
+    environment:
+      - cluster.name=opensearch-cluster-secure # Name the cluster
+      - node.name=opensearch-secure-node1 # Name the node that will run in this container
+      - discovery.seed_hosts=opensearch-secure-node1,opensearch-secure-node2 # Nodes to look for when discovering the cluster
+      - cluster.initial_cluster_manager_nodes=opensearch-secure-node1,opensearch-secure-node2 # Nodes eligible to serve as cluster manager
+      - bootstrap.memory_lock=true # Disable JVM heap memory swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # Set min and max JVM heap sizes to at least 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - opensearch-secure-data1:/usr/share/opensearch/data # Creates volume called opensearch-secure-data1 and mounts it to the container
+    ports:
+      - 9200:9200 # REST API
+    networks:
+      - opensearch-secure-net # All of the containers will join the same Docker bridge network
+  opensearch-secure-node2:
+    image: opensearchproject/opensearch:latest # This should be the same image used for opensearch-node1 to avoid issues
+    container_name: opensearch-secure-node2
+    environment:
+      - cluster.name=opensearch-cluster-secure
+      - node.name=opensearch-secure-node2
+      - discovery.seed_hosts=opensearch-secure-node1,opensearch-secure-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-secure-node1,opensearch-secure-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-secure-data2:/usr/share/opensearch/data
+    networks:
+      - opensearch-secure-net
+volumes:
+  opensearch-secure-data1:
+  opensearch-secure-data2:
+
+networks:
+  opensearch-secure-net:

@@ -35,5 +35,9 @@ async def get_datastore() -> DataStore:
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
             return QdrantDataStore()
+        case "opensearch":
+            from datastore.providers.opensearch_datastore import OpenSearchDataStore
+
+            return await OpenSearchDataStore.init()
         case _:
             raise ValueError(f"Unsupported vector database: {datastore}")
