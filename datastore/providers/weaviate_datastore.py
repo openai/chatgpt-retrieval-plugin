@@ -381,5 +381,5 @@ class WeaviateDataStore(DataStore):
         Returns:
             bool: True if the URL ends with the specified strings, False otherwise.
         """
-        pattern = r"\.weaviate\.network(/)?$"
+        pattern = r"\.(weaviate\.cloud|weaviate\.network)(/)?$"
         return bool(re.search(pattern, url))

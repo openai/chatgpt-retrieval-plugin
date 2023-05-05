@@ -526,6 +526,8 @@ def test_upsert_same_docid(test_db, weaviate_client):
     [
         ("https://example.weaviate.network", True),
         ("https://example.weaviate.network/", True),
+        ("https://example.weaviate.cloud", True),
+        ("https://example.weaviate.cloud/", True),
         ("https://example.notweaviate.network", False),
         ("https://weaviate.network.example.com", False),
         ("https://example.weaviate.network/somepage", False),
