@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Union
 from datastore.datastore import DataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
 from azure.search.documents import SearchClient
+from azure.search.documents.models import Vector
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import *
 from azure.core.credentials import AzureKeyCredential
@@ -16,18 +17,23 @@ AZURESEARCH_INDEX = os.environ.get("AZURESEARCH_INDEX")
 AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
 AZURESEARCH_URL_PREFIX = os.environ.get("AZURESEARCH_URL_PREFIX")
+AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
 
 # Allow overriding field names for Azure Search
 FIELDS_ID = os.environ.get("AZURESEARCH_FIELDS_ID", "id")
 FIELDS_TEXT = os.environ.get("AZURESEARCH_FIELDS_TEXT", "text")
+FIELDS_EMBEDDING = os.environ.get("AZURESEARCH_FIELDS_TEXT", "embedding")
 FIELDS_DOCUMENT_ID = os.environ.get("AZURESEARCH_FIELDS_DOCUMENT_ID", "document_id")
 FIELDS_SOURCE = os.environ.get("AZURESEARCH_FIELDS_SOURCE", "source")
 FIELDS_SOURCE_ID = os.environ.get("AZURESEARCH_FIELDS_SOURCE_ID", "source_id")
 FIELDS_URL = os.environ.get("AZURESEARCH_FIELDS_URL", "url")
 FIELDS_CREATED_AT = os.environ.get("AZURESEARCH_FIELDS_CREATED_AT", "created_at")
 FIELDS_AUTHOR = os.environ.get("AZURESEARCH_FIELDS_AUTHOR", "author")
+
+# Assume we're using OpenAI's ada-002 embedding model that uses a vector size of 1536
+EMBEDDING_DIMENSIONS = 1536
 
 MAX_UPLOAD_BATCH_SIZE = 1000
 MAX_DELETE_BATCH_SIZE = 1000
@@ -68,6 +74,7 @@ class AzureSearchDataStore(DataStore):
                 azdocuments.append({
                     FIELDS_ID: chunk.id,
                     FIELDS_TEXT: chunk.text,
+                    FIELDS_EMBEDDING: chunk.embedding,
                     FIELDS_DOCUMENT_ID: document_id,
                     FIELDS_SOURCE: chunk.metadata.source,
                     FIELDS_SOURCE_ID: chunk.metadata.source_id,
@@ -94,8 +101,8 @@ class AzureSearchDataStore(DataStore):
                 if search_result.get_count() == 0:
                     break
                 documents = [{ FIELDS_ID: d[FIELDS_ID] } for d in search_result if d[FIELDS_ID] not in deleted]
-                print(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
                 if len(documents) > 0:
+                    print(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
                     del_result = self.client.delete_documents(documents=documents)
                     if not all([rr.succeeded for rr in del_result]):
                         raise Exception("Failed to delete documents")
@@ -111,23 +118,22 @@ class AzureSearchDataStore(DataStore):
 
         return True
 
-    async def query(self, queries: List[Query]) -> List[QueryResult]:
+    async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
         """
-        Takes in a list of queries and filters and returns a list of query results with matching document chunks and scores.
+        Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
         """
         return await asyncio.gather(*(self._single_query(query) for query in queries))
     
-    async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
-        raise NotImplementedError("Shouldn't get here, query() override should be called instead")
-    
-    async def _single_query(self, query: Query) -> QueryResult:
+    async def _single_query(self, query: QueryWithEmbedding) -> QueryResult:
         """
         Takes in a single query and filters and returns a query result with matching document chunks and scores.
         """
         filter = self._translate_filter(query.filter) if query.filter is not None else None
         print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}")
         try:
-            r = self.client.search(query.query, filter=filter, top=query.top_k)
+            k = query.top_k if filter is None else query.top_k * 2
+            q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
+            r = self.client.search(q, filter=filter, top=query.top_k, vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
             results: List[DocumentChunkWithScore] = []
             for hit in r:
                 results.append(DocumentChunkWithScore(
@@ -146,8 +152,7 @@ class AzureSearchDataStore(DataStore):
                 
             return QueryResult(query=query.query, results=results)
         except Exception as e:
-            print(f"Query error: {e}")
-            raise Exception(f"There was an error querying the index ({e})")
+            raise Exception(f"Error querying the index: {e}")
 
     @staticmethod    
     def _translate_filter(filter: DocumentMetadataFilter) -> str:
@@ -195,6 +200,9 @@ class AzureSearchDataStore(DataStore):
                 fields=[
                     SimpleField(name=FIELDS_ID, type=SearchFieldDataType.String, key=True),
                     SearchableField(name=FIELDS_TEXT, type=SearchFieldDataType.String, analyzer_name="en.Microsoft"),
+                    SearchField(name=FIELDS_EMBEDDING, type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
+                                hidden=False, searchable=True, filterable=False, sortable=False, facetable=False,
+                                dimensions=EMBEDDING_DIMENSIONS, vector_search_configuration="default"),
                     SimpleField(name=FIELDS_DOCUMENT_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
@@ -209,6 +217,16 @@ class AzureSearchDataStore(DataStore):
                             title_field=None, prioritized_content_fields=[SemanticField(field_name=FIELDS_TEXT)]
                         )
                     )]
+                ),
+                vector_search=VectorSearch(
+                    algorithm_configurations=[
+                        VectorSearchAlgorithmConfiguration(
+                            name="default",
+                            kind="hnsw",
+                            # Could change to dotproduct for OpenAI's embeddings since they normalize vectors to unit length
+                            hnsw_parameters=HnswParameters(metric="cosine") 
+                        )
+                    ]
                 )
             )
         )
