@@ -52,7 +52,7 @@ class AzureSearchDataStore(DataStore):
             endpoint=f"https://{AZURESEARCH_SERVICE}.search.windows.net",
             credential=credential
         )
-        if AZURESEARCH_INDEX not in [index.name for index in mgmt_client.list_indexes()]:
+        if AZURESEARCH_INDEX not in [name for name in mgmt_client.list_index_names()]:
             self._create_index(mgmt_client)
         else:
             print(f"Using existing index {AZURESEARCH_INDEX} in service {AZURESEARCH_SERVICE}")
