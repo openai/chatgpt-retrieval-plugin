@@ -1,18 +1,20 @@
-import pytest
-from fastapi.testclient import TestClient
-from weaviate import Client
-import weaviate
+import logging
 import os
-from models.models import DocumentMetadataFilter, Source
-from server.main import app
+
+import pytest
+import weaviate
+from _pytest.logging import LogCaptureFixture
+from fastapi.testclient import TestClient
+from loguru import logger
+from weaviate import Client
+
 from datastore.providers.weaviate_datastore import (
     SCHEMA,
     WeaviateDataStore,
     extract_schema_properties,
 )
-import logging
-from loguru import logger
-from _pytest.logging import LogCaptureFixture
+from models.models import DocumentMetadataFilter, Source
+from server.main import app
 
 BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 
@@ -97,30 +99,6 @@ def documents():
     documents.append(partial_metadata_doc)
 
     yield documents
-
-
-@pytest.fixture
-def mock_env_public_access(monkeypatch):
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_USERNAME", None
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_PASSWORD", None
-    )
-
-
-@pytest.fixture
-def mock_env_resource_owner_password_flow(monkeypatch):
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_SCOPES",
-        ["schema:read", "schema:write"],
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_USERNAME", "admin"
-    )
-    monkeypatch.setattr(
-        "datastore.providers.weaviate_datastore.WEAVIATE_PASSWORD", "abc123"
-    )
 
 
 @pytest.fixture
@@ -337,16 +315,38 @@ def test_delete(test_db, weaviate_client, caplog):
     assert not weaviate_client.data_object.get()["objects"]
 
 
-def test_access_with_username_password(mock_env_resource_owner_password_flow):
-    auth_credentials = WeaviateDataStore._build_auth_credentials()
+def test_build_auth_credentials(monkeypatch):
+    # Test when WEAVIATE_URL ends with weaviate.network and WEAVIATE_API_KEY is set
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.weaviate.network")
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is not None
+        assert isinstance(auth_credentials, weaviate.auth.AuthApiKey)
+        assert auth_credentials.api_key == "your_api_key"
 
-    assert isinstance(auth_credentials, weaviate.auth.AuthClientPassword)
+    # Test when WEAVIATE_URL ends with weaviate.network and WEAVIATE_API_KEY is not set
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.weaviate.network")
+        m.delenv("WEAVIATE_API_KEY", raising=False)
+        with pytest.raises(
+            ValueError, match="WEAVIATE_API_KEY environment variable is not set"
+        ):
+            WeaviateDataStore._build_auth_credentials()
 
+    # Test when WEAVIATE_URL does not end with weaviate.network
+    with monkeypatch.context() as m:
+        m.setenv("WEAVIATE_URL", "https://example.notweaviate.network")
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is None
 
-def test_public_access(mock_env_public_access):
-    auth_credentials = WeaviateDataStore._build_auth_credentials()
-
-    assert auth_credentials is None
+    # Test when WEAVIATE_URL is not set
+    with monkeypatch.context() as m:
+        m.delenv("WEAVIATE_URL", raising=False)
+        m.setenv("WEAVIATE_API_KEY", "your_api_key")
+        auth_credentials = WeaviateDataStore._build_auth_credentials()
+        assert auth_credentials is None
 
 
 def test_extract_schema_properties():
@@ -519,3 +519,20 @@ def test_upsert_same_docid(test_db, weaviate_client):
     # but it is None right now because an
     # update function is out of scope
     assert weaviate_doc[0]["source"] is None
+
+
+@pytest.mark.parametrize(
+    "url, expected_result",
+    [
+        ("https://example.weaviate.network", True),
+        ("https://example.weaviate.network/", True),
+        ("https://example.weaviate.cloud", True),
+        ("https://example.weaviate.cloud/", True),
+        ("https://example.notweaviate.network", False),
+        ("https://weaviate.network.example.com", False),
+        ("https://example.weaviate.network/somepage", False),
+        ("", False),
+    ],
+)
+def test_is_wcs_domain(url, expected_result):
+    assert WeaviateDataStore._is_wcs_domain(url) == expected_result

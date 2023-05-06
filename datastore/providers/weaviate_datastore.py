@@ -1,32 +1,27 @@
-# TODO
 import asyncio
+import os
+import re
+import uuid
 from typing import Dict, List, Optional
+
+import weaviate
 from loguru import logger
 from weaviate import Client
-import weaviate
-import os
-import uuid
-
 from weaviate.util import generate_uuid5
 
 from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
     DocumentChunkMetadata,
+    DocumentChunkWithScore,
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
-    DocumentChunkWithScore,
     Source,
 )
 
-
-WEAVIATE_HOST = os.environ.get("WEAVIATE_HOST", "http://127.0.0.1")
-WEAVIATE_PORT = os.environ.get("WEAVIATE_PORT", "8080")
-WEAVIATE_USERNAME = os.environ.get("WEAVIATE_USERNAME", None)
-WEAVIATE_PASSWORD = os.environ.get("WEAVIATE_PASSWORD", None)
-WEAVIATE_SCOPES = os.environ.get("WEAVIATE_SCOPES", None)
-WEAVIATE_INDEX = os.environ.get("WEAVIATE_INDEX", "OpenAIDocument")
+WEAVIATE_URL_DEFAULT = "http://localhost:8080"
+WEAVIATE_CLASS = os.environ.get("WEAVIATE_CLASS", "OpenAIDocument")
 
 WEAVIATE_BATCH_SIZE = int(os.environ.get("WEAVIATE_BATCH_SIZE", 20))
 WEAVIATE_BATCH_DYNAMIC = os.environ.get("WEAVIATE_BATCH_DYNAMIC", False)
@@ -34,7 +29,7 @@ WEAVIATE_BATCH_TIMEOUT_RETRIES = int(os.environ.get("WEAVIATE_TIMEOUT_RETRIES", 
 WEAVIATE_BATCH_NUM_WORKERS = int(os.environ.get("WEAVIATE_BATCH_NUM_WORKERS", 1))
 
 SCHEMA = {
-    "class": WEAVIATE_INDEX,
+    "class": WEAVIATE_CLASS,
     "description": "The main class",
     "properties": [
         {
@@ -109,7 +104,7 @@ class WeaviateDataStore(DataStore):
     def __init__(self):
         auth_credentials = self._build_auth_credentials()
 
-        url = f"{WEAVIATE_HOST}:{WEAVIATE_PORT}"
+        url = os.environ.get("WEAVIATE_URL", WEAVIATE_URL_DEFAULT)
 
         logger.debug(
             f"Connecting to weaviate instance at {url} with credential type {type(auth_credentials).__name__}"
@@ -124,26 +119,30 @@ class WeaviateDataStore(DataStore):
         )
 
         if self.client.schema.contains(SCHEMA):
-            current_schema = self.client.schema.get(WEAVIATE_INDEX)
+            current_schema = self.client.schema.get(WEAVIATE_CLASS)
             current_schema_properties = extract_schema_properties(current_schema)
 
             logger.debug(
-                f"Found index {WEAVIATE_INDEX} with properties {current_schema_properties}"
+                f"Found index {WEAVIATE_CLASS} with properties {current_schema_properties}"
             )
             logger.debug("Will reuse this schema")
         else:
             new_schema_properties = extract_schema_properties(SCHEMA)
             logger.debug(
-                f"Creating index {WEAVIATE_INDEX} with properties {new_schema_properties}"
+                f"Creating collection {WEAVIATE_CLASS} with properties {new_schema_properties}"
             )
             self.client.schema.create_class(SCHEMA)
 
     @staticmethod
     def _build_auth_credentials():
-        if WEAVIATE_USERNAME and WEAVIATE_PASSWORD:
-            return weaviate.auth.AuthClientPassword(
-                WEAVIATE_USERNAME, WEAVIATE_PASSWORD, WEAVIATE_SCOPES
-            )
+        url = os.environ.get("WEAVIATE_URL", WEAVIATE_URL_DEFAULT)
+
+        if WeaviateDataStore._is_wcs_domain(url):
+            api_key = os.environ.get("WEAVIATE_API_KEY")
+            if api_key is not None:
+                return weaviate.auth.AuthApiKey(api_key=api_key)
+            else:
+                raise ValueError("WEAVIATE_API_KEY environment variable is not set")
         else:
             return None
 
@@ -161,7 +160,7 @@ class WeaviateDataStore(DataStore):
                     # we generate a uuid regardless of the format of the document_id because
                     # weaviate needs a uuid to store each document chunk and
                     # a document chunk cannot share the same uuid
-                    doc_uuid = generate_uuid5(doc_chunk, WEAVIATE_INDEX)
+                    doc_uuid = generate_uuid5(doc_chunk, WEAVIATE_CLASS)
                     metadata = doc_chunk.metadata
                     doc_chunk_dict = doc_chunk.dict()
                     doc_chunk_dict.pop("metadata")
@@ -178,7 +177,7 @@ class WeaviateDataStore(DataStore):
                     batch.add_data_object(
                         uuid=doc_uuid,
                         data_object=doc_chunk_dict,
-                        class_name=WEAVIATE_INDEX,
+                        class_name=WEAVIATE_CLASS,
                         vector=embedding,
                     )
 
@@ -199,7 +198,7 @@ class WeaviateDataStore(DataStore):
             if not hasattr(query, "filter") or not query.filter:
                 result = (
                     self.client.query.get(
-                        WEAVIATE_INDEX,
+                        WEAVIATE_CLASS,
                         [
                             "chunk_id",
                             "document_id",
@@ -220,7 +219,7 @@ class WeaviateDataStore(DataStore):
                 filters_ = self.build_filters(query.filter)
                 result = (
                     self.client.query.get(
-                        WEAVIATE_INDEX,
+                        WEAVIATE_CLASS,
                         [
                             "chunk_id",
                             "document_id",
@@ -240,7 +239,7 @@ class WeaviateDataStore(DataStore):
                 )
 
             query_results: List[DocumentChunkWithScore] = []
-            response = result["data"]["Get"][WEAVIATE_INDEX]
+            response = result["data"]["Get"][WEAVIATE_CLASS]
 
             for resp in response:
                 result = DocumentChunkWithScore(
@@ -274,7 +273,7 @@ class WeaviateDataStore(DataStore):
         Returns whether the operation was successful.
         """
         if delete_all:
-            logger.debug(f"Deleting all vectors in index {WEAVIATE_INDEX}")
+            logger.debug(f"Deleting all vectors in index {WEAVIATE_CLASS}")
             self.client.schema.delete_all()
             return True
 
@@ -286,9 +285,9 @@ class WeaviateDataStore(DataStore):
 
             where_clause = {"operator": "Or", "operands": operands}
 
-            logger.debug(f"Deleting vectors from index {WEAVIATE_INDEX} with ids {ids}")
+            logger.debug(f"Deleting vectors from index {WEAVIATE_CLASS} with ids {ids}")
             result = self.client.batch.delete_objects(
-                class_name=WEAVIATE_INDEX, where=where_clause, output="verbose"
+                class_name=WEAVIATE_CLASS, where=where_clause, output="verbose"
             )
 
             if not bool(result["results"]["successful"]):
@@ -300,10 +299,10 @@ class WeaviateDataStore(DataStore):
             where_clause = self.build_filters(filter)
 
             logger.debug(
-                f"Deleting vectors from index {WEAVIATE_INDEX} with filter {where_clause}"
+                f"Deleting vectors from index {WEAVIATE_CLASS} with filter {where_clause}"
             )
             result = self.client.batch.delete_objects(
-                class_name=WEAVIATE_INDEX, where=where_clause
+                class_name=WEAVIATE_CLASS, where=where_clause
             )
 
             if not bool(result["results"]["successful"]):
@@ -370,3 +369,17 @@ class WeaviateDataStore(DataStore):
                 return True
         except ValueError:
             return False
+
+    @staticmethod
+    def _is_wcs_domain(url: str) -> bool:
+        """
+        Check if the given URL ends with ".weaviate.network" or ".weaviate.network/".
+
+        Args:
+            url (str): The URL to check.
+
+        Returns:
+            bool: True if the URL ends with the specified strings, False otherwise.
+        """
+        pattern = r"\.(weaviate\.cloud|weaviate\.network)(/)?$"
+        return bool(re.search(pattern, url))

@@ -55,49 +55,25 @@ You need to set some environment variables to connect to your Weaviate instance.
 
 **Retrieval App Environment Variables**
 
-| Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
-| `DATASTORE`      | Yes      | Datastore name. Set this to `weaviate` |
-| `BEARER_TOKEN`   | Yes      | Your secret token                      |
-| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
+| Name             | Required | Description                                                                          |
+| ---------------- | -------- |--------------------------------------------------------------------------------------|
+| `DATASTORE`      | Yes      | Datastore name. Set this to `weaviate`                                               |
+| `BEARER_TOKEN`   | Yes      | Your [secret token](/README.md#general-environment-variables) (not the Weaviate one) |
+| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                                                                  |
 
 **Weaviate Datastore Environment Variables**
 
 | Name             | Required | Description                                                        | Default            |
-| ---------------- | -------- | ------------------------------------------------------------------ | ------------------ |
-| `WEAVIATE_HOST`  | Optional | Your Weaviate instance host address (see notes below)              | `http://127.0.0.1` |
-| `WEAVIATE_PORT`  | Optional | Your Weaviate port number                                          | 8080               |
-| `WEAVIATE_INDEX` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
-
-> For **WCS instances**, set `WEAVIATE_PORT` to 443 and `WEAVIATE_HOST` to `https://(wcs-instance-name).weaviate.network`. For example: `https://my-project.weaviate.network/`.
-
-> For **self-hosted instances**, if your instance is not at 127.0.0.1:8080, set `WEAVIATE_HOST` and `WEAVIATE_PORT` accordingly. For example: `WEAVIATE_HOST=http://localhost/` and `WEAVIATE_PORT=4040`.
+|------------------| -------- | ------------------------------------------------------------------ | ------------------ |
+| `WEAVIATE_URL`  | Optional | Your weaviate instance's url/WCS endpoint              | `http://localhost:8080` |           |
+| `WEAVIATE_CLASS` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
 
 **Weaviate Auth Environment Variables**
 
-If you enabled OIDC authentication for your Weaviate instance (recommended for WCS instances), set the following environment variables. If you enabled anonymous access, skip this section.
+If using WCS instances, set the following environment variables:
 
 | Name                | Required | Description                    |
 | ------------------- | -------- | ------------------------------ |
-| `WEAVIATE_USERNAME` | Yes      | Your OIDC or WCS username      |
-| `WEAVIATE_PASSWORD` | Yes      | Your OIDC or WCS password      |
-| `WEAVIATE_SCOPES`   | Optional | Space-separated list of scopes |
+| `WEAVIATE_API_KEY` | Yes      | Your API key WCS      |
 
-Learn more about [authentication in Weaviate](https://weaviate.io/developers/weaviate/configuration/authentication#overview) and the [Python client authentication](https://weaviate-python-client.readthedocs.io/en/stable/weaviate.auth.html).
-
-**Weaviate Batch Import Environment Variables**
-
-Weaviate uses a batching mechanism to perform operations in bulk. This makes importing and updating your data faster and more efficient. You can adjust the batch settings with these optional environment variables:
-
-| Name                             | Required | Description                                                  | Default |
-| -------------------------------- | -------- | ------------------------------------------------------------ | ------- |
-| `WEAVIATE_BATCH_SIZE`            | Optional | Number of insert/updates per batch operation                 | 20      |
-| `WEAVIATE_BATCH_DYNAMIC`         | Optional | Lets the batch process decide the batch size                 | False   |
-| `WEAVIATE_BATCH_TIMEOUT_RETRIES` | Optional | Number of retry-on-timeout attempts                          | 3       |
-| `WEAVIATE_BATCH_NUM_WORKERS`     | Optional | The max number of concurrent threads to run batch operations | 1       |
-
-> **Note:** The optimal `WEAVIATE_BATCH_SIZE` depends on the available resources (RAM, CPU). A higher value means faster bulk operations, but also higher demand for RAM and CPU. If you experience failures during the import process, reduce the batch size.
-
-> Setting `WEAVIATE_BATCH_SIZE` to `None` means no limit to the batch size. All insert or update operations would be sent to Weaviate in a single operation. This might be risky, as you lose control over the batch size.
-
-Learn more about [batch configuration in Weaviate](https://weaviate.io/developers/weaviate/client-libraries/python#batch-configuration).
+Learn more about accessing your [WCS API key](https://weaviate.io/developers/wcs/guides/authentication#access-api-keys).
