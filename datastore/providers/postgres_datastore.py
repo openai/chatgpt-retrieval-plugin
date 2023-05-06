@@ -1,5 +1,4 @@
 import os
-import pandas
 from typing import Dict, List, Optional
 from datastore.datastore import DataStore
 from models.models import (
@@ -12,8 +11,8 @@ from models.models import (
     QueryWithEmbedding,
 )
 import json
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 
 # Read environment variables for Postgres
 
@@ -37,7 +36,7 @@ class PostgresDataStore(DataStore):
             "host": POSTGRES_HOST,
             "port": POSTGRES_PORT,
         }
-        conn = psycopg2.connect(**self.conn_params)
+        conn = psycopg.connect(**self.conn_params)
         # Insert the vector and text into the database
         create_table = (
             "CREATE TABLE IF NOT EXISTS %s (doc_id TEXT, chunk_id TEXT, text TEXT, embedding vector(%s), metadata JSONB)"
@@ -57,29 +56,24 @@ class PostgresDataStore(DataStore):
         Return a list of document ids.
         """
         # Create a connection
-        conn = psycopg2.connect(**self.conn_params)
+        conn = psycopg.connect(**self.conn_params)
         cur = conn.cursor()
 
         # Initialize a list of ids to return
         doc_ids: List[str] = []
 
-        # Loop through docs/chunks
-        for doc_id, chunk_list in chunks.items():
-            doc_ids.append(doc_id)
-            for chunk in chunk_list:
-                # todo: replace this with a COPY statement
-                print(chunk.metadata.dict())
-                insert_statement = sql.SQL(
-                    "INSERT INTO {} (doc_id, chunk_id, text, embedding, metadata) VALUES ({}, {}, {}, {}, {})"
-                ).format(
-                    sql.Identifier(POSTGRES_TABLENAME),
-                    sql.Literal(doc_id),
-                    sql.Literal(chunk.id),
-                    sql.Literal(chunk.text),
-                    sql.Literal(chunk.embedding),
-                    sql.Literal(json.dumps(chunk.metadata.dict())),
-                )
-                cur.execute(insert_statement)
+        with cur.copy(
+            "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
+            % POSTGRES_TABLENAME
+        ) as copy:
+            for doc_id, chunk_list in chunks.items():
+                doc_ids.append(doc_id)
+                for chunk in chunk_list:
+                    text = sql.Literal(chunk.text).as_string(conn)
+                    embedding = "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
+                    metadata = json.dumps(chunk.metadata.dict())
+                    row = (doc_id, chunk.id, text, embedding, metadata)
+                    copy.write_row(row)
 
         index_statement = (
             "CREATE INDEX ON %s USING ivfflat (embedding vector_cosine_ops)"
@@ -98,15 +92,13 @@ class PostgresDataStore(DataStore):
         Takes in a list of queries with embeddings and filters and
         returns a list of query results with matching document chunks and scores.
         """
-        print("Came inside query")
         # Prepare query responses and results object
         results: List[QueryResult] = []
 
         # Create a connection
-        conn = psycopg2.connect(**self.conn_params)
+        conn = psycopg.connect(**self.conn_params)
         cur = conn.cursor()
 
-        print("Connection established")
         for query in queries:
             query_results: List[DocumentChunkWithScore] = []
             embedding = ",".join(str(v) for v in query.embedding)
@@ -147,7 +139,7 @@ class PostgresDataStore(DataStore):
         delete_all: bool | None = None,
     ) -> bool:
         # Create a connection
-        conn = psycopg2.connect(**self.conn_params)
+        conn = psycopg.connect(**self.conn_params)
         cur = conn.cursor()
 
         if delete_all:
@@ -155,7 +147,6 @@ class PostgresDataStore(DataStore):
                 sql.Identifier(POSTGRES_TABLENAME)
             )
             try:
-                print("Executing .. %s" % delete_statement)
                 cur.execute(delete_statement)
             except Exception as e:
                 print(e)
@@ -180,7 +171,6 @@ class PostgresDataStore(DataStore):
 
             delete_statement += ";"
             try:
-                print("Executing .. %s" % delete_statement)
                 cur.execute(delete_statement)
             except Exception as e:
                 print(e)
@@ -192,7 +182,6 @@ class PostgresDataStore(DataStore):
             )
 
             try:
-                print("Executing .. %s" % delete_statement)
                 cur.execute(delete_statement)
             except Exception as e:
                 print(e)
