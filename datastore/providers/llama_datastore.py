@@ -16,6 +16,7 @@ from llama_index.indices.response.builder import ResponseMode
 
 INDEX_STRUCT_TYPE_STR = os.environ.get('LLAMA_INDEX_TYPE', IndexStructType.SIMPLE_DICT.value)
 INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
+INDEX_AUTO_SAVE = bool(os.environ.get('LLAMA_INDEX_AUTO_SAVE', False))
 QUERY_KWARGS_JSON_PATH = os.environ.get('LLAMA_QUERY_KWARGS_JSON_PATH', None)
 RESPONSE_MODE = os.environ.get('LLAMA_RESPONSE_MODE', ResponseMode.NO_TEXT.value)
 
@@ -49,7 +50,10 @@ def _create_or_load_index(
     if index_json_path is None:
         return index_cls(nodes=[])  # Create empty index
     else:
-        return index_cls.load_from_disk(index_json_path) # Load index from disk
+        try:
+            return index_cls.load_from_disk(index_json_path) # Load index from disk
+        except OSError as e:
+            return index_cls(nodes=[])
 
 def _create_or_load_query_kwargs(query_kwargs_json_path: Optional[str] = None) -> Optional[dict]:
     """Create or load query kwargs from json path."""
@@ -102,6 +106,17 @@ class LlamaDataStore(DataStore):
         self._index = index or _create_or_load_index()
         self._query_kwargs = query_kwargs or _create_or_load_query_kwargs()
 
+    def _save_index(self, index_json_path: Optional[str] = None) -> BaseGPTIndex:
+        """Save index to json path."""
+        if not INDEX_AUTO_SAVE:
+            return self._index
+
+        index_json_path = index_json_path or INDEX_JSON_PATH
+        if index_json_path is None:
+            return self._index
+        else:
+            return self._index.save_to_disk(index_json_path)
+
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
         Takes in a list of list of document chunks and inserts them into the database.
@@ -118,6 +133,7 @@ class LlamaDataStore(DataStore):
                 
             self._index.insert_nodes(nodes)
             doc_ids.append(doc_id)
+        self._save_index()
         return doc_ids
 
     async def _query(
@@ -177,5 +193,6 @@ class LlamaDataStore(DataStore):
                     # NOTE: some indices does not support delete yet.
                     logger.warning(f'{type(self._index)} does not support delete yet.')
                     return False
+            self._save_index()
 
         return True
