@@ -27,9 +27,9 @@ POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
 
+
 class PostgresDataStore(DataStore):
     def __init__(self) -> None:
-        print("Came inside __init__")
         self.conn_params = {
             "dbname": POSTGRES_DATABASE,
             "user": POSTGRES_USERNAME,
@@ -101,11 +101,11 @@ class PostgresDataStore(DataStore):
         print("Came inside query")
         # Prepare query responses and results object
         results: List[QueryResult] = []
-        
+
         # Create a connection
         conn = psycopg2.connect(**self.conn_params)
         cur = conn.cursor()
-        
+
         print("Connection established")
         for query in queries:
             query_results: List[DocumentChunkWithScore] = []
@@ -118,10 +118,10 @@ class PostgresDataStore(DataStore):
                     POSTGRES_TABLENAME,
                     query.top_k,
                 )
-            )  
+            )
             cur.execute(query_statement)
             sql_query_results = cur.fetchall()
-            
+
             query_results: List[DocumentChunkWithScore] = []
             for result in sql_query_results:
                 doc_id = result[0]
@@ -129,33 +129,77 @@ class PostgresDataStore(DataStore):
                 metadata = result[2]
                 score = result[3]
                 query_result = DocumentChunkWithScore(
-                    id = doc_id,
-                    score = score,
-                    text = text,
-                    metadata=(metadata)
+                    id=doc_id, score=score, text=text, metadata=(metadata)
                 )
                 query_results.append(query_result)
-        
-        results.append(QueryResult(query = query.query, results = query_results))
+
+        results.append(QueryResult(query=query.query, results=query_results))
 
         cur.close()
         conn.close()
 
         return results
 
-    async def delete(self, ids: List[str] | None = None, filter: DocumentMetadataFilter | None = None, delete_all: bool | None = None) -> bool:
+    async def delete(
+        self,
+        ids: List[str] | None = None,
+        filter: DocumentMetadataFilter | None = None,
+        delete_all: bool | None = None,
+    ) -> bool:
         # Create a connection
         conn = psycopg2.connect(**self.conn_params)
         cur = conn.cursor()
 
         if delete_all:
-            drop_statement = ("DELETE FROM %s"%POSTGRES_TABLENAME)
+            delete_statement = "DELETE FROM {}".format(
+                sql.Identifier(POSTGRES_TABLENAME)
+            )
             try:
-                cur.execute(drop_statement)
+                print("Executing .. %s" % delete_statement)
+                cur.execute(delete_statement)
             except Exception as e:
                 print(e)
 
+        if filter:
+            counter = 0
+            delete_statement = "DELETE FROM %s" % POSTGRES_TABLENAME
+
+            for key, value in filter.dict().items():
+                if value:
+                    if counter == 0:
+                        delete_statement += " WHERE metadata ->> %s = %s" % (
+                            "'" + str(key) + "'",
+                            "'" + str(value) + "'",
+                        )
+                    else:
+                        delete_statement += " AND metadata ->> %s = %s" % (
+                            str(key),
+                            str(value),
+                        )
+                    counter += 1
+
+            delete_statement += ";"
+            try:
+                print("Executing .. %s" % delete_statement)
+                cur.execute(delete_statement)
+            except Exception as e:
+                print(e)
+
+        if ids:
+            delete_statement = "DELETE FROM %s WHERE doc_id IN (%s);" % (
+                POSTGRES_TABLENAME,
+                ",".join(["'" + str(_id) + "'" for _id in ids]),
+            )
+
+            try:
+                print("Executing .. %s" % delete_statement)
+                cur.execute(delete_statement)
+            except Exception as e:
+                print(e)
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
         return True
-
-
-        
