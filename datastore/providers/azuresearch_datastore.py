@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 from datastore.datastore import DataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
 from azure.search.documents import SearchClient
-from azure.search.documents.models import Vector
+from azure.search.documents.models import Vector, QueryType
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import *
 from azure.core.credentials import AzureKeyCredential
@@ -16,6 +16,7 @@ AZURESEARCH_SERVICE = os.environ.get("AZURESEARCH_SERVICE")
 AZURESEARCH_INDEX = os.environ.get("AZURESEARCH_INDEX")
 AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
+AZURESEARCH_LANGUAGE = os.environ.get("AZURESEARCH_LANGUAGE", "en-us")
 AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
@@ -128,11 +129,26 @@ class AzureSearchDataStore(DataStore):
         Takes in a single query and filters and returns a query result with matching document chunks and scores.
         """
         filter = self._translate_filter(query.filter) if query.filter is not None else None
-        print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}")
         try:
             k = query.top_k if filter is None else query.top_k * 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
-            r = self.client.search(q, filter=filter, top=query.top_k, vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
+            if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
+                print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}, semantic config: {AZURESEARCH_SEMANTIC_CONFIG}")
+                r = self.client.search(
+                        q, 
+                        filter=filter, 
+                        top=query.top_k, 
+                        vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING),
+                        query_type=QueryType.SEMANTIC,
+                        query_language=AZURESEARCH_LANGUAGE,
+                        semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
+            else:
+                print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}")
+                r = self.client.search(
+                        q, 
+                        filter=filter, 
+                        top=query.top_k, 
+                        vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
             results: List[DocumentChunkWithScore] = []
             for hit in r:
                 f = lambda field: hit.get(field) if field != "-" else None
@@ -199,7 +215,7 @@ class AzureSearchDataStore(DataStore):
                 name=AZURESEARCH_INDEX,
                 fields=[
                     SimpleField(name=FIELDS_ID, type=SearchFieldDataType.String, key=True),
-                    SearchableField(name=FIELDS_TEXT, type=SearchFieldDataType.String, analyzer_name="en.Microsoft"),
+                    SearchableField(name=FIELDS_TEXT, type=SearchFieldDataType.String, analyzer_name="standard.lucene"),
                     SearchField(name=FIELDS_EMBEDDING, type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
                                 hidden=False, searchable=True, filterable=False, sortable=False, facetable=False,
                                 dimensions=EMBEDDING_DIMENSIONS, vector_search_configuration="default"),

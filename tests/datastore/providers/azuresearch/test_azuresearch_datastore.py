@@ -65,12 +65,20 @@ def test_translate_filter():
 
 @pytest.mark.asyncio
 async def test_lifecycle_hybrid(azuresearch_mgmt_client: SearchIndexClient):
-    assert datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID is None # Ensure we're testing in default configuration
+    datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID = None
+    datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = None
     await lifecycle(azuresearch_mgmt_client)
 
 @pytest.mark.asyncio
 async def test_lifecycle_vectors_only(azuresearch_mgmt_client: SearchIndexClient):
     datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID = "1"
+    datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = None
+    await lifecycle(azuresearch_mgmt_client)
+
+@pytest.mark.asyncio
+async def test_lifecycle_semantic(azuresearch_mgmt_client: SearchIndexClient):
+    datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID = None
+    datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = "testsemconfig"
     await lifecycle(azuresearch_mgmt_client)
 
 async def lifecycle(azuresearch_mgmt_client: SearchIndexClient):
