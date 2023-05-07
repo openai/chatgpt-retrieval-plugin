@@ -16,7 +16,6 @@ AZURESEARCH_SERVICE = os.environ.get("AZURESEARCH_SERVICE")
 AZURESEARCH_INDEX = os.environ.get("AZURESEARCH_INDEX")
 AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
-AZURESEARCH_URL_PREFIX = os.environ.get("AZURESEARCH_URL_PREFIX")
 AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
@@ -136,16 +135,17 @@ class AzureSearchDataStore(DataStore):
             r = self.client.search(q, filter=filter, top=query.top_k, vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
             results: List[DocumentChunkWithScore] = []
             for hit in r:
+                f = lambda field: hit.get(field) if field != "-" else None
                 results.append(DocumentChunkWithScore(
                     id=hit[FIELDS_ID],
                     text=hit[FIELDS_TEXT],
                     metadata=DocumentChunkMetadata(
-                        document_id=hit.get(FIELDS_DOCUMENT_ID) if FIELDS_DOCUMENT_ID != "-" else None,
-                        source=hit.get(FIELDS_SOURCE) if FIELDS_SOURCE != "-" else None,
-                        source_id=hit.get(FIELDS_SOURCE_ID) if FIELDS_SOURCE_ID != "-" else None,
-                        url=hit.get(FIELDS_URL) if FIELDS_URL != "-" else ((AZURESEARCH_URL_PREFIX + hit.get(FIELDS_SOURCE_ID)) if AZURESEARCH_URL_PREFIX != None else None),
-                        created_at=hit.get(FIELDS_CREATED_AT) if FIELDS_CREATED_AT != "-" else None,
-                        author=hit.get(FIELDS_AUTHOR) if FIELDS_AUTHOR != "-" else None
+                        document_id=f(FIELDS_DOCUMENT_ID),
+                        source=f(FIELDS_SOURCE),
+                        source_id=f(FIELDS_SOURCE_ID),
+                        url=f(FIELDS_URL),
+                        created_at=f(FIELDS_CREATED_AT),
+                        author=f(FIELDS_AUTHOR)
                     ),
                     score=hit["@search.score"]
                 ))
