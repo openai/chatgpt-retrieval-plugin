@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional, Tuple
 import uuid
+import unicodedata
 from models.models import Document, DocumentChunk, DocumentChunkMetadata
 
 import tiktoken
@@ -18,6 +19,31 @@ MIN_CHUNK_LENGTH_TO_EMBED = 5  # Discard chunks shorter than this
 EMBEDDINGS_BATCH_SIZE = 128  # The number of embeddings to request at a time
 MAX_NUM_CHUNKS = 10000  # The maximum number of chunks to generate from a text
 
+def find_last_punctuation(text: str) -> int:
+    """
+    Find the position of the last punctuation character or newline character in the given text, iterating from the beginning.
+    
+    Args:
+        text (str): The input text to search for punctuation characters and newline characters.
+    
+    Returns:
+        int: The position of the last punctuation or newline character from the beginning. If no punctuation or newline is found, return -1.
+    """
+    last_punctuation = -1
+
+    # Iterate through the characters in the text from the beginning
+    for i, char in enumerate(text):
+        # Get the Unicode category of the character
+        category = unicodedata.category(char)
+
+        # Check if the category belongs to Punctuation (P), Separator (Z), or if the character is a newline
+        if category.startswith("P") or category.startswith("Z") or char == '\n':
+            # Update the position of the last punctuation character
+            last_punctuation = i
+
+    # Return the position of the last punctuation or newline character from the beginning
+    # If no punctuation or newline is found, return -1
+    return last_punctuation
 
 def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
     """
@@ -62,12 +88,7 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
             continue
 
         # Find the last period or punctuation mark in the chunk
-        last_punctuation = max(
-            chunk_text.rfind("."),
-            chunk_text.rfind("?"),
-            chunk_text.rfind("!"),
-            chunk_text.rfind("\n"),
-        )
+        last_punctuation = find_last_punctuation(chunk_text)
 
         # If there is a punctuation mark, and the last punctuation index is before MIN_CHUNK_SIZE_CHARS
         if last_punctuation != -1 and last_punctuation > MIN_CHUNK_SIZE_CHARS:
