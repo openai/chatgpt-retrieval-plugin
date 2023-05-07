@@ -1,21 +1,22 @@
 
 # Searchium
-In general, [Searchium](https://searchium.ai) is a cloud platform that performs fast vector searches.
-Searchium allows you to store a vector embeddings database along with associated metadata.
+[Searchium](https://searchium.ai) is a cloud platform that performs high-speed vector searches using in-memory compute. Searchium allows you to store a vector embeddings database along with associated metadata.
 
 ## Setup
 The basic flow consists of the following steps:
 * Create a dataset.
 * Add data to the dataset.
-* Train the dataset.
-* Load the dataset to the APU card (Associative Process Unit).
+* Train/Index the dataset.
+* Load the dataset onto the APU accelerator (Associative Processing Unit).
 * Perform a search.
 ----
-Note: To perform fast vector searches, we use hardware accelerator called "APU" which requires data pre-processing(train and load), 
-which improve search results significantly.
+
+**Note: To perform fast vector searches, we use hardware accelerator called "APU" which requires data pre-processing(train and load), 
+which improve search results significantly (The actual minimum dataset size should be above 4,000 records).
 In our implementation of the datastore, we use a trigger called `SEARCHIUM_DATASET_SIZE` to automatically
 initiate the training and loading processes. However, you can also perform these processes manually using our 
-client or cloud interface as needed." 
+client or cloud interface as needed."** 
+
 ----
 
 **Retrieval App Environment Variables**
