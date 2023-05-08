@@ -68,7 +68,7 @@ class PostgresDataStore(DataStore):
         Return a list of document ids.
         """
         # Create a connection
-        # conn = psycopg.connect(**self.conn_params)
+
         conn = self.pool.getconn()
         conn.autocommit = True
         cur = conn.cursor()
@@ -80,6 +80,13 @@ class PostgresDataStore(DataStore):
             for doc_id, chunk_list in chunks.items():
                 doc_ids.append(doc_id)
                 for chunk in chunk_list:
+                    metadata = chunk.metadata.dict()
+                    if "created_at" in list(metadata.keys()):
+                        if metadata["created_at"]:
+                            metadata["created_at"] = to_unix_timestamp(
+                                metadata["created_at"]
+                            )
+                    metadata = json.dumps(metadata)
                     insert_statement = sql.SQL(
                         "INSERT INTO {} (doc_id, chunk_id, text, embedding, metadata) VALUES ({}, {}, {}, {}, {})"
                     ).format(
@@ -88,7 +95,7 @@ class PostgresDataStore(DataStore):
                         sql.Literal(chunk.id),
                         sql.Literal(chunk.text),
                         sql.Literal(chunk.embedding),
-                        sql.Literal(json.dumps(chunk.metadata.dict())),
+                        sql.Literal(metadata),
                     )
                     cur.execute(insert_statement)
 
@@ -168,6 +175,7 @@ class PostgresDataStore(DataStore):
 
             results.append(QueryResult(query=query.query, results=query_results))
 
+        conn.commit()
         cur.close()
         self.pool.putconn(conn)
 
@@ -191,9 +199,49 @@ class PostgresDataStore(DataStore):
                 print(e)
 
         if filter:
+            start_date = None
+            end_date = None
+
+            if "start_date" in filter.dict().keys():
+                start_date = filter.dict().pop("start_date")
+                if start_date:
+                    start_date = to_unix_timestamp(start_date)
+
+            if "end_date" in filter.dict().keys():
+                end_date = filter.dict().pop("end_date")
+                if end_date:
+                    end_date = to_unix_timestamp(end_date)
+
+            if start_date and end_date:
+                delete_statement = "DELETE FROM %s" % POSTGRES_TABLENAME
+                delete_statement += " WHERE metadata --> created_at > %d " % start_date
+                delete_statement += " AND metadata --> created_at < %d " % end_date
+                try:
+                    cur.execute(delete_statement)
+                except Exception as e:
+                    print(e)
+            else:
+                if start_date:
+                    delete_statement = "DELETE FROM %s" % POSTGRES_TABLENAME
+                    delete_statement += (
+                        " WHERE metadata --> created_at > %d " % start_date
+                    )
+                    try:
+                        cur.execute(delete_statement)
+                    except Exception as e:
+                        print(e)
+                if end_date:
+                    delete_statement = "DELETE FROM %s" % POSTGRES_TABLENAME
+                    delete_statement += (
+                        " WHERE metadata --> created_at < %d " % end_date
+                    )
+                    try:
+                        cur.execute(delete_statement)
+                    except Exception as e:
+                        print(e)
+
             counter = 0
             delete_statement = "DELETE FROM %s" % POSTGRES_TABLENAME
-
             for key, value in filter.dict().items():
                 if value:
                     if counter == 0:
