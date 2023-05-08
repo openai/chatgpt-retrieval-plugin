@@ -1,211 +1,196 @@
-import chromadb
+from enum import Enum
+from typing import Dict, List
 import pytest
+import random
 
 from datastore.providers.chroma_datastore import ChromaDataStore
 from models.models import (
+    Document,
     DocumentChunk,
     DocumentChunkMetadata,
+    DocumentMetadata,
     DocumentMetadataFilter,
     Query,
     QueryWithEmbedding,
     Source,
 )
 
-
-@pytest.fixture
-def chroma_datastore() -> ChromaDataStore:
-    client = chromadb.Client()
-    return ChromaDataStore(client=client)
+PERSISTENCE_DIR = "chroma_datastore"
+COLLECTION_NAME = "documents"
 
 
-OUTPUT_DIM = 100
+def ephemeral_chroma_datastore() -> ChromaDataStore:
+    # Initalize an ephemeral in-memory ChromaDB instance
+    return ChromaDataStore(
+        collection_name=COLLECTION_NAME, in_memory=True, persistence_dir=None
+    )
 
 
-@pytest.fixture
-def document_chunk_one():
-    doc_id = "zerp"
-    doc_chunks = []
+def persisted_chroma_datastore() -> ChromaDataStore:
+    # Initialize an in-memory ChromaDB instance with persistence
+    return ChromaDataStore(
+        collection_name=COLLECTION_NAME, in_memory=True, persistence_dir=PERSISTENCE_DIR
+    )
 
-    ids = ["abc_123", "def_456", "ghi_789"]
-    texts = [
-        "lorem ipsum dolor sit amet",
-        "consectetur adipiscing elit",
-        "sed do eiusmod tempor incididunt",
-    ]
-    sources = [Source.email, Source.file, Source.chat]
-    source_ids = ["foo", "bar", "baz"]
-    urls = ["foo.com", "bar.net", "baz.org"]
-    created_ats = [
-        "1929-10-28T09:30:00-05:00",
-        "2009-01-03T16:39:57-08:00",
-        "2021-01-21T10:00:00-02:00",
-    ]
-    authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3)]
 
-    for i in range(3):
-        chunk = DocumentChunk(
-            id=ids[i],
-            text=texts[i],
-            metadata=DocumentChunkMetadata(
-                document_id=doc_id,
-                source=sources[i],
-                source_id=source_ids[i],
-                url=urls[i],
-                created_at=created_ats[i],
-                author=authors[i],
-            ),
-            embedding=embeddings[i],  # type: ignore
-        )
+def get_chroma_datastore(client_fixtures: str) -> ChromaDataStore:
+    if client_fixtures == "ephemeral":
+        return ephemeral_chroma_datastore()
+    elif client_fixtures == "persisted":
+        return persisted_chroma_datastore()
 
-        doc_chunks.append(chunk)
 
-    return {doc_id: doc_chunks}
+client_types = ["ephemeral", "persisted"]
+
+# Seed for deterministic testing
+random.seed(0)
+
+
+def create_embedding(dim: int) -> List[float]:
+    return [random.random() for _ in range(dim)]
+
+
+# Data fixtures
+TEST_EMBEDDING_DIM = 5
+N_TEST_CHUNKS = 5
 
 
 @pytest.fixture
-def document_chunk_two():
-    doc_id_1 = "zerp"
-    doc_chunks_1 = []
-
-    ids = ["abc_123", "def_456", "ghi_789"]
-    texts = [
-        "1lorem ipsum dolor sit amet",
-        "2consectetur adipiscing elit",
-        "3sed do eiusmod tempor incididunt",
-    ]
-    sources = [Source.email, Source.file, Source.chat]
-    source_ids = ["foo", "bar", "baz"]
-    urls = ["foo.com", "bar.net", "baz.org"]
-    created_ats = [
-        "1929-10-28T09:30:00-05:00",
-        "2009-01-03T16:39:57-08:00",
-        "3021-01-21T10:00:00-02:00",
-    ]
-    authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3)]
-
-    for i in range(3):
-        chunk = DocumentChunk(
-            id=ids[i],
-            text=texts[i],
-            metadata=DocumentChunkMetadata(
-                document_id=doc_id_1,
-                source=sources[i],
-                source_id=source_ids[i],
-                url=urls[i],
-                created_at=created_ats[i],
-                author=authors[i],
-            ),
-            embedding=embeddings[i],  # type: ignore
+def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
+    first_doc_chunks = [
+        DocumentChunk(
+            id=f"first-doc-{i}",
+            text=f"Lorem ipsum {i}",
+            metadata=DocumentChunkMetadata(),
+            embedding=create_embedding(TEST_EMBEDDING_DIM),
         )
-
-        doc_chunks_1.append(chunk)
-
-    doc_id_2 = "merp"
-    doc_chunks_2 = []
-
-    ids = ["jkl_123", "lmn_456", "opq_789"]
-    texts = [
-        "3sdsc efac feas sit qweas",
-        "4wert sdfas fdsc",
-        "52dsc fdsf eiusmod asdasd incididunt",
+        for i in range(N_TEST_CHUNKS)
     ]
-    sources = [Source.email, Source.file, Source.chat]
-    source_ids = ["foo", "bar", "baz"]
-    urls = ["foo.com", "bar.net", "baz.org"]
-    created_ats = [
-        "4929-10-28T09:30:00-05:00",
-        "5009-01-03T16:39:57-08:00",
-        "6021-01-21T10:00:00-02:00",
-    ]
-    authors = ["Max Mustermann", "John Doe", "Jane Doe"]
-    embeddings = [[x] * OUTPUT_DIM for x in range(3, 6)]
+    return {
+        "first-doc": first_doc_chunks,
+    }
 
-    for i in range(3):
-        chunk = DocumentChunk(
-            id=ids[i],
-            text=texts[i],
+
+@pytest.fixture
+def document_chunks(initial_document_chunks) -> Dict[str, List[DocumentChunk]]:
+    doc_chunks = initial_document_chunks
+
+    for k, v in doc_chunks.items():
+        for chunk in v:
+            chunk.metadata = DocumentChunkMetadata(
+                source=Source.email, created_at="2023-04-03", document_id="first-doc"
+            )
+            chunk.embedding = create_embedding(TEST_EMBEDDING_DIM)
+
+    doc_chunks["second_doc"] = [
+        DocumentChunk(
+            id=f"second-doc-{i}",
+            text=f"Dolor sit amet {i}",
             metadata=DocumentChunkMetadata(
-                document_id=doc_id_2,
-                source=sources[i],
-                source_id=source_ids[i],
-                url=urls[i],
-                created_at=created_ats[i],
-                author=authors[i],
+                created_at="2023-04-04", document_id="second-doc"
             ),
-            embedding=embeddings[i],  # type: ignore
+            embedding=create_embedding(TEST_EMBEDDING_DIM),
         )
+        for i in range(N_TEST_CHUNKS)
+    ]
 
-        doc_chunks_2.append(chunk)
-
-    return {doc_id_1: doc_chunks_1, doc_id_2: doc_chunks_2}
-
-
-@pytest.mark.asyncio
-async def test_noop(chroma_datastore):
-    pass
+    return doc_chunks
 
 
 @pytest.mark.asyncio
-async def test_upsert(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
+@pytest.mark.parametrize("client_type", client_types)
+async def test_add_chunks(
+    client_type: str, document_chunks: Dict[str, List[DocumentChunk]]
+):
+    datastore = get_chroma_datastore(client_type)
+
+    await datastore.delete(delete_all=True)
+    assert datastore._collection.count() == 0
+
+    print(document_chunks)
+
+    assert await datastore._upsert(document_chunks) == list(document_chunks.keys())
+    assert datastore._collection.count() == sum(
+        len(v) for v in document_chunks.values()
+    )
 
 
 @pytest.mark.asyncio
-async def test_reload(chroma_datastore, document_chunk_one, document_chunk_two):
-    await chroma_datastore.delete(delete_all=True)
+@pytest.mark.parametrize("client_type", client_types)
+async def test_upsert(
+    client_type: str,
+    initial_document_chunks: Dict[str, List[DocumentChunk]],
+    document_chunks: Dict[str, List[DocumentChunk]],
+):
+    datastore = get_chroma_datastore(client_type)
 
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    new_store = ChromaDataStore()
-    another_in = {i: document_chunk_two[i] for i in document_chunk_two if i != res[0]}
-    res = await new_store._upsert(another_in)
+    await datastore.delete(delete_all=True)
+
+    assert await datastore._upsert(initial_document_chunks) == list(
+        initial_document_chunks.keys()
+    )
+    assert datastore._collection.count() == sum(
+        len(v) for v in initial_document_chunks.values()
+    )
+
+    assert await datastore._upsert(document_chunks) == list(document_chunks.keys())
+    assert datastore._collection.count() == sum(
+        len(v) for v in document_chunks.values()
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("client_type", client_types)
+async def test_add_and_query_all(client_type, document_chunks):
+    datastore = get_chroma_datastore(client_type)
+
+    await datastore.delete(delete_all=True)
+
+    await datastore._upsert(document_chunks) == list(document_chunks.keys())
+
     query = QueryWithEmbedding(
-        query="lorem",
+        query="",
+        embedding=create_embedding(TEST_EMBEDDING_DIM),
         top_k=10,
-        embedding=[0.5] * OUTPUT_DIM,
     )
-    query_results = await chroma_datastore._query(queries=[query])
+    query_results = await datastore._query(queries=[query])
     assert 1 == len(query_results)
+    assert 10 == len(query_results[0].results)
 
 
 @pytest.mark.asyncio
-async def test_upsert_and_query_all(chroma_datastore, document_chunk_two):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_two)
-    assert res == list(document_chunk_two.keys())
+@pytest.mark.parametrize("client_type", client_types)
+async def test_query_accuracy(client_type, document_chunks):
+    for k, v in document_chunks.items():
+        for chunk in v:
+            print(f"id: {chunk.id} emb: {chunk.embedding}")
 
-    # Num entities currently doesnt track deletes
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=9,
-        embedding=[0.5] * OUTPUT_DIM,
-    )
-    query_results = await chroma_datastore._query(queries=[query])
+    def add_noise_to_embedding(embedding: List[float], eps: float = 0) -> List[float]:
+        return [x + eps * (1.0 - 2 * random.random()) for x in embedding]
 
-    assert 1 == len(query_results)
-    assert 6 == len(query_results[0].results)
+    datastore = get_chroma_datastore(client_type)
 
+    await datastore.delete(delete_all=True)
 
-@pytest.mark.asyncio
-async def test_query_accuracy(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=1,
-        embedding=[0] * OUTPUT_DIM,
-    )
-    query_results = await chroma_datastore._query(queries=[query])
+    print(datastore._collection.get(include=["embeddings"]))
 
-    assert 1 == len(query_results)
-    assert 1 == len(query_results[0].results)
-    assert 0 == query_results[0].results[0].score
-    assert "abc_123" == query_results[0].results[0].id
+    res = await datastore._upsert(document_chunks)
+
+    res = datastore._collection.get(include=["embeddings"])
+    for id, emb in zip(res["ids"], res["embeddings"]):
+        print(f"id: {id} emb: {emb}")
+
+    for k, v in document_chunks.items():
+        for chunk in v:
+            print(f"chunk: {chunk}")
+            query = QueryWithEmbedding(
+                query="",
+                embedding=add_noise_to_embedding(chunk.embedding),
+                top_k=1,
+            )
+            query_results = await datastore._query(queries=[query])
+            print(query_results)
+            assert query_results[0].results[0].id == chunk.id
 
 
 @pytest.mark.asyncio
