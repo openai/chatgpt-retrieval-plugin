@@ -74,8 +74,7 @@ class ChromaDataStore(DataStore):
         self, documents: List[DocumentChunk], chunk_token_size: Optional[int] = None
     ) -> List[str]:
         """
-        Takes in a list of documents and inserts them into the database.
-        First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
+        Takes in a list of documents and inserts them into the database. If an id already exists, the document is updated.
         Return a list of document ids.
         """
 
