@@ -51,4 +51,4 @@ Mac: `brew install postgresql`
 | `POSTGRES_PASSWORD`             | Optional | Password                                                           | ``                 | 
 | `POSTGRES_TABLENAME`            | Optional | Tablename                                                          | `chatgpt_datastore`| 
 | `POSTGRES_SYNCHRONOUS_COMMIT`   | Optional | Synchronous commit                                                 | `off`              | 
- 
+| `POSTGRES_UPSERT_COMMAND`       | Optional | Command to upsert data - COPY is a faster option thatn INSERT      | `COPY`             |
