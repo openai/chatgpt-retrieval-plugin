@@ -45,12 +45,14 @@ class AzureSearchDataStore(DataStore):
         self.client = SearchClient(
             endpoint=f"https://{AZURESEARCH_SERVICE}.search.windows.net",
             index_name=AZURESEARCH_INDEX,
-            credential=credential
+            credential=credential,
+            user_agent="retrievalplugin"
         )
 
         mgmt_client = SearchIndexClient(
             endpoint=f"https://{AZURESEARCH_SERVICE}.search.windows.net",
-            credential=credential
+            credential=credential,
+            user_agent="retrievalplugin"
         )
         if AZURESEARCH_INDEX not in [name for name in mgmt_client.list_index_names()]:
             self._create_index(mgmt_client)
