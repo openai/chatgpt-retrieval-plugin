@@ -14,6 +14,7 @@ import json
 import psycopg
 from psycopg import sql
 
+from services.date import to_unix_timestamp
 # Read environment variables for Postgres
 
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
@@ -24,6 +25,7 @@ POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE", "pgml_development")
 POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
 POSTGRES_SYNCHRONOUS_COMMIT = os.environ.get("POSTGRES_SYNCHRONOUS_COMMIT","off").lower()
 
+assert POSTGRES_SYNCHRONOUS_COMMIT in ["on","off"]
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
 
@@ -64,11 +66,8 @@ class PostgresDataStore(DataStore):
         doc_ids: List[str] = []
 
         # Set synchronous commit
-        if POSTGRES_SYNCHRONOUS_COMMIT not in ["on","off"]:
-            POSTGRES_SYNCHRONOUS_COMMIT = "off"
+        cur.execute("SET synchronous_commit = %s"%POSTGRES_SYNCHRONOUS_COMMIT)
         
-        cur.execute('SET synchronous_commit = %s'%POSTGRES_SYNCHRONOUS_COMMIT)
-
         with cur.copy(
             "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
             % POSTGRES_TABLENAME
@@ -78,7 +77,13 @@ class PostgresDataStore(DataStore):
                 for chunk in chunk_list:
                     text = sql.Literal(chunk.text).as_string(conn)
                     embedding = "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
-                    metadata = json.dumps(chunk.metadata.dict())
+
+                    metadata = chunk.metadata.dict()
+                    if "created_at" in list(metadata.keys()):
+                        if metadata["created_at"]:
+                            metadata["created_at"] = to_unix_timestamp(metadata["created_at"])
+                    metadata = json.dumps(metadata)
+
                     row = (doc_id, chunk.id, text, embedding, metadata)
                     copy.write_row(row)
 
