@@ -27,8 +27,11 @@ POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
 POSTGRES_SYNCHRONOUS_COMMIT = os.environ.get(
     "POSTGRES_SYNCHRONOUS_COMMIT", "off"
 ).lower()
+POSTGRES_UPSERT_COMMAND = os.environ.get("POSTGRES_UPSERT_COMMAND","COPY")
 
 assert POSTGRES_SYNCHRONOUS_COMMIT in ["on", "off"]
+assert POSTGRES_UPSERT_COMMAND in ["COPY","INSERT"]
+
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
 
@@ -68,29 +71,47 @@ class PostgresDataStore(DataStore):
         # Initialize a list of ids to return
         doc_ids: List[str] = []
 
-        # Set synchronous commit
-        cur.execute("SET synchronous_commit = %s" % POSTGRES_SYNCHRONOUS_COMMIT)
-
-        with cur.copy(
-            "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
-            % POSTGRES_TABLENAME
-        ) as copy:
+        if POSTGRES_UPSERT_COMMAND == "INSERT":
+            # Loop through docs/chunks
             for doc_id, chunk_list in chunks.items():
                 doc_ids.append(doc_id)
                 for chunk in chunk_list:
-                    text = sql.Literal(chunk.text).as_string(conn)
-                    embedding = "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
+                    insert_statement = sql.SQL(
+                        "INSERT INTO {} (doc_id, chunk_id, text, embedding, metadata) VALUES ({}, {}, {}, {}, {})"
+                    ).format(
+                        sql.Identifier(POSTGRES_TABLENAME),
+                        sql.Literal(doc_id),
+                        sql.Literal(chunk.id),
+                        sql.Literal(chunk.text),
+                        sql.Literal(chunk.embedding),
+                        sql.Literal(json.dumps(chunk.metadata.dict())),
+                    )
+                    cur.execute(insert_statement)
 
-                    metadata = chunk.metadata.dict()
-                    if "created_at" in list(metadata.keys()):
-                        if metadata["created_at"]:
-                            metadata["created_at"] = to_unix_timestamp(
-                                metadata["created_at"]
-                            )
-                    metadata = json.dumps(metadata)
+        if POSTGRES_UPSERT_COMMAND == "COPY":
+            #Set synchronous commit
+            cur.execute("SET synchronous_commit = %s" % POSTGRES_SYNCHRONOUS_COMMIT)
 
-                    row = (doc_id, chunk.id, text, embedding, metadata)
-                    copy.write_row(row)
+            with cur.copy(
+                "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
+                % POSTGRES_TABLENAME
+            ) as copy:
+                for doc_id, chunk_list in chunks.items():
+                    doc_ids.append(doc_id)
+                    for chunk in chunk_list:
+                        text = sql.Literal(chunk.text).as_string(conn)
+                        embedding = "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
+
+                        metadata = chunk.metadata.dict()
+                        if "created_at" in list(metadata.keys()):
+                            if metadata["created_at"]:
+                                metadata["created_at"] = to_unix_timestamp(
+                                    metadata["created_at"]
+                                )
+                        metadata = json.dumps(metadata)
+
+                        row = (doc_id, chunk.id, text, embedding, metadata)
+                        copy.write_row(row)
 
         index_statement = (
             "CREATE INDEX ON %s USING ivfflat (embedding vector_cosine_ops)"
