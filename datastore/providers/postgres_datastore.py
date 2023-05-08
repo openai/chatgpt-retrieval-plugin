@@ -22,6 +22,7 @@ POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "postgres")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
 POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE", "pgml_development")
 POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
+POSTGRES_SYNCHRONOUS_COMMIT = os.environ.get("POSTGRES_SYNCHRONOUS_COMMIT","off").lower()
 
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
@@ -61,6 +62,12 @@ class PostgresDataStore(DataStore):
 
         # Initialize a list of ids to return
         doc_ids: List[str] = []
+
+        # Set synchronous commit
+        if POSTGRES_SYNCHRONOUS_COMMIT not in ["on","off"]:
+            POSTGRES_SYNCHRONOUS_COMMIT = "off"
+        
+        cur.execute('SET synchronous_commit = %s'%POSTGRES_SYNCHRONOUS_COMMIT)
 
         with cur.copy(
             "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
