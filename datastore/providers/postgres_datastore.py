@@ -13,6 +13,7 @@ from models.models import (
 import json
 import psycopg
 from psycopg import sql
+from psycopg_pool import ConnectionPool
 
 from services.date import to_unix_timestamp
 
@@ -24,13 +25,9 @@ POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "postgres")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
 POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE", "pgml_development")
 POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
-POSTGRES_SYNCHRONOUS_COMMIT = os.environ.get(
-    "POSTGRES_SYNCHRONOUS_COMMIT", "off"
-).lower()
-POSTGRES_UPSERT_COMMAND = os.environ.get("POSTGRES_UPSERT_COMMAND","COPY")
+POSTGRES_UPSERT_COMMAND = os.environ.get("POSTGRES_UPSERT_COMMAND", "COPY")
 
-assert POSTGRES_SYNCHRONOUS_COMMIT in ["on", "off"]
-assert POSTGRES_UPSERT_COMMAND in ["COPY","INSERT"]
+assert POSTGRES_UPSERT_COMMAND in ["COPY", "INSERT"]
 
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
@@ -38,14 +35,20 @@ VECTOR_DIMENSION = 1536
 
 class PostgresDataStore(DataStore):
     def __init__(self) -> None:
-        self.conn_params = {
-            "dbname": POSTGRES_DATABASE,
-            "user": POSTGRES_USERNAME,
-            "password": POSTGRES_PASSWORD,
-            "host": POSTGRES_HOST,
-            "port": POSTGRES_PORT,
-        }
-        conn = psycopg.connect(**self.conn_params)
+        conninfo = (
+            "postgresql://"
+            + POSTGRES_USERNAME
+            + ":"
+            + POSTGRES_PASSWORD
+            + "@"
+            + POSTGRES_HOST
+            + ":"
+            + str(POSTGRES_PORT)
+            + "/"
+            + POSTGRES_DATABASE
+        )
+        self.pool = ConnectionPool(conninfo)
+        conn = self.pool.getconn()
         # Insert the vector and text into the database
         create_table = (
             "CREATE TABLE IF NOT EXISTS %s (doc_id TEXT, chunk_id TEXT, text TEXT, embedding vector(%s), metadata JSONB)"
@@ -57,7 +60,7 @@ class PostgresDataStore(DataStore):
         conn.commit()
         # Close the cursor and the connection
         cur.close()
-        conn.close()
+        self.pool.putconn(conn)
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
@@ -65,12 +68,13 @@ class PostgresDataStore(DataStore):
         Return a list of document ids.
         """
         # Create a connection
-        conn = psycopg.connect(**self.conn_params)
+        # conn = psycopg.connect(**self.conn_params)
+        conn = self.pool.getconn()
+        conn.autocommit = True
         cur = conn.cursor()
 
         # Initialize a list of ids to return
         doc_ids: List[str] = []
-
         if POSTGRES_UPSERT_COMMAND == "INSERT":
             # Loop through docs/chunks
             for doc_id, chunk_list in chunks.items():
@@ -89,9 +93,6 @@ class PostgresDataStore(DataStore):
                     cur.execute(insert_statement)
 
         if POSTGRES_UPSERT_COMMAND == "COPY":
-            #Set synchronous commit
-            cur.execute("SET synchronous_commit = %s" % POSTGRES_SYNCHRONOUS_COMMIT)
-
             with cur.copy(
                 "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
                 % POSTGRES_TABLENAME
@@ -100,7 +101,9 @@ class PostgresDataStore(DataStore):
                     doc_ids.append(doc_id)
                     for chunk in chunk_list:
                         text = sql.Literal(chunk.text).as_string(conn)
-                        embedding = "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
+                        embedding = (
+                            "[" + ",".join([str(v) for v in chunk.embedding]) + "]"
+                        )
 
                         metadata = chunk.metadata.dict()
                         if "created_at" in list(metadata.keys()):
@@ -114,14 +117,14 @@ class PostgresDataStore(DataStore):
                         copy.write_row(row)
 
         index_statement = (
-            "CREATE INDEX ON %s USING ivfflat (embedding vector_cosine_ops)"
-            % POSTGRES_TABLENAME
+            "CREATE INDEX CONCURRENTLY ON %s USING ivfflat (embedding vector_cosine_ops)"
+            % (POSTGRES_TABLENAME)
         )
         cur.execute(index_statement)
+        index_doc_ids = "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRES_TABLENAME
+        cur.execute(index_doc_ids)
 
-        conn.commit()
-        cur.close()
-        conn.close()
+        self.pool.putconn(conn)
 
         return doc_ids
 
@@ -134,7 +137,7 @@ class PostgresDataStore(DataStore):
         results: List[QueryResult] = []
 
         # Create a connection
-        conn = psycopg.connect(**self.conn_params)
+        conn = self.pool.getconn()
         cur = conn.cursor()
 
         for query in queries:
@@ -163,10 +166,10 @@ class PostgresDataStore(DataStore):
                 )
                 query_results.append(query_result)
 
-        results.append(QueryResult(query=query.query, results=query_results))
+            results.append(QueryResult(query=query.query, results=query_results))
 
         cur.close()
-        conn.close()
+        self.pool.putconn(conn)
 
         return results
 
@@ -177,13 +180,11 @@ class PostgresDataStore(DataStore):
         delete_all: bool | None = None,
     ) -> bool:
         # Create a connection
-        conn = psycopg.connect(**self.conn_params)
+        conn = self.pool.getconn()
         cur = conn.cursor()
 
         if delete_all:
-            delete_statement = "DELETE FROM {}".format(
-                sql.Identifier(POSTGRES_TABLENAME)
-            )
+            delete_statement = "TRUNCATE %s" % (POSTGRES_TABLENAME)
             try:
                 cur.execute(delete_statement)
             except Exception as e:
@@ -227,6 +228,6 @@ class PostgresDataStore(DataStore):
         conn.commit()
 
         cur.close()
-        conn.close()
+        self.pool.putconn(conn)
 
         return True
