@@ -180,7 +180,7 @@ class ChromaDataStore(DataStore):
         results = [
             self._collection.query(
                 query_embeddings=[query.embedding],
-                include=["documents", "distances", "metadatas", "embeddings"],
+                include=["documents", "distances", "metadatas"],  # embeddings
                 n_results=min(query.top_k, self._collection.count()),
                 where=(
                     self._where_from_query_filter(query.filter) if query.filter else {}
@@ -193,19 +193,19 @@ class ChromaDataStore(DataStore):
         for query, result in zip(queries, results):
             inner_results = []
             (ids,) = result["ids"]
-            (embeddings,) = result["embeddings"]
+            # (embeddings,) = result["embeddings"]
             (documents,) = result["documents"]
             (metadatas,) = result["metadatas"]
             (distances,) = result["distances"]
-            for id_, embedding, text, metadata, distance in zip(
-                ids, embeddings, documents, metadatas, distances
+            for id_, text, metadata, distance in zip(
+                ids, documents, metadatas, distances  # embeddings
             ):
                 inner_results.append(
                     DocumentChunkWithScore(
                         id=id_,
                         text=text,
                         metadata=self._process_metadata_from_storage(metadata),
-                        embedding=embedding,
+                        # embedding=embedding,
                         score=distance,
                     )
                 )
