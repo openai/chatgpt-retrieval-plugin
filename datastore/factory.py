@@ -1,44 +1,42 @@
-import os
-from datastore.providers import Providers
 from datastore.datastore import DataStore
+import os
 
 
 async def get_datastore() -> DataStore:
-    datastore_options = [p.value for p in Providers]
     datastore = os.environ.get("DATASTORE")
     assert datastore is not None
 
     match datastore:
-        case Providers.llama.value:
+        case "llama":
             from datastore.providers.llama_datastore import LlamaDataStore
             return LlamaDataStore()
 
-        case Providers.pinecone.value:
+        case "pinecone":
             from datastore.providers.pinecone_datastore import PineconeDataStore
 
             return PineconeDataStore()
-        case Providers.weaviate.value:
+        case "weaviate":
             from datastore.providers.weaviate_datastore import WeaviateDataStore
 
             return WeaviateDataStore()
-        case Providers.milvus.value:
+        case "milvus":
             from datastore.providers.milvus_datastore import MilvusDataStore
 
             return MilvusDataStore()
-        case Providers.zilliz.value:
+        case "zilliz":
             from datastore.providers.zilliz_datastore import ZillizDataStore
 
             return ZillizDataStore()
-        case Providers.redis.value:
+        case "redis":
             from datastore.providers.redis_datastore import RedisDataStore
 
             return await RedisDataStore.init()
-        case Providers.qdrant.value:
+        case "qdrant":
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
             return QdrantDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: {datastore_options}"
+                f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, or qdrant"
             )
