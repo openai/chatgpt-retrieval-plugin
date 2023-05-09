@@ -44,7 +44,8 @@ REDIS_REQUIRED_MODULES = [
     {"name": "search", "ver": 20600},
     {"name": "ReJSON", "ver": 20404}
 ]
-REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
+
+REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
 
 # Helper functions
 def unpack_schema(d: dict):
@@ -59,7 +60,7 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
         if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
-            error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+            error_message = "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
             logging.error(error_message)
             raise AttributeError(error_message)
@@ -207,7 +208,7 @@ class RedisDataStore(DataStore):
             if isinstance(typ, TagField):
                 return f"@{field}:{{{self._escape(value)}}} "
             elif isinstance(typ, TextField):
-                return f"@{field}:{self._escape(value)} "
+                return f"@{field}:{value} "
             elif isinstance(typ, NumericField):
                 num = to_unix_timestamp(value)
                 match field:
