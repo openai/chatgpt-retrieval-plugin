@@ -8,7 +8,6 @@ Consult the Chroma docs and GitHub repo for more information:
 """
 
 import os
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 

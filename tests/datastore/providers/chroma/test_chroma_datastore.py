@@ -1,16 +1,12 @@
-from enum import Enum
 from typing import Dict, List
 import pytest
 import random
 
 from datastore.providers.chroma_datastore import ChromaDataStore
 from models.models import (
-    Document,
     DocumentChunk,
     DocumentChunkMetadata,
-    DocumentMetadata,
     DocumentMetadataFilter,
-    Query,
     QueryWithEmbedding,
     Source,
 )
@@ -82,7 +78,7 @@ def document_chunks(initial_document_chunks) -> Dict[str, List[DocumentChunk]]:
             )
             chunk.embedding = create_embedding(TEST_EMBEDDING_DIM)
 
-    doc_chunks["second_doc"] = [
+    doc_chunks["second-doc"] = [
         DocumentChunk(
             id=f"second-doc-{i}",
             text=f"Dolor sit amet {i}",
@@ -161,7 +157,7 @@ async def test_add_and_query_all(client_type, document_chunks):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("client_type", client_types)
 async def test_query_accuracy(client_type, document_chunks):
-    for k, v in document_chunks.items():
+    for _, v in document_chunks.items():
         for chunk in v:
             print(f"id: {chunk.id} emb: {chunk.embedding}")
 
@@ -180,7 +176,7 @@ async def test_query_accuracy(client_type, document_chunks):
     for id, emb in zip(res["ids"], res["embeddings"]):
         print(f"id: {id} emb: {emb}")
 
-    for k, v in document_chunks.items():
+    for _, v in document_chunks.items():
         for chunk in v:
             print(f"chunk: {chunk}")
             query = QueryWithEmbedding(
@@ -194,106 +190,111 @@ async def test_query_accuracy(client_type, document_chunks):
 
 
 @pytest.mark.asyncio
-async def test_query_filter(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=1,
-        embedding=[0] * OUTPUT_DIM,
-        filter=DocumentMetadataFilter(
-            start_date="2000-01-03T16:39:57-08:00", end_date="2010-01-03T16:39:57-08:00"
-        ),
-    )
-    query_results = await chroma_datastore._query(queries=[query])
+@pytest.mark.parametrize("client_type", client_types)
+async def test_query_filter_by_id(client_type, document_chunks):
+    datastore = get_chroma_datastore(client_type)
 
-    assert 1 == len(query_results)
-    assert 1 == len(query_results[0].results)
-    assert 0 != query_results[0].results[0].score
-    assert "def_456" == query_results[0].results[0].id
+    await datastore.delete(delete_all=True)
 
+    await datastore._upsert(document_chunks)
 
-@pytest.mark.asyncio
-async def test_delete_with_date_filter(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    await chroma_datastore.delete(
-        filter=DocumentMetadataFilter(
-            end_date="2009-01-03T16:39:57-08:00",
+    for doc_id, chunks in document_chunks.items():
+        query = QueryWithEmbedding(
+            query="",
+            embedding=chunks[0].embedding,
+            top_k=N_TEST_CHUNKS,
+            filter=DocumentMetadataFilter(document_id=doc_id),
         )
-    )
-
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=9,
-        embedding=[0] * OUTPUT_DIM,
-    )
-    query_results = await chroma_datastore._query(queries=[query])
-
-    assert 1 == len(query_results)
-    assert 1 == len(query_results[0].results)
-    assert "ghi_789" == query_results[0].results[0].id
-
-
-@pytest.mark.asyncio
-async def test_delete_with_source_filter(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    await chroma_datastore.delete(
-        filter=DocumentMetadataFilter(
-            source=Source.email,
+        query_results = await datastore._query(queries=[query])
+        # Assert that all document chunks are returned
+        assert len(query_results[0].results) == len(chunks)
+        assert all(
+            [
+                result.id in [chunk.id for chunk in chunks]
+                for result in query_results[0].results
+            ]
         )
-    )
-
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=9,
-        embedding=[0] * OUTPUT_DIM,
-    )
-    query_results = await chroma_datastore._query(queries=[query])
-
-    assert 1 == len(query_results)
-    assert 2 == len(query_results[0].results)
-    assert "def_456" == query_results[0].results[0].id
 
 
 @pytest.mark.asyncio
-async def test_delete_with_document_id_filter(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    await chroma_datastore.delete(
-        filter=DocumentMetadataFilter(
-            document_id=res[0],
-        )
-    )
-    query = QueryWithEmbedding(
-        query="lorem",
-        top_k=9,
-        embedding=[0] * OUTPUT_DIM,
-    )
-    query_results = await chroma_datastore._query(queries=[query])
+@pytest.mark.parametrize("client_type", client_types)
+async def test_query_filter_by_date(client_type, document_chunks):
+    datastore = get_chroma_datastore(client_type)
 
-    assert 1 == len(query_results)
-    assert 0 == len(query_results[0].results)
+    await datastore.delete(delete_all=True)
+
+    await datastore._upsert(document_chunks)
+
+    # Filter by dates for only the first document
+    query = QueryWithEmbedding(
+        query="",
+        embedding=document_chunks["first-doc"][0].embedding,
+        top_k=N_TEST_CHUNKS,
+        filter=DocumentMetadataFilter(start_date="2023-04-03", end_date="2023-04-03"),
+    )
+
+    query_results = await datastore._query(queries=[query])
+
+    # Assert that only the first document is returned
+    assert len(query_results[0].results) == len(document_chunks["first-doc"])
+    assert all(
+        [
+            result.id in [chunk.id for chunk in document_chunks["first-doc"]]
+            for result in query_results[0].results
+        ]
+    )
+
+    # Filter for the entire date span
+    query = QueryWithEmbedding(
+        query="",
+        embedding=document_chunks["first-doc"][0].embedding,
+        top_k=N_TEST_CHUNKS * len(document_chunks),
+        filter=DocumentMetadataFilter(start_date="2023-04-03", end_date="2023-04-04"),
+    )
+
+    query_results = await datastore._query(queries=[query])
+
+    # Assert that both documents are returned
+    assert len(query_results[0].results) == len(document_chunks["first-doc"]) + len(
+        document_chunks["second-doc"]
+    )
+    assert all(
+        [
+            result.id
+            in [chunk.id for chunk in document_chunks["first-doc"]]
+            + [chunk.id for chunk in document_chunks["second-doc"]]
+            for result in query_results[0].results
+        ]
+    )
 
 
 @pytest.mark.asyncio
-async def test_delete_with_document_id(chroma_datastore, document_chunk_one):
-    await chroma_datastore.delete(delete_all=True)
-    res = await chroma_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    await chroma_datastore.delete([res[0]])
+@pytest.mark.parametrize("client_type", client_types)
+async def test_delete_by_id(client_type, document_chunks):
+    datastore = get_chroma_datastore(client_type)
 
+    await datastore.delete(delete_all=True)
+
+    await datastore._upsert(document_chunks)
+
+    # Delete the first document
+    await datastore.delete(ids=["first-doc"])
+
+    # Assert that the first document is deleted
     query = QueryWithEmbedding(
-        query="lorem",
-        top_k=9,
-        embedding=[0] * OUTPUT_DIM,
+        query="",
+        embedding=document_chunks["first-doc"][0].embedding,
+        top_k=N_TEST_CHUNKS,
     )
-    query_results = await chroma_datastore._query(queries=[query])
+    query_results = await datastore._query(queries=[query])
 
-    assert 1 == len(query_results)
-    assert 0 == len(query_results[0].results)
+    # Assert that only the second document is still there
+    query_results = await datastore._query(queries=[query])
+    assert len(query_results[0].results) == len(document_chunks["second-doc"])
+
+    assert all(
+        [
+            result.id in [chunk.id for chunk in document_chunks["second-doc"]]
+            for result in query_results[0].results
+        ]
+    )
