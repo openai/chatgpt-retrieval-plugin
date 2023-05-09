@@ -49,6 +49,7 @@ class PostgresDataStore(DataStore):
         )
         self.pool = ConnectionPool(conninfo)
         conn = self.pool.getconn()
+        conn.autocommit = True
         # Insert the vector and text into the database
         create_table = (
             "CREATE TABLE IF NOT EXISTS %s (doc_id TEXT, chunk_id TEXT, text TEXT, embedding vector(%s), metadata JSONB)"
@@ -56,8 +57,15 @@ class PostgresDataStore(DataStore):
         )
         cur = conn.cursor()
         cur.execute(create_table)
-        # Commit the transaction
-        conn.commit()
+
+        index_statement = (
+            "CREATE INDEX CONCURRENTLY ON %s USING ivfflat (embedding vector_cosine_ops)"
+            % (POSTGRES_TABLENAME)
+        )
+        cur.execute(index_statement)
+        index_doc_ids = "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRES_TABLENAME
+        cur.execute(index_doc_ids)
+
         # Close the cursor and the connection
         cur.close()
         self.pool.putconn(conn)
@@ -70,7 +78,6 @@ class PostgresDataStore(DataStore):
         # Create a connection
 
         conn = self.pool.getconn()
-        conn.autocommit = True
         cur = conn.cursor()
 
         # Initialize a list of ids to return
@@ -123,14 +130,8 @@ class PostgresDataStore(DataStore):
                         row = (doc_id, chunk.id, text, embedding, metadata)
                         copy.write_row(row)
 
-        index_statement = (
-            "CREATE INDEX CONCURRENTLY ON %s USING ivfflat (embedding vector_cosine_ops)"
-            % (POSTGRES_TABLENAME)
-        )
-        cur.execute(index_statement)
-        index_doc_ids = "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRES_TABLENAME
-        cur.execute(index_doc_ids)
-
+        conn.commit()
+        cur.close()
         self.pool.putconn(conn)
 
         return doc_ids
