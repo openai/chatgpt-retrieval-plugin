@@ -2,8 +2,13 @@ import os
 import asyncio
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
-import psycopg2cffi as psycopg2
-from psycopg2cffi.extras import DictCursor
+
+from psycopg2cffi import compat
+
+compat.register()
+import psycopg2
+from psycopg2.extras import DictCursor
+from psycopg2.pool import SimpleConnectionPool
 
 from services.date import to_unix_timestamp
 from datastore.datastore import DataStore
@@ -36,21 +41,27 @@ class AnalyticDBDataStore(DataStore):
         self.host = config["host"]
         self.port = config["port"]
 
-        self.conn = psycopg2.connect(
+        self.connection_pool = SimpleConnectionPool(
+            minconn=1,
+            maxconn=100,
+            dbname=self.database,
             user=self.user,
             password=self.password,
             host=self.host,
             port=self.port,
-            database=self.database,
         )
 
         self._initialize_db()
 
     def _initialize_db(self):
-        with self.conn.cursor() as cur:
-            self._create_table(cur)
-            self._create_embedding_index(cur)
-            self.conn.commit()
+        conn = self.connection_pool.getconn()
+        try:
+            with conn.cursor() as cur:
+                self._create_table(cur)
+                self._create_embedding_index(cur)
+                conn.commit()
+        finally:
+            self.connection_pool.putconn(conn)
 
     def _create_table(self, cur: psycopg2.extensions.cursor):
         cur.execute(
@@ -87,7 +98,7 @@ class AnalyticDBDataStore(DataStore):
                 USING ann(embedding)
                 WITH (
                     distancemeasure=L2,
-                    dim=1536,
+                    dim=OUTPUT_DIM,
                     pq_segments=64,
                     hnsw_m=100,
                     pq_centers=2048
@@ -95,15 +106,17 @@ class AnalyticDBDataStore(DataStore):
                 """
             )
 
-
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
         Takes in a dict of document_ids to list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
         loop = asyncio.get_event_loop()
-        tasks = [loop.run_in_executor(None, self._upsert_chunk, chunk) for document_chunks in chunks.values() for chunk
-                 in document_chunks]
+        tasks = [
+            loop.run_in_executor(None, self._upsert_chunk, chunk)
+            for document_chunks in chunks.values()
+            for chunk in document_chunks
+        ]
         await asyncio.gather(*tasks)
 
         return list(chunks.keys())
@@ -123,30 +136,34 @@ class AnalyticDBDataStore(DataStore):
             chunk.metadata.source_id,
             chunk.metadata.url,
             chunk.metadata.author,
-            created_at
+            created_at,
         )
 
-        with self.conn.cursor() as cur:
-            # Construct the SQL query and data
-            query = f"""
-                    INSERT INTO {self.collection_name} (id, content, embedding, document_id, source, source_id, url, author, created_at)
-                    VALUES (%s::text, %s::text, %s::real[], %s::text, %s::text, %s::text, %s::text, %s::text, %s::timestamp with time zone)
-                    ON CONFLICT (id) DO UPDATE SET
-                        content = EXCLUDED.content,
-                        embedding = EXCLUDED.embedding,
-                        document_id = EXCLUDED.document_id,
-                        source = EXCLUDED.source,
-                        source_id = EXCLUDED.source_id,
-                        url = EXCLUDED.url,
-                        author = EXCLUDED.author,
-                        created_at = EXCLUDED.created_at;
-            """
+        conn = self.connection_pool.getconn()
+        try:
+            with conn.cursor() as cur:
+                # Construct the SQL query and data
+                query = f"""
+                        INSERT INTO {self.collection_name} (id, content, embedding, document_id, source, source_id, url, author, created_at)
+                        VALUES (%s::text, %s::text, %s::real[], %s::text, %s::text, %s::text, %s::text, %s::text, %s::timestamp with time zone)
+                        ON CONFLICT (id) DO UPDATE SET
+                            content = EXCLUDED.content,
+                            embedding = EXCLUDED.embedding,
+                            document_id = EXCLUDED.document_id,
+                            source = EXCLUDED.source,
+                            source_id = EXCLUDED.source_id,
+                            url = EXCLUDED.url,
+                            author = EXCLUDED.author,
+                            created_at = EXCLUDED.created_at;
+                """
 
-            # Execute the query
-            cur.execute(query, data)
+                # Execute the query
+                cur.execute(query, data)
 
-            # Commit the transaction
-            self.conn.commit()
+                # Commit the transaction
+                conn.commit()
+        finally:
+            self.connection_pool.putconn(conn)
 
     async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
         """
@@ -176,18 +193,24 @@ class AnalyticDBDataStore(DataStore):
             q += f"ORDER BY embedding <-> array{embedding}::real[] LIMIT {query.top_k};"
             return q, params
 
-        def generate_where_clause(query_filter: Optional[DocumentMetadataFilter]) -> Tuple[str, List[Any]]:
+        def generate_where_clause(
+            query_filter: Optional[DocumentMetadataFilter],
+        ) -> Tuple[str, List[Any]]:
             if query_filter is None:
                 return "", []
 
-            conditions = [("document_id=%s", query_filter.document_id),
-                          ("source_id=%s", query_filter.source_id),
-                          ("source LIKE %s", query_filter.source),
-                          ("author LIKE %s", query_filter.author),
-                          ("created_at >= %s", query_filter.start_date),
-                          ("created_at <= %s", query_filter.end_date)]
+            conditions = [
+                ("document_id=%s", query_filter.document_id),
+                ("source_id=%s", query_filter.source_id),
+                ("source LIKE %s", query_filter.source),
+                ("author LIKE %s", query_filter.author),
+                ("created_at >= %s", query_filter.start_date),
+                ("created_at <= %s", query_filter.end_date),
+            ]
 
-            where_clause = "WHERE " + " AND ".join([cond[0] for cond in conditions if cond[1] is not None])
+            where_clause = "WHERE " + " AND ".join(
+                [cond[0] for cond in conditions if cond[1] is not None]
+            )
 
             values = [cond[1] for cond in conditions if cond[1] is not None]
 
@@ -216,28 +239,35 @@ class AnalyticDBDataStore(DataStore):
                 results.append(document_chunk)
             return results
 
-        for query in queries:
-            try:
-                cur = self.conn.cursor(cursor_factory=DictCursor)
-                for query in queries:
-                    q, params = generate_query(query)
-                    data = fetch_data(cur, q, params)
-                    results = create_results(data)
-                    query_results.append(QueryResult(query=query.query, results=results))
-            except Exception as e:
-                print("error:", e)
-                query_results.append(QueryResult(query=query.query, results=[]))
-        return query_results
+        conn = self.connection_pool.getconn()
+        try:
+            for query in queries:
+                try:
+                    cur = conn.cursor(cursor_factory=DictCursor)
+                    for query in queries:
+                        q, params = generate_query(query)
+                        data = fetch_data(cur, q, params)
+                        results = create_results(data)
+                        query_results.append(
+                            QueryResult(query=query.query, results=results)
+                        )
+                except Exception as e:
+                    print("error:", e)
+                    query_results.append(QueryResult(query=query.query, results=[]))
+            return query_results
+        finally:
+            self.connection_pool.putconn(conn)
 
     async def delete(
-            self,
-            ids: Optional[List[str]] = None,
-            filter: Optional[DocumentMetadataFilter] = None,
-            delete_all: Optional[bool] = None,
+        self,
+        ids: Optional[List[str]] = None,
+        filter: Optional[DocumentMetadataFilter] = None,
+        delete_all: Optional[bool] = None,
     ) -> bool:
         async def execute_delete(query: str, params: Optional[List] = None) -> bool:
+            conn = self.connection_pool.getconn()
             try:
-                with self.conn.cursor() as cur:
+                with conn.cursor() as cur:
                     if params:
                         cur.execute(query, params)
                     else:
@@ -247,6 +277,8 @@ class AnalyticDBDataStore(DataStore):
             except Exception as e:
                 print(f"Error: {e}")
                 return False
+            finally:
+                self.connection_pool.putconn(conn)
 
         if delete_all:
             query = f"DELETE FROM {self.collection_name} WHERE document_id LIKE %s;"
@@ -260,7 +292,9 @@ class AnalyticDBDataStore(DataStore):
         else:
             return True
 
-    def _generate_delete_query(self, filter: DocumentMetadataFilter) -> Tuple[str, List]:
+    def _generate_delete_query(
+        self, filter: DocumentMetadataFilter
+    ) -> Tuple[str, List]:
         conditions = [
             (filter.document_id, "document_id = %s"),
             (filter.source, "source = %s"),
