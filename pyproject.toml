@@ -21,11 +21,47 @@ PyPDF2 = "^3.0.1"
 python-pptx = "^0.6.21"
 python-multipart = "^0.0.6"
 arrow = "^1.2.3"
+
+# only used for pinecone database provider
+[tool.poetry.group.pinecone]
+optional = true
+[tool.poetry.group.pinecone.dependencies]
 pinecone-client = "^2.1.0"
+
+# only used for weaviate database provider
+[tool.poetry.group.weaviate]
+optional = true
+[tool.poetry.group.weaviate.dependencies]
 weaviate-client = "^3.12.0"
+
+# only used for zilliz database provider
+[tool.poetry.group.zilliz]
+optional = true
+[tool.poetry.group.zilliz.dependencies]
 pymilvus = "^2.2.2"
+
+# only used for milvus database provider
+[tool.poetry.group.milvus]
+optional = true
+[tool.poetry.group.milvus.dependencies]
+pymilvus = "^2.2.2"
+
+# only used for qdrant database provider
+[tool.poetry.group.qdrant]
+optional = true
+[tool.poetry.group.qdrant.dependencies]
 qdrant-client = {version = "^1.0.4", python = "<3.12"}
+
+# only used for redis database provider
+[tool.poetry.group.redis]
+optional = true
+[tool.poetry.group.redis.dependencies]
 redis = "4.5.1"
+
+# only used for llama index database provider
+[tool.poetry.group.llama]
+optional = true
+[tool.poetry.group.llama.dependencies]
 llama-index = "0.5.4"
 
 [tool.poetry.scripts]
