@@ -33,13 +33,15 @@ def persisted_chroma_datastore() -> ChromaDataStore:
 
 
 def get_chroma_datastore() -> ChromaDataStore:
-    ephemeral = ephemeral_chroma_datastore()
-    yield ephemeral
-    persisted = persisted_chroma_datastore()
-    yield persisted
+    yield ephemeral_chroma_datastore()
+    yield persisted_chroma_datastore()
     # Delete the persistence directory after the test
-    del persisted
-    shutil.rmtree(TEST_PERSISTENCE_DIR)
+
+
+@pytest.fixture(autouse=True)
+def cleanup():
+    yield
+    shutil.rmtree(TEST_PERSISTENCE_DIR, ignore_errors=True)
 
 
 # Seed for deterministic testing
