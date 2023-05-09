@@ -55,7 +55,6 @@ def unpack_schema(d: dict):
             yield v
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
-
     installed_modules = (await client.info()).get("modules", [])
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
@@ -66,14 +65,13 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
             raise AttributeError(error_message)
 
 
-
 class RedisDataStore(DataStore):
-    def __init__(self, client: redis.Redis, redisearch_schema):
+    def __init__(self, client: redis.Redis, redisearch_schema: dict):
         self.client = client
         self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
-            field: "_null_" for field in redisearch_schema["metadata"]
+            field: (0 if field == "created_at" else "_null_") for field in redisearch_schema["metadata"]
         }
 
     ### Redis Helper Methods ###
@@ -94,11 +92,11 @@ class RedisDataStore(DataStore):
             raise e
 
         await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
-       
+
         dim = kwargs.get("dim", VECTOR_DIMENSION)
         redisearch_schema = {
-            "document_id": TagField("$.document_id", as_name="document_id"),
             "metadata": {
+                "document_id": TagField("$.metadata.document_id", as_name="document_id"),
                 "source_id": TagField("$.metadata.source_id", as_name="source_id"),
                 "source": TagField("$.metadata.source", as_name="source"),
                 "author": TextField("$.metadata.author", as_name="author"),
@@ -300,7 +298,7 @@ class RedisDataStore(DataStore):
         results: List[QueryResult] = []
 
         # Gather query results in a pipeline
-        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        logging.info(f"Gathering {len(queries)} query results")
         for query in queries:
 
             logging.info(f"Query: {query.query}")
