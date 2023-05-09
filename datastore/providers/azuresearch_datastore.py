@@ -5,12 +5,13 @@ import time
 from typing import Dict, List, Optional, Union
 from datastore.datastore import DataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
-from azure.search.documents import SearchClient
+from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import Vector, QueryType
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import *
 from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential as DefaultAzureCredentialSync
+from azure.identity.aio import DefaultAzureCredential
 
 AZURESEARCH_SERVICE = os.environ.get("AZURESEARCH_SERVICE")
 AZURESEARCH_INDEX = os.environ.get("AZURESEARCH_INDEX")
@@ -40,18 +41,16 @@ MAX_DELETE_BATCH_SIZE = 1000
 
 class AzureSearchDataStore(DataStore):
     def __init__(self):
-        credential = AzureSearchDataStore._create_credentials()
-
         self.client = SearchClient(
             endpoint=f"https://{AZURESEARCH_SERVICE}.search.windows.net",
             index_name=AZURESEARCH_INDEX,
-            credential=credential,
+            credential=AzureSearchDataStore._create_credentials(True),
             user_agent="retrievalplugin"
         )
 
         mgmt_client = SearchIndexClient(
             endpoint=f"https://{AZURESEARCH_SERVICE}.search.windows.net",
-            credential=credential,
+            credential=AzureSearchDataStore._create_credentials(False),
             user_agent="retrievalplugin"
         )
         if AZURESEARCH_INDEX not in [name for name in mgmt_client.list_index_names()]:
@@ -62,8 +61,8 @@ class AzureSearchDataStore(DataStore):
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         azdocuments: List[Dict] = []
 
-        def upload():
-            r = self.client.upload_documents(documents=azdocuments)
+        async def upload():
+            r = await self.client.upload_documents(documents=azdocuments)
             count = sum(1 for rr in r if rr.succeeded)
             print(f"Upserted {count} chunks out of {len(azdocuments)}")
             if count < len(azdocuments):
@@ -86,11 +85,11 @@ class AzureSearchDataStore(DataStore):
                 })
             
                 if len(azdocuments) >= MAX_UPLOAD_BATCH_SIZE:
-                    upload()
+                    await upload()
                     azdocuments = []
 
         if len(azdocuments) > 0:
-            upload()
+            await upload()
 
         return ids
 
@@ -99,13 +98,13 @@ class AzureSearchDataStore(DataStore):
         if delete_all or filter is not None:
             deleted = set()
             while True:
-                search_result = self.client.search(None, filter=filter, top=MAX_DELETE_BATCH_SIZE, include_total_count=True, select=FIELDS_ID)
-                if search_result.get_count() == 0:
+                search_result = await self.client.search(None, filter=filter, top=MAX_DELETE_BATCH_SIZE, include_total_count=True, select=FIELDS_ID)
+                if await search_result.get_count() == 0:
                     break
-                documents = [{ FIELDS_ID: d[FIELDS_ID] } for d in search_result if d[FIELDS_ID] not in deleted]
+                documents = [{ FIELDS_ID: d[FIELDS_ID] } async for d in search_result if d[FIELDS_ID] not in deleted]
                 if len(documents) > 0:
                     print(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
-                    del_result = self.client.delete_documents(documents=documents)
+                    del_result = await self.client.delete_documents(documents=documents)
                     if not all([rr.succeeded for rr in del_result]):
                         raise Exception("Failed to delete documents")
                     deleted.update([d[FIELDS_ID] for d in documents])
@@ -136,7 +135,7 @@ class AzureSearchDataStore(DataStore):
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
             if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
                 print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}, semantic config: {AZURESEARCH_SEMANTIC_CONFIG}")
-                r = self.client.search(
+                r = await self.client.search(
                         q, 
                         filter=filter, 
                         top=query.top_k, 
@@ -146,13 +145,13 @@ class AzureSearchDataStore(DataStore):
                         semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
             else:
                 print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}")
-                r = self.client.search(
+                r = await self.client.search(
                         q, 
                         filter=filter, 
                         top=query.top_k, 
                         vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
             results: List[DocumentChunkWithScore] = []
-            for hit in r:
+            async for hit in r:
                 f = lambda field: hit.get(field) if field != "-" else None
                 results.append(DocumentChunkWithScore(
                     id=hit[FIELDS_ID],
@@ -250,10 +249,10 @@ class AzureSearchDataStore(DataStore):
         )
 
     @staticmethod
-    def _create_credentials() -> Union[AzureKeyCredential, DefaultAzureCredential]:
+    def _create_credentials(use_async: bool) -> Union[AzureKeyCredential, DefaultAzureCredential, DefaultAzureCredentialSync]:
         if AZURESEARCH_API_KEY is None:
             print("Using DefaultAzureCredential for Azure Search, make sure local identity or managed identity are set up appropriately")
-            credential = DefaultAzureCredential()
+            credential = DefaultAzureCredential() if use_async else DefaultAzureCredentialSync()
         else:
             print("Using an API key to authenticate with Azure Search")
             credential = AzureKeyCredential(AZURESEARCH_API_KEY)

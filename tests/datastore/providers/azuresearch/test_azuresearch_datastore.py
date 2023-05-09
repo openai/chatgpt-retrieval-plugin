@@ -3,8 +3,6 @@ import os
 import time
 from typing import Union
 from azure.search.documents.indexes import SearchIndexClient
-from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
 from models.models import DocumentMetadataFilter, Query, Source, Document, DocumentMetadata
 
 AZURESEARCH_TEST_INDEX = "testindex"
@@ -14,15 +12,11 @@ import datastore.providers.azuresearch_datastore
 from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 
 @pytest.fixture(scope="module")
-def azuresearch_creds() -> Union[DefaultAzureCredential, AzureKeyCredential]:
-    return AzureSearchDataStore._create_credentials()
-
-@pytest.fixture(scope="module")
-def azuresearch_mgmt_client(azuresearch_creds):
+def azuresearch_mgmt_client():
     service = os.environ["AZURESEARCH_SERVICE"]
     return SearchIndexClient(
         endpoint=f"https://{service}.search.windows.net",
-        credential=azuresearch_creds
+        credential=AzureSearchDataStore._create_credentials(False)
     )    
 
 def test_translate_filter():
