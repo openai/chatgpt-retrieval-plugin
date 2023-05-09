@@ -198,7 +198,10 @@ class ChromaDataStore(DataStore):
             (metadatas,) = result["metadatas"]
             (distances,) = result["distances"]
             for id_, text, metadata, distance in zip(
-                ids, documents, metadatas, distances  # embeddings
+                ids,
+                documents,
+                metadatas,
+                distances,  # embeddings (https://github.com/openai/chatgpt-retrieval-plugin/pull/59#discussion_r1154985153)
             ):
                 inner_results.append(
                     DocumentChunkWithScore(
