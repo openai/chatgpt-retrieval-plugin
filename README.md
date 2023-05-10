@@ -41,6 +41,8 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Llama Index](#llamaindex)
+    - [Chroma](#chroma)
     - [Azure Cognitive Search](#azure-cognitive-search)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
@@ -74,7 +76,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export OPENAI_API_KEY=<your_openai_api_key>
 
    # Optional environment variables used when running Azure OpenAI
-   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/ 
+   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/
    export OPENAI_API_TYPE=azure
    export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
    export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
@@ -121,12 +123,19 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
-   
+
    # Llama
    export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
    export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
    export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
-   export LLAMA_RESPONSE_MODE=<response_mode_for_query> 
+   export LLAMA_RESPONSE_MODE=<response_mode_for_query>
+
+   # Chroma
+   export CHROMA_COLLECTION=<your_chroma_collection>
+   export CHROMA_IN_MEMORY=<true_or_false>
+   export CHROMA_PERSISTENCE_DIR=<your_chroma_persistence_directory>
+   export CHROMA_HOST=<your_chroma_host>
+   export CHROMA_PORT=<your_chroma_port>
 
    # Azure Cognitive Search
    export AZURESEARCH_SERVICE=<your_search_service_name>
@@ -245,20 +254,18 @@ The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                |
 | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`.           |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
-
 
 ### Using the plugin with Azure OpenAI
 
 The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
 
-In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here. 
+In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here.
 
-If you wish to use the data preparation scripts, you will also need to set  OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and 
+If you wish to use the data preparation scripts, you will also need to set OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and
 OPENAI_COMPLETIONMODEL_DEPLOYMENTID, used for PII handling.
-
 
 ### Choosing a Vector Database
 
@@ -299,6 +306,10 @@ It is light-weight, easy-to-use, and requires no additional deployment.
 All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
+#### Chroma
+
+[Chroma](https://trychroma.com) is an AI-native open-source embedding database designed to make getting started as easy as possible. Chroma runs in-memory, or in a client-server setup. It supports metadata and keyword filtering out of the box. For detailed instructions, refer to [`/docs/providers/chroma/setup.md`](/docs/providers/chroma/setup.md).
 
 #### Azure Cognitive Search
 
@@ -377,7 +388,13 @@ Before deploying your app, you might want to remove unused dependencies from you
 
 Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
-Here are detailed deployment instructions for various platforms:
+- **Chroma:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Pinecone:** Remove `chromadb`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Weaviate:** Remove `chromadb`, `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Zilliz:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Milvus:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Qdrant:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
+- **Redis:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
 
 - [Deploying to Fly.io](/docs/deployment/flyio.md)
 - [Deploying to Heroku](/docs/deployment/heroku.md)

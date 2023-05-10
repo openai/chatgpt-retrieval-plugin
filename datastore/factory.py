@@ -7,6 +7,10 @@ async def get_datastore() -> DataStore:
     assert datastore is not None
 
     match datastore:
+        case "chroma":
+            from datastore.providers.chroma_datastore import ChromaDataStore
+
+            return ChromaDataStore()
         case "llama":
             from datastore.providers.llama_datastore import LlamaDataStore
             return LlamaDataStore()
