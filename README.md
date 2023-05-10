@@ -35,13 +35,14 @@ This README provides detailed information on how to set up, develop, and deploy 
   - [Setup](#setup)
     - [General Environment Variables](#general-environment-variables)
   - [Choosing a Vector Database](#choosing-a-vector-database)
-    - [Chroma](#chroma)
     - [Pinecone](#pinecone)
     - [Weaviate](#weaviate)
     - [Zilliz](#zilliz)
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Llama Index](#llamaindex)
+    - [Chroma](#chroma)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -121,12 +122,19 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
-   
+
    # Llama
    export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
    export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
    export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
-   export LLAMA_RESPONSE_MODE=<response_mode_for_query> 
+   export LLAMA_RESPONSE_MODE=<response_mode_for_query>
+
+   # Chroma
+   export CHROMA_COLLECTION=<your_chroma_collection>
+   export CHROMA_IN_MEMORY=<true_or_false>
+   export CHROMA_PERSISTENCE_DIR=<your_chroma_persistence_directory>
+   export CHROMA_HOST=<your_chroma_host>
+   export CHROMA_PORT=<your_chroma_port>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -259,10 +267,6 @@ The plugin supports several vector database providers, each with different featu
 
 For more detailed instructions on setting up and using each vector database provider, please refer to the respective documentation in the `/docs/providers/<datastore_name>/setup.md` file ([folders here](/docs/providers)).
 
-#### Chroma
-
-[Chroma](https://trychroma.com) is an AI-native open-source embedding database designed to make getting started as easy as possible. Chroma runs in-memory, or in a client-server setup. It supports metadata and keyword filtering out of the box. For detailed instructions, refer to [`/docs/providers/chroma/setup.md`](/docs/providers/chroma/setup.md).
-
 #### Pinecone
 
 [Pinecone](https://www.pinecone.io) is a managed vector database designed for speed, scale, and rapid deployment to production. It supports hybrid search and is currently the only datastore to natively support SPLADE sparse vectors. For detailed setup instructions, refer to [`/docs/providers/pinecone/setup.md`](/docs/providers/pinecone/setup.md).
@@ -296,6 +300,10 @@ It is light-weight, easy-to-use, and requires no additional deployment.
 All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
+#### Chroma
+
+[Chroma](https://trychroma.com) is an AI-native open-source embedding database designed to make getting started as easy as possible. Chroma runs in-memory, or in a client-server setup. It supports metadata and keyword filtering out of the box. For detailed instructions, refer to [`/docs/providers/chroma/setup.md`](/docs/providers/chroma/setup.md).
 
 ### Running the API locally
 
