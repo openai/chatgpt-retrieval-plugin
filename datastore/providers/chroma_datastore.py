@@ -15,6 +15,7 @@ import chromadb
 
 from datastore.datastore import DataStore
 from models.models import (
+    Document,
     DocumentChunk,
     DocumentChunkMetadata,
     DocumentChunkWithScore,
@@ -35,7 +36,7 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "openaiembeddings")
 class ChromaDataStore(DataStore):
     def __init__(
         self,
-        in_memory: bool = CHROMA_IN_MEMORY,
+        in_memory: bool = CHROMA_IN_MEMORY,  # type: ignore
         persistence_dir: Optional[str] = CHROMA_PERSISTENCE_DIR,
         collection_name: str = CHROMA_COLLECTION,
         host: str = CHROMA_HOST,
@@ -70,7 +71,7 @@ class ChromaDataStore(DataStore):
         )
 
     async def upsert(
-        self, documents: List[DocumentChunk], chunk_token_size: Optional[int] = None
+        self, documents: List[Document], chunk_token_size: Optional[int] = None
     ) -> List[str]:
         """
         Takes in a list of documents and inserts them into the database. If an id already exists, the document is updated.
@@ -181,7 +182,7 @@ class ChromaDataStore(DataStore):
             self._collection.query(
                 query_embeddings=[query.embedding],
                 include=["documents", "distances", "metadatas"],  # embeddings
-                n_results=min(query.top_k, self._collection.count()),
+                n_results=min(query.top_k, self._collection.count()),  # type: ignore
                 where=(
                     self._where_from_query_filter(query.filter) if query.filter else {}
                 ),
