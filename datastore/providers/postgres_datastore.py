@@ -14,18 +14,28 @@ import json
 import psycopg
 from psycopg import sql
 from psycopg_pool import ConnectionPool
-
+import logging
 from services.date import to_unix_timestamp
 
 # Read environment variables for Postgres
 
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = int(os.environ.get("POSTGRES_PORT", 5433))
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5433")
 POSTGRES_USERNAME = os.environ.get("POSTGRES_USERNAME", "postgres")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
 POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE", "pgml_development")
 POSTGRES_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
+POSTGRES_EMBEDDING_INDEX = os.environ.get(
+    "POSTGRES_EMBEDDING_INDEX", "chatgpt_datastore_embedding_index"
+)
+POSTGRES_DOCID_INDEX = os.environ.get(
+    "POSTGRES_EMBEDDING_INDEX", "chatgpt_datastore_docid_index"
+)
 POSTGRES_UPSERT_COMMAND = os.environ.get("POSTGRES_UPSERT_COMMAND", "INSERT")
+POSTGRES_MIN_ROWS_FOR_INDEX = int(os.environ.get("POSTGRES_MIN_ROWS_FOR_INDEX", 1000))
+POSTGRES_MIN_NEW_ROWS_FOR_REINDEX = int(
+    os.environ.get("POSTGRES_MIN_NEW_ROWS_FOR_REINDEX", 1000)
+)
 
 assert POSTGRES_UPSERT_COMMAND in ["COPY", "INSERT"]
 
@@ -43,7 +53,7 @@ class PostgresDataStore(DataStore):
             + "@"
             + POSTGRES_HOST
             + ":"
-            + str(POSTGRES_PORT)
+            + POSTGRES_PORT
             + "/"
             + POSTGRES_DATABASE
         )
@@ -51,22 +61,34 @@ class PostgresDataStore(DataStore):
         conn = self.pool.getconn()
         conn.autocommit = True
         # Insert the vector and text into the database
+        logging.info("Creating table %s" % POSTGRES_TABLENAME)
         create_table = (
             "CREATE TABLE IF NOT EXISTS %s (doc_id TEXT, chunk_id TEXT, text TEXT, embedding vector(%s), metadata JSONB)"
             % (POSTGRES_TABLENAME, str(VECTOR_DIMENSION))
         )
         cur = conn.cursor()
         cur.execute(create_table)
-
-        index_statement = (
-            "CREATE INDEX CONCURRENTLY ON %s USING ivfflat (embedding vector_cosine_ops)"
-            % (POSTGRES_TABLENAME)
+        index_exists_staetment = (
+            "SELECT EXISTS (SELECT 1 FROM pg_indexes  WHERE tablename = '%s' AND indexname = '%s')"
+            % (POSTGRES_TABLENAME, POSTGRES_DOCID_INDEX)
         )
-        cur.execute(index_statement)
-        index_doc_ids = "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRES_TABLENAME
-        cur.execute(index_doc_ids)
+        cur.execute(index_exists_staetment)
+        self.docid_index_exists = cur.fetchall()[0][0]
 
-        # Close the cursor and the connection
+        if not self.docid_index_exists:
+            index_doc_ids = (
+                "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRES_TABLENAME
+            )
+            cur.execute(index_doc_ids)
+
+        self.index_counter = 0
+        index_exists_staetment = (
+            "SELECT EXISTS (SELECT 1 FROM pg_indexes  WHERE tablename = '%s' AND indexname = '%s')"
+            % (POSTGRES_TABLENAME, POSTGRES_EMBEDDING_INDEX)
+        )
+        cur.execute(index_exists_staetment)
+        self.index_exists = cur.fetchall()[0][0]
+
         cur.close()
         self.pool.putconn(conn)
 
@@ -78,6 +100,7 @@ class PostgresDataStore(DataStore):
         # Create a connection
 
         conn = self.pool.getconn()
+        conn.autocommit = True
         cur = conn.cursor()
 
         # Initialize a list of ids to return
@@ -105,6 +128,7 @@ class PostgresDataStore(DataStore):
                         sql.Literal(metadata),
                     )
                     cur.execute(insert_statement)
+                    self.index_counter += 1
 
         if POSTGRES_UPSERT_COMMAND == "COPY":
             with cur.copy(
@@ -129,8 +153,34 @@ class PostgresDataStore(DataStore):
 
                         row = (doc_id, chunk.id, text, embedding, metadata)
                         copy.write_row(row)
+                        self.index_counter += 1
 
-        conn.commit()
+        cur.execute("SELECT COUNT(*) from %s" % POSTGRES_TABLENAME)
+        nrows = cur.fetchall()[0][0]
+
+        if self.index_exists:
+            if self.index_counter > POSTGRES_MIN_NEW_ROWS_FOR_REINDEX:
+                reindex_statement = "REINDEX INDEX CONCURRENTLY %s" % (
+                    POSTGRES_EMBEDDING_INDEX
+                )
+                cur.execute(reindex_statement)
+                print(
+                    "Reindex initiated when nrows = %d, index counter = %d"
+                    % (nrows, self.index_counter)
+                )
+                self.index_counter = 0
+
+        else:
+            if nrows > POSTGRES_MIN_ROWS_FOR_INDEX:
+                index_statement = (
+                    "CREATE INDEX CONCURRENTLY %s ON %s USING ivfflat (embedding vector_cosine_ops)"
+                    % (POSTGRES_EMBEDDING_INDEX, POSTGRES_TABLENAME)
+                )
+                cur.execute(index_statement)
+                self.index_exists = True
+                print("Created index if not exists when nrows = %d" % nrows)
+                self.index_counter = 0
+
         cur.close()
         self.pool.putconn(conn)
 
