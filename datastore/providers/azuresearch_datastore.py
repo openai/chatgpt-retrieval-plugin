@@ -5,6 +5,7 @@ import time
 from typing import Dict, List, Optional, Union
 from datastore.datastore import DataStore
 from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
+from loguru import logger
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import Vector, QueryType
 from azure.search.documents.indexes import SearchIndexClient
@@ -19,6 +20,7 @@ AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
 AZURESEARCH_LANGUAGE = os.environ.get("AZURESEARCH_LANGUAGE", "en-us")
 AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
+AZURESEARCH_DIMENSIONS = os.environ.get("AZURESEARCH_DIMENSIONS", 1536) # Default to OpenAI's ada-002 embedding model vector size
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
 
@@ -32,9 +34,6 @@ FIELDS_SOURCE_ID = os.environ.get("AZURESEARCH_FIELDS_SOURCE_ID", "source_id")
 FIELDS_URL = os.environ.get("AZURESEARCH_FIELDS_URL", "url")
 FIELDS_CREATED_AT = os.environ.get("AZURESEARCH_FIELDS_CREATED_AT", "created_at")
 FIELDS_AUTHOR = os.environ.get("AZURESEARCH_FIELDS_AUTHOR", "author")
-
-# Assume we're using OpenAI's ada-002 embedding model that uses a vector size of 1536
-EMBEDDING_DIMENSIONS = 1536
 
 MAX_UPLOAD_BATCH_SIZE = 1000
 MAX_DELETE_BATCH_SIZE = 1000
@@ -56,7 +55,7 @@ class AzureSearchDataStore(DataStore):
         if AZURESEARCH_INDEX not in [name for name in mgmt_client.list_index_names()]:
             self._create_index(mgmt_client)
         else:
-            print(f"Using existing index {AZURESEARCH_INDEX} in service {AZURESEARCH_SERVICE}")
+            logger.info(f"Using existing index {AZURESEARCH_INDEX} in service {AZURESEARCH_SERVICE}")
     
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         azdocuments: List[Dict] = []
@@ -64,7 +63,7 @@ class AzureSearchDataStore(DataStore):
         async def upload():
             r = await self.client.upload_documents(documents=azdocuments)
             count = sum(1 for rr in r if rr.succeeded)
-            print(f"Upserted {count} chunks out of {len(azdocuments)}")
+            logger.info(f"Upserted {count} chunks out of {len(azdocuments)}")
             if count < len(azdocuments):
                 raise Exception(f"Failed to upload {len(azdocuments) - count} chunks")
 
@@ -103,7 +102,7 @@ class AzureSearchDataStore(DataStore):
                     break
                 documents = [{ FIELDS_ID: d[FIELDS_ID] } async for d in search_result if d[FIELDS_ID] not in deleted]
                 if len(documents) > 0:
-                    print(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
+                    logger.info(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
                     del_result = await self.client.delete_documents(documents=documents)
                     if not all([rr.succeeded for rr in del_result]):
                         raise Exception("Failed to delete documents")
@@ -114,7 +113,7 @@ class AzureSearchDataStore(DataStore):
         
         if ids is not None and len(ids) > 0:
             for id in ids:
-                print(f"Deleting chunks for document id {id}")
+                logger.info(f"Deleting chunks for document id {id}")
                 await self.delete(filter=DocumentMetadataFilter(document_id=id))
 
         return True
@@ -134,7 +133,6 @@ class AzureSearchDataStore(DataStore):
             k = query.top_k if filter is None else query.top_k * 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
             if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
-                print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}, semantic config: {AZURESEARCH_SEMANTIC_CONFIG}")
                 r = await self.client.search(
                         q, 
                         filter=filter, 
@@ -144,7 +142,6 @@ class AzureSearchDataStore(DataStore):
                         query_language=AZURESEARCH_LANGUAGE,
                         semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
             else:
-                print(f"Querying with query: {query.query}, top: {query.top_k}, filter: {filter}")
                 r = await self.client.search(
                         q, 
                         filter=filter, 
@@ -207,7 +204,7 @@ class AzureSearchDataStore(DataStore):
         """
         Creates an Azure Cognitive Search index, including a semantic search configuration if a name is specified for it
         """
-        print(
+        logger.info(
             f"Creating index {AZURESEARCH_INDEX} in service {AZURESEARCH_SERVICE}" +
             (f" with semantic search configuration {AZURESEARCH_SEMANTIC_CONFIG}" if AZURESEARCH_SEMANTIC_CONFIG is not None else "")
         )
@@ -219,7 +216,7 @@ class AzureSearchDataStore(DataStore):
                     SearchableField(name=FIELDS_TEXT, type=SearchFieldDataType.String, analyzer_name="standard.lucene"),
                     SearchField(name=FIELDS_EMBEDDING, type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
                                 hidden=False, searchable=True, filterable=False, sortable=False, facetable=False,
-                                dimensions=EMBEDDING_DIMENSIONS, vector_search_configuration="default"),
+                                dimensions=AZURESEARCH_DIMENSIONS, vector_search_configuration="default"),
                     SimpleField(name=FIELDS_DOCUMENT_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
@@ -251,9 +248,9 @@ class AzureSearchDataStore(DataStore):
     @staticmethod
     def _create_credentials(use_async: bool) -> Union[AzureKeyCredential, DefaultAzureCredential, DefaultAzureCredentialSync]:
         if AZURESEARCH_API_KEY is None:
-            print("Using DefaultAzureCredential for Azure Search, make sure local identity or managed identity are set up appropriately")
+            logger.info("Using DefaultAzureCredential for Azure Search, make sure local identity or managed identity are set up appropriately")
             credential = DefaultAzureCredential() if use_async else DefaultAzureCredentialSync()
         else:
-            print("Using an API key to authenticate with Azure Search")
+            logger.info("Using an API key to authenticate with Azure Search")
             credential = AzureKeyCredential(AZURESEARCH_API_KEY)
         return credential

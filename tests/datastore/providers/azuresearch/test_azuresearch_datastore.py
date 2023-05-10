@@ -7,6 +7,8 @@ from models.models import DocumentMetadataFilter, Query, Source, Document, Docum
 
 AZURESEARCH_TEST_INDEX = "testindex"
 os.environ["AZURESEARCH_INDEX"] = AZURESEARCH_TEST_INDEX
+if os.environ.get("AZURESEARCH_SERVICE") == None:
+    os.environ["AZURESEARCH_SERVICE"] = "invalid service name" # Will fail anyway if not set to a real service, but allows tests to be discovered
 
 import datastore.providers.azuresearch_datastore
 from datastore.providers.azuresearch_datastore import AzureSearchDataStore
