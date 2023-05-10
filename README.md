@@ -41,6 +41,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Elasticsearch](#elasticsearch)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -293,6 +294,27 @@ It is light-weight, easy-to-use, and requires no additional deployment.
 All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
+
+#### Elasticsearch
+
+Elasticsearch currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. This allows users to perform an exact kNN search by scanning all documents. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets.
+
+Note: 
+- Elasticsearch does not support vectors with dimensions > 1024 due to the Lucene implementation. See [Lucene Issue 11507](https://github.com/apache/lucene/issues/11507) and [Lucene Issue 854](https://github.com/apache/lucene/issues/854) for updates on this issue.
+
+Environment Variables:
+
+| Name                    | Required | Description                                                                                                            | Default                 |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `DATASTORE`             | Yes      | Datastore name, set to `elasticsearch`                                                                                 |                         |
+| `BEARER_TOKEN`          | Yes      | Secret token                                                                                                           |                         |
+| `OPENAI_API_KEY`        | Yes      | OpenAI API key                                                                                                         |                         |
+| `ELASTICSEARCH_URL`     | Optional | Elasticsearch host and port                                                                                            | `http://localhost:9200` |
+| `ELASTICSEARCH_INDEX`   | Optional | Elasticsearch vector index name                                                                                        | `document_chunks`       |
+| `ELASTICSEARCH_REPLICAS`| Optional | Elasticsearch replicas for index creation                                                                              | `2`                     |
+| `ELASTICSEARCH_SHARDS`  | Optional | Elasticsearch shards for index creation                                                                                | `2`                     |
+
 
 ### Running the API locally
 
