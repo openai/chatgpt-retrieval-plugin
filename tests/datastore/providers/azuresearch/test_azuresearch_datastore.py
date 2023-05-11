@@ -92,10 +92,10 @@ async def lifecycle(azuresearch_mgmt_client: SearchIndexClient):
                 text="test text", 
                 metadata=DocumentMetadata(source=Source.file, source_id="test_source_id", author="test_author", created_at="2023-01-01T00:00:00Z", url="http://some-test-url/path")),
             Document(
-                id="test_id_2", 
+                id="test_id_2+", 
                 text="different", 
                 metadata=DocumentMetadata(source=Source.file, source_id="test_source_id", author="test_author", created_at="2023-01-01T00:00:00Z", url="http://some-test-url/path"))])
-        assert len(result) == 2 and result[0] == "test_id_1" and result[1] == "test_id_2"
+        assert len(result) == 2 and result[0] == "test_id_1" and result[1] == "test_id_2+"
 
         # query in a loop in case we need to retry since documents aren't searchable synchronosuly after updates
         for _ in range(4):
@@ -104,11 +104,11 @@ async def lifecycle(azuresearch_mgmt_client: SearchIndexClient):
             if len(result) > 0 and len(result[0].results) > 0:
                 break
         assert len(result) == 1 and len(result[0].results) == 2
-        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2"
+        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2+"
 
         result = await store.query([Query(query="text", filter=DocumentMetadataFilter(source_id="test_source_id"))])
         assert len(result) == 1 and len(result[0].results) == 2
-        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2"
+        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2+"
 
         result = await store.query([Query(query="text", filter=DocumentMetadataFilter(source_id="nonexisting_id"))])
         assert len(result) == 1 and len(result[0].results) == 0
@@ -118,17 +118,17 @@ async def lifecycle(azuresearch_mgmt_client: SearchIndexClient):
 
         result = await store.query([Query(query="text", filter=DocumentMetadataFilter(start_date="2023-01-01T00:00:00Z"))])
         assert len(result) == 1 and len(result[0].results) == 2
-        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2"
+        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2+"
 
         result = await store.query([Query(query="text", filter=DocumentMetadataFilter(end_date="2022-12-31T00:00:00Z"))])
         assert len(result) == 1 and len(result[0].results) == 0
 
         result = await store.query([Query(query="text", filter=DocumentMetadataFilter(end_date="2023-01-02T00:00:00Z"))])
         assert len(result) == 1 and len(result[0].results) == 2
-        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2"
+        assert result[0].results[0].metadata.document_id == "test_id_1" and result[0].results[1].metadata.document_id == "test_id_2+"
 
         # query in a loop in case we need to retry since documents aren't searchable synchronosuly after updates
-        assert await store.delete(["test_id_1", "test_id_2"])
+        assert await store.delete(["test_id_1", "test_id_2+"])
         for _ in range(4):
             time.sleep(0.25)
             result = await store.query([Query(query="text")])
