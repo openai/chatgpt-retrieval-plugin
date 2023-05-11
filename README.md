@@ -80,6 +80,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
    export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
    export OPENAI_COMPLETIONMODEL_DEPLOYMENTID=<Name of general model deployment used for completion>
+   export OPENAI_EMBEDDING_BATCH_SIZE=<Batch size of embedding, for AzureOAI, this value need to be set as 1>
 
    # Add the environment variables for your chosen vector DB.
    # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
