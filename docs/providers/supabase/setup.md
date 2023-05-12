@@ -16,17 +16,11 @@
 
 **Supabase Datastore Environment Variables**
 
-| Name                        | Required | Description                                  | Default    |
-| --------------------------- | -------- | -------------------------------------------- | ---------- |
-| `SUPABASE_URL`              | Yes      | Supabase Project URL                         |            |
-| `SUPABASE_ANON_KEY`         | Yes      | Supabase Project API anon key                |            |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase Project API service key             |            |
-| `INIT_DB`                   | Optional | Set to true if you want to run DB migrations | `False`    |
-| `PG_HOST`                   | Optional | Postgres host                                | none       |
-| `PG_PORT`                   | Optional | Postgres port                                | `5432`     |
-| `PG_PASSWORD`               | Optional | Postgres password                            | `postgres` |
-| `PG_USER`                   | Optional | Postgres username                            | `postgres` |
-| `PG_DB`                     | Optional | Postgres database                            | `postgres` |
+| Name                        | Required | Description                                                                   | Default |
+| --------------------------- | -------- | ----------------------------------------------------------------------------- | ------- |
+| `SUPABASE_URL`              | Yes      | Supabase Project URL                                                          |         |
+| `SUPABASE_ANON_KEY`         | Yes      | Supabase Project API anon key                                                 |         |
+| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase Project API service key, will be used if provided insted of anon key |         |
 
 ## Supabase Datastore local development & testing
 
@@ -43,7 +37,7 @@ cd examples/providers
 supabase start
 ```
 
-2. Supabase `start` will download docker images and launch Supabase stack locally. You will see similar output:
+3. Supabase `start` will download docker images and launch Supabase stack locally. You will see similar output:
 
 ```bash
 Applying migration 20230414142107_init_pg_vector.sql...
@@ -59,17 +53,19 @@ Started supabase local development setup.
 service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 ```
 
-3. Export environment variables required for the Supabase Datastore
+4. Export environment variables required for the Supabase Datastore
 
 ```bash
 export SUPABASE_URL=http://localhost:54321
 export SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 ```
 
-4. Run the Supabase datastore tests from the project's root directory
+5. Run the Supabase datastore tests from the project's root directory
 
 ```bash
 # Run the Supabase datastore tests
 # go to project's root directory and run
 poetry run pytest -s ./tests/datastore/providers/supabase/test_supabase_datastore.py
 ```
+
+6. When you go to prod (if cloud hosted) it is recommended to link your supabase project with the local setup from `examples/providers/supabase`. All migrations will be synced with the cloud project after you run `supabase db push`. Or you can manually apply migrations from `examples/providers/supabase/migrations` directory.

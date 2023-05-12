@@ -1797,6 +1797,20 @@ test = ["hypothesis (>=6.34.2)", "pytest (>=7.0.0)", "pytest-asyncio (>=0.17.0)"
 xml = ["lxml (>=4.6.3)"]
 
 [[package]]
+name = "pgvector"
+version = "0.1.7"
+description = "pgvector support for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pgvector-0.1.7-py2.py3-none-any.whl", hash = "sha256:b0da0289959372f916b96c1da7c57437725c7aa33fa0c75b4a53c3677369bdd5"},
+]
+
+[package.dependencies]
+numpy = "*"
+
+[[package]]
 name = "pillow"
 version = "9.5.0"
 description = "Python Imaging Library (Fork)"
@@ -1979,7 +1993,7 @@ name = "psycopg2"
 version = "2.9.6"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "psycopg2-2.9.6-cp310-cp310-win32.whl", hash = "sha256:f7a7a5ee78ba7dc74265ba69e010ae89dae635eea0e97b055fb641a01a31d2b1"},
@@ -3397,4 +3411,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "cf9d6136f9931770d0012f2cc455b9a1e5abe438a5301b5319eafb884af54928"
+content-hash = "7d68d05b83225fde417e31fcbc005a34c3da4afaf2749715a5d512d2eec748ca"

@@ -517,3 +517,4 @@ We would like to extend our gratitude to the following contributors for their co
   - [Disiok](https://github.com/Disiok)
 - [Supabase](https://supabase.com/)
   - [egor-romanov](https://github.com/egor-romanov)
+  - [mmmaia](https://github.com/mmmaia)
