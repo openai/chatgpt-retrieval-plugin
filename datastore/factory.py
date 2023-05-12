@@ -39,6 +39,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
             return QdrantDataStore()
+        case "azuresearch":
+            from datastore.providers.azuresearch_datastore import AzureSearchDataStore
+
+            return AzureSearchDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
