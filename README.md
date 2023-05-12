@@ -45,6 +45,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Chroma](#chroma)
     - [Azure Cognitive Search](#azure-cognitive-search)
     - [Supabase](#supabase)
+    - [Postgres](#postgres)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -325,6 +326,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 [Supabase](https://supabase.com/blog/openai-embeddings-postgres-vector) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension for Postgres Database. [You can use Supabase CLI](https://github.com/supabase/cli) to set up a whole Supabase stack locally or in the cloud or you can also use docker-compose, k8s and other options available. For a hosted/managed solution, try [Supabase.com](https://supabase.com/) and unlock the full power of Postgres with built-in authentication, storage, auto APIs, and Realtime features. For detailed setup instructions, refer to [`/docs/providers/supabase/setup.md`](/docs/providers/supabase/setup.md).
 
+#### Postgres
+
+[Postgres](https://www.postgresql.org) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled. For example, you can [use docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) to run locally. For a hosted/managed solution, you may try [Supabase](https://supabase.com/) or any other cloud provider with support for pgvector. For detailed setup instructions, refer to [`/docs/providers/postgres/setup.md`](/docs/providers/postgres/setup.md).
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
@@ -516,5 +521,7 @@ We would like to extend our gratitude to the following contributors for their co
   - [jerryjliu](https://github.com/jerryjliu)
   - [Disiok](https://github.com/Disiok)
 - [Supabase](https://supabase.com/)
+  - [egor-romanov](https://github.com/egor-romanov)
+- [Postgres](https://www.postgresql.org/)
   - [egor-romanov](https://github.com/egor-romanov)
   - [mmmaia](https://github.com/mmmaia)
