@@ -1,7 +1,7 @@
 create extension vector;
 
 create table if not exists documents (
-    id text primary key default uuid_generate_v4()::text,
+    id text primary key default gen_random_uuid()::text,
     source text,
     source_id text,
     content text,
@@ -11,6 +11,12 @@ create table if not exists documents (
     created_at timestamptz default now(),
     embedding vector(1536)
 );
+
+create index ix_documents_document_id on documents using btree ( document_id );
+create index ix_documents_source on documents using btree ( source );
+create index ix_documents_source_id on documents using btree ( source_id );
+create index ix_documents_author on documents using btree ( author );
+create index ix_documents_created_at on documents using brin ( created_at );
 
 create or replace function match_page_sections(in_embedding vector(1536)
                                             , in_match_count int default 3

@@ -63,3 +63,17 @@ poetry run pytest -s ./tests/datastore/providers/postgres/test_postgres_datastor
 ```
 
 5. When going to prod don't forget to set the password for the `postgres` user to something more secure and apply migrations.
+
+## Indexes for Postgres
+
+By default, pgvector performs exact nearest neighbor search. To speed up the vector comparison, you may want to create indexes for the `embedding` column in the `documents` table. You should do this **only** after a few thousand records are inserted.
+
+As datasotre is using inner product for similarity search, you can add index as follows:
+
+```sql
+create index on documents using ivfflat (embedding vector_ip_ops) with (lists = 100);
+```
+
+To choose `lists` constant - a good place to start is records / 1000 for up to 1M records and sqrt(records) for over 1M records
+
+For more information about indexes, see [pgvector docs](https://github.com/pgvector/pgvector#indexing).
