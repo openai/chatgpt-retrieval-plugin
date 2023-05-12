@@ -150,7 +150,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export SUPABASE_ANON_KEY=<supabase_project_api_anon_key>
 
    # Postgres
-   export PG_HOSR=<postgres_host>
+   export PG_HOST=<postgres_host>
    export PG_PORT=<postgres_port>
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
