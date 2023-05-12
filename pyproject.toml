@@ -38,7 +38,7 @@ azure-search-documents = {version = "11.4.0a20230509004", source = "azure-sdk-de
 
 [tool.poetry.scripts]
 start = "server.main:start"
-dev = "local-server.main:start"
+dev = "local_server.main:start"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"

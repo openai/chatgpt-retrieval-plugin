@@ -41,19 +41,19 @@ app.add_middleware(
 
 @app.route("/.well-known/ai-plugin.json")
 async def get_manifest(request):
-    file_path = "./local-server/ai-plugin.json"
+    file_path = "./local_server/ai-plugin.json"
     return FileResponse(file_path, media_type="text/json")
 
 
 @app.route("/.well-known/logo.png")
 async def get_logo(request):
-    file_path = "./local-server/logo.png"
+    file_path = "./local_server/logo.png"
     return FileResponse(file_path, media_type="text/json")
 
 
 @app.route("/.well-known/openapi.yaml")
 async def get_openapi(request):
-    file_path = "./local-server/openapi.yaml"
+    file_path = "./local_server/openapi.yaml"
     return FileResponse(file_path, media_type="text/json")
 
 
@@ -142,4 +142,4 @@ async def startup():
 
 
 def start():
-    uvicorn.run("local-server.main:app", host="localhost", port=PORT, reload=True)
+    uvicorn.run("local_server.main:app", host="localhost", port=PORT, reload=True)
