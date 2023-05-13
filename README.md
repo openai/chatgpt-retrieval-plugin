@@ -41,6 +41,9 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Llama Index](#llamaindex)
+    - [Chroma](#chroma)
+    - [Azure Cognitive Search](#azure-cognitive-search)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -72,6 +75,14 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export BEARER_TOKEN=<your_bearer_token>
    export OPENAI_API_KEY=<your_openai_api_key>
 
+   # Optional environment variables used when running Azure OpenAI
+   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/
+   export OPENAI_API_TYPE=azure
+   export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
+   export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
+   export OPENAI_COMPLETIONMODEL_DEPLOYMENTID=<Name of general model deployment used for completion>
+   export OPENAI_EMBEDDING_BATCH_SIZE=<Batch size of embedding, for AzureOAI, this value need to be set as 1>
+
    # Add the environment variables for your chosen vector DB.
    # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
 
@@ -81,16 +92,9 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PINECONE_INDEX=<your_pinecone_index>
 
    # Weaviate
-   export WEAVIATE_HOST=<your_weaviate_instance_url>
-   export WEAVIATE_PORT=<your_weaviate_port_443_for_WCS>
+   export WEAVIATE_URL=<your_weaviate_instance_url>
+   export WEAVIATE_API_KEY=<your_api_key_for_WCS>
    export WEAVIATE_CLASS=<your_optional_weaviate_class>
-   export WEAVIATE_USERNAME=<your_weaviate_WCS_username>
-   export WEAVIATE_PASSWORD=<your_weaviate_WCS_password>
-   export WEAVIATE_SCOPES=<your_optional_weaviate_scopes>
-   export WEAVIATE_BATCH_SIZE=<optional_weaviate_batch_size>
-   export WEAVIATE_BATCH_DYNAMIC=<optional_weaviate_batch_dynamic>
-   export WEAVIATE_BATCH_TIMEOUT_RETRIES=<optional_weaviate_batch_timeout_retries>
-   export WEAVIATE_BATCH_NUM_WORKERS=<optional_weaviate_batch_num_workers>
 
    # Zilliz
    export ZILLIZ_COLLECTION=<your_zilliz_collection>
@@ -120,6 +124,24 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
+
+   # Llama
+   export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
+   export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
+   export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
+   export LLAMA_RESPONSE_MODE=<response_mode_for_query>
+
+   # Chroma
+   export CHROMA_COLLECTION=<your_chroma_collection>
+   export CHROMA_IN_MEMORY=<true_or_false>
+   export CHROMA_PERSISTENCE_DIR=<your_chroma_persistence_directory>
+   export CHROMA_HOST=<your_chroma_host>
+   export CHROMA_PORT=<your_chroma_port>
+
+   # Azure Cognitive Search
+   export AZURESEARCH_SERVICE=<your_search_service_name>
+   export AZURESEARCH_INDEX=<your_search_index_name>
+   export AZURESEARCH_API_KEY=<your_api_key> (optional, uses key-free managed identity if not set)
    ```
 
 10. Run the API locally: `poetry run start`
@@ -232,10 +254,19 @@ poetry install
 The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis` or `llama`.           |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |          |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch` or `llama`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
+
+### Using the plugin with Azure OpenAI
+
+The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
+
+In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here.
+
+If you wish to use the data preparation scripts, you will also need to set OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and
+OPENAI_COMPLETIONMODEL_DEPLOYMENTID, used for PII handling.
 
 ### Choosing a Vector Database
 
@@ -276,6 +307,14 @@ It is light-weight, easy-to-use, and requires no additional deployment.
 All you need to do is specifying a few environment variables (optionally point to an existing saved Index json file).
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
+
+#### Chroma
+
+[Chroma](https://trychroma.com) is an AI-native open-source embedding database designed to make getting started as easy as possible. Chroma runs in-memory, or in a client-server setup. It supports metadata and keyword filtering out of the box. For detailed instructions, refer to [`/docs/providers/chroma/setup.md`](/docs/providers/chroma/setup.md).
+
+#### Azure Cognitive Search
+
+[Azure Cognitive Search](https://azure.microsoft.com/products/search/) is a complete retrieval cloud service that supports vector search, text search, and hybrid (vectors + text combined to yield the best of the two approaches). It also offers an [optional L2 re-ranking step](https://learn.microsoft.com/azure/search/semantic-search-overview) to further improve results quality. For detailed setup instructions, refer to [`/docs/providers/azuresearch/setup.md`](/docs/providers/azuresearch/setup.md)
 
 ### Running the API locally
 
@@ -350,7 +389,13 @@ Before deploying your app, you might want to remove unused dependencies from you
 
 Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
-Here are detailed deployment instructions for various platforms:
+- **Chroma:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Pinecone:** Remove `chromadb`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Weaviate:** Remove `chromadb`, `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
+- **Zilliz:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Milvus:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
+- **Qdrant:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
+- **Redis:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
 
 - [Deploying to Fly.io](/docs/deployment/flyio.md)
 - [Deploying to Heroku](/docs/deployment/heroku.md)
@@ -414,7 +459,7 @@ The scripts are:
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Pinecone and Weaviate, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
 - **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.
@@ -458,3 +503,6 @@ We would like to extend our gratitude to the following contributors for their co
 - [Redis](https://redis.io/)
   - [spartee](https://github.com/spartee)
   - [tylerhutcherson](https://github.com/tylerhutcherson)
+- [LlamaIndex](https://github.com/jerryjliu/llama_index)
+  - [jerryjliu](https://github.com/jerryjliu)
+  - [Disiok](https://github.com/Disiok)
