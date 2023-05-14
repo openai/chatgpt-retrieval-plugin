@@ -18,6 +18,8 @@ create index ix_documents_source_id on documents using btree ( source_id );
 create index ix_documents_author on documents using btree ( author );
 create index ix_documents_created_at on documents using brin ( created_at );
 
+alter table documents enable row level security;
+
 create or replace function match_page_sections(in_embedding vector(1536)
                                             , in_match_count int default 3
                                             , in_document_id text default '%%'

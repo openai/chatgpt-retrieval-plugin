@@ -64,6 +64,8 @@ poetry run pytest -s ./tests/datastore/providers/postgres/test_postgres_datastor
 
 5. When going to prod don't forget to set the password for the `postgres` user to something more secure and apply migrations.
 
+6. You may want to remove RLS (Row Level Security) from the `documents` table. If you are not using RLS, it is not required in this setup. But it may be useful if you want to separate documents by user or group of users, or if you want to give permissions to insert or query documents to different users. And RLS is especially important if you are willing to use PostgREST. To do so you can just remove the following statement from the `20230414142107_init_pg_vector.sql` migration file: `alter table documents enable row level security;`.
+
 ## Indexes for Postgres
 
 By default, pgvector performs exact nearest neighbor search. To speed up the vector comparison, you may want to create indexes for the `embedding` column in the `documents` table. You should do this **only** after a few thousand records are inserted.
