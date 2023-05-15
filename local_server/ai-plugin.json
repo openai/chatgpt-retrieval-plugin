@@ -9,9 +9,9 @@
   },
   "api": {
     "type": "openapi",
-    "url": "http://localhost:3333/.well-known/openapi.yaml"
+    "url": "http://localhost:3333/.well_known/openapi.yaml"
   },
-  "logo_url": "http://localhost:3333/.well-known/logo.png",
+  "logo_url": "http://localhost:3333/.well_known/logo.png",
   "contact_email": "hello@contact.com", 
   "legal_info_url": "hello@legal.com"
 }

@@ -39,19 +39,19 @@ app.add_middleware(
 )
 
 
-@app.route("/.well-known/ai-plugin.json")
+@app.route("/.well_known/ai_plugin.json")
 async def get_manifest(request):
-    file_path = "./local_server/ai-plugin.json"
+    file_path = "./local_server/ai_plugin.json"
     return FileResponse(file_path, media_type="text/json")
 
 
-@app.route("/.well-known/logo.png")
+@app.route("/.well_known/logo.png")
 async def get_logo(request):
     file_path = "./local_server/logo.png"
     return FileResponse(file_path, media_type="text/json")
 
 
-@app.route("/.well-known/openapi.yaml")
+@app.route("/.well_known/openapi.yaml")
 async def get_openapi(request):
     file_path = "./local_server/openapi.yaml"
     return FileResponse(file_path, media_type="text/json")

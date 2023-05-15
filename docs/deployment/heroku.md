@@ -94,7 +94,7 @@ After completing these steps, your Docker container should be deployed to Heroku
 heroku open -a [app-name]
 ```
 
-which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well-known/openapi.yaml` and the manifest at `<your_app_url>/.well-known/ai-plugin.json`.
+which will open your app url. You should be able to find the OpenAPI schema at `<your_app_url>/.well_known/openapi.yaml` and the manifest at `<your_app_url>/.well_known/ai_plugin.json`.
 
 To view your app logs:
 
@@ -102,4 +102,4 @@ To view your app logs:
 heroku logs --tail -a [app-name]
 ```
 
-Now make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
+Now make sure to change the plugin url in your plugin manifest file [here](/.well_known/ai_plugin.json), and in your OpenAPI schema [here](/.well_known/openapi.yaml), and redeploy with `make heroku-push`. This url will be `https://your-app-name.herokuapp.com`.
