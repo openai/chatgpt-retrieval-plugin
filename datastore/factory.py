@@ -13,6 +13,7 @@ async def get_datastore() -> DataStore:
             return ChromaDataStore()
         case "llama":
             from datastore.providers.llama_datastore import LlamaDataStore
+
             return LlamaDataStore()
 
         case "pinecone":
@@ -43,6 +44,14 @@ async def get_datastore() -> DataStore:
             from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 
             return AzureSearchDataStore()
+        case "supabase":
+            from datastore.providers.supabase_datastore import SupabaseDataStore
+
+            return SupabaseDataStore()
+        case "postgres":
+            from datastore.providers.postgres_datastore import PostgresDataStore
+
+            return PostgresDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "

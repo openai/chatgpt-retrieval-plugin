@@ -44,6 +44,8 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Llama Index](#llamaindex)
     - [Chroma](#chroma)
     - [Azure Cognitive Search](#azure-cognitive-search)
+    - [Supabase](#supabase)
+    - [Postgres](#postgres)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -142,6 +144,17 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export AZURESEARCH_SERVICE=<your_search_service_name>
    export AZURESEARCH_INDEX=<your_search_index_name>
    export AZURESEARCH_API_KEY=<your_api_key> (optional, uses key-free managed identity if not set)
+
+   # Supabase
+   export SUPABASE_URL=<supabase_project_url>
+   export SUPABASE_ANON_KEY=<supabase_project_api_anon_key>
+
+   # Postgres
+   export PG_HOST=<postgres_host>
+   export PG_PORT=<postgres_port>
+   export PG_USER=<postgres_user>
+   export PG_PASSWORD=<postgres_password>
+   export PG_DATABASE=<postgres_database>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -253,11 +266,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
+| Name             | Required | Description                                                                                                                                                                                                                    |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                    |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                     |
 
 ### Using the plugin with Azure OpenAI
 
@@ -315,6 +328,14 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Azure Cognitive Search
 
 [Azure Cognitive Search](https://azure.microsoft.com/products/search/) is a complete retrieval cloud service that supports vector search, text search, and hybrid (vectors + text combined to yield the best of the two approaches). It also offers an [optional L2 re-ranking step](https://learn.microsoft.com/azure/search/semantic-search-overview) to further improve results quality. For detailed setup instructions, refer to [`/docs/providers/azuresearch/setup.md`](/docs/providers/azuresearch/setup.md)
+
+#### Supabase
+
+[Supabase](https://supabase.com/blog/openai-embeddings-postgres-vector) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension for Postgres Database. [You can use Supabase CLI](https://github.com/supabase/cli) to set up a whole Supabase stack locally or in the cloud or you can also use docker-compose, k8s and other options available. For a hosted/managed solution, try [Supabase.com](https://supabase.com/) and unlock the full power of Postgres with built-in authentication, storage, auto APIs, and Realtime features. For detailed setup instructions, refer to [`/docs/providers/supabase/setup.md`](/docs/providers/supabase/setup.md).
+
+#### Postgres
+
+[Postgres](https://www.postgresql.org) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled. For example, you can [use docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) to run locally. For a hosted/managed solution, you may try [Supabase](https://supabase.com/) or any other cloud provider with support for pgvector. For detailed setup instructions, refer to [`/docs/providers/postgres/setup.md`](/docs/providers/postgres/setup.md).
 
 ### Running the API locally
 
@@ -506,3 +527,8 @@ We would like to extend our gratitude to the following contributors for their co
 - [LlamaIndex](https://github.com/jerryjliu/llama_index)
   - [jerryjliu](https://github.com/jerryjliu)
   - [Disiok](https://github.com/Disiok)
+- [Supabase](https://supabase.com/)
+  - [egor-romanov](https://github.com/egor-romanov)
+- [Postgres](https://www.postgresql.org/)
+  - [egor-romanov](https://github.com/egor-romanov)
+  - [mmmaia](https://github.com/mmmaia)
