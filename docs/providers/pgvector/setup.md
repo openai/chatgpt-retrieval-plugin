@@ -28,7 +28,7 @@ For more information about pgvector, visit the [official repository](https://git
 pgvector is available on some cloud providers, such as
 
 - [Supabase](https://supabase.com/)
-- [Neon](https://neon.tech/]
+- [Neon](https://neon.tech/)
 - [Crunchy Bridge](https://www.crunchydata.com/products/crunchy-bridge)
 - [bit.io](https://bit.io/)
 
