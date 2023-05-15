@@ -277,10 +277,10 @@ The API requires the following environment variables to work:
 
 The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
 
-In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here.
+In addition to the `OPENAI_API_BASE` (your specific URL) and `OPENAI_API_TYPE` (azure), you should also set `OPENAI_EMBEDDINGMODEL_DEPLOYMENTID` which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying `text-embedding-ada-002` model and using the deployment name here.
 
-If you wish to use the data preparation scripts, you will also need to set OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and
-OPENAI_COMPLETIONMODEL_DEPLOYMENTID, used for PII handling.
+If you wish to use the data preparation scripts, you will also need to set `OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID`, used for metadata extraction and
+`OPENAI_COMPLETIONMODEL_DEPLOYMENTID`, used for PII handling.
 
 ### Choosing a Vector Database
 
