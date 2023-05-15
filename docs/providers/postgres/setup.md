@@ -1,6 +1,6 @@
 # Postgres
 
-Postgres Database offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled or use a managed solution that provides pgvector. For a hosted/managed solution, you may try [Supabase](https://supabase.com/), more docs you can find in [Supabase Provider](/docs/providers/supabase/setup.md). See more helpful examples of Postgres & pgvector as a vector database [here](https://github.com/supabase-community/nextjs-openai-doc-search).
+Postgres Database offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled or use a managed solution that provides pgvector. For a hosted/managed solution, you can use any of the cloud vendors which support [pgvector](https://github.com/pgvector/pgvector#hosted-postgres).
 
 - The database needs the `pgvector` extension.
 - To apply required migrations you may use any tool you are more familiar with like [pgAdmin](https://www.pgadmin.org/), [DBeaver](https://dbeaver.io/), [DataGrip](https://www.jetbrains.com/datagrip/), or `psql` cli.
@@ -13,7 +13,7 @@ Postgres Database offers an easy and efficient way to store vectors via [pgvecto
 | `BEARER_TOKEN`   | Yes      | Your secret token                      |
 | `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
 
-**Supabase Datastore Environment Variables**
+**Postgres Datastore Environment Variables**
 
 | Name          | Required | Description       | Default    |
 | ------------- | -------- | ----------------- | ---------- |
