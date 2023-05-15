@@ -32,7 +32,7 @@ PGML_DOCID_INDEX = os.environ.get(
     "PGML_EMBEDDING_INDEX", "chatgpt_datastore_docid_index"
 )
 PGML_UPSERT_COMMAND = os.environ.get("PGML_UPSERT_COMMAND", "INSERT")
-PGML_MIN_ROWS_FOR_INDEX = int(os.environ.get("PGML_MIN_ROWS_FOR_INDEX", 1000))
+PGML_MIN_ROWS_FOR_INDEX = int(os.environ.get("PGML_MIN_ROWS_FOR_INDEX", 0))
 PGML_MIN_NEW_ROWS_FOR_REINDEX = int(
     os.environ.get("PGML_MIN_NEW_ROWS_FOR_REINDEX", 1000)
 )
@@ -77,7 +77,7 @@ class PostgresMLDataStore(DataStore):
 
         if not self.docid_index_exists:
             index_doc_ids = (
-                "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % PGML_TABLENAME
+                "CREATE INDEX CONCURRENTLY %s ON %s (doc_id) " % (PGML_DOCID_INDEX, PGML_TABLENAME)
             )
             cur.execute(index_doc_ids)
 
@@ -202,7 +202,7 @@ class PostgresMLDataStore(DataStore):
             query_results: List[DocumentChunkWithScore] = []
             embedding = ",".join(str(v) for v in query.embedding)
             query_statement = (
-                "SELECT doc_id, text, metadata, 1 - (%s.embedding <=> ARRAY[%s]::vector) AS score FROM %s ORDER BY score DESC LIMIT %d;"
+                "SELECT chunk_id, text, metadata, 1 - (%s.embedding <=> ARRAY[%s]::vector) AS score FROM %s ORDER BY score DESC LIMIT %d;"
                 % (
                     PGML_TABLENAME,
                     embedding,
@@ -215,12 +215,12 @@ class PostgresMLDataStore(DataStore):
 
             query_results: List[DocumentChunkWithScore] = []
             for result in sql_query_results:
-                doc_id = result[0]
+                chunk_id = result[0]
                 text = result[1]
                 metadata = result[2]
                 score = result[3]
                 query_result = DocumentChunkWithScore(
-                    id=doc_id, score=score, text=text, metadata=(metadata)
+                    id=chunk_id, score=score, text=text, metadata=(metadata)
                 )
                 query_results.append(query_result)
 
