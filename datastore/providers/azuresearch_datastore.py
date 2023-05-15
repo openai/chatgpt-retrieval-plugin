@@ -28,7 +28,7 @@ assert AZURESEARCH_INDEX is not None
 # Allow overriding field names for Azure Search
 FIELDS_ID = os.environ.get("AZURESEARCH_FIELDS_ID", "id")
 FIELDS_TEXT = os.environ.get("AZURESEARCH_FIELDS_TEXT", "text")
-FIELDS_EMBEDDING = os.environ.get("AZURESEARCH_FIELDS_TEXT", "embedding")
+FIELDS_EMBEDDING = os.environ.get("AZURESEARCH_FIELDS_EMBEDDING", "embedding")
 FIELDS_DOCUMENT_ID = os.environ.get("AZURESEARCH_FIELDS_DOCUMENT_ID", "document_id")
 FIELDS_SOURCE = os.environ.get("AZURESEARCH_FIELDS_SOURCE", "source")
 FIELDS_SOURCE_ID = os.environ.get("AZURESEARCH_FIELDS_SOURCE_ID", "source_id")
@@ -132,14 +132,16 @@ class AzureSearchDataStore(DataStore):
         """
         filter = self._translate_filter(query.filter) if query.filter is not None else None
         try:
-            k = query.top_k if filter is None else query.top_k * 2
+            vector_top_k = query.top_k if filter is None else query.top_k * 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
             if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
+                # Ensure we're feeding a good number of candidates to the L2 reranker
+                vector_top_k = max(50, vector_top_k)
                 r = await self.client.search(
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING),
+                        vector=Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING),
                         query_type=QueryType.SEMANTIC,
                         query_language=AZURESEARCH_LANGUAGE,
                         semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
@@ -148,7 +150,7 @@ class AzureSearchDataStore(DataStore):
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=Vector(value=query.embedding, k=k, fields=FIELDS_EMBEDDING))
+                        vector=Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING))
             results: List[DocumentChunkWithScore] = []
             async for hit in r:
                 f = lambda field: hit.get(field) if field != "-" else None
