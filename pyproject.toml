@@ -13,7 +13,7 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.92.0"
+fastapi = "^0.94.1"
 uvicorn = "^0.20.0"
 openai = "^0.27.5"
 python-dotenv = "^0.21.1"
@@ -31,7 +31,7 @@ pinecone-client = "^2.1.0"
 weaviate-client = "^3.12.0"
 pymilvus = "^2.2.2"
 qdrant-client = {version = "^1.0.4", python = "<3.12"}
-redis = "4.5.1"
+redis = "4.5.4"
 supabase = "^1.0.2"
 psycopg2 = "^2.9.5"
 llama-index = "0.5.4"
