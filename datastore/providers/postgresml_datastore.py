@@ -19,25 +19,25 @@ from services.date import to_unix_timestamp
 
 # Read environment variables for Postgres
 
-POSTGRESML_HOST = os.environ.get("POSTGRES_HOST", "localhost")
-POSTGRESML_PORT = os.environ.get("POSTGRES_PORT", "5433")
-POSTGRESML_USERNAME = os.environ.get("POSTGRES_USERNAME", "postgres")
-POSTGRESML_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
-POSTGRESML_DATABASE = os.environ.get("POSTGRES_DATABASE", "pgml_development")
-POSTGRESML_TABLENAME = os.environ.get("POSTGRES_TABLENAME", "chatgpt_datastore")
-POSTGRESML_EMBEDDING_INDEX = os.environ.get(
-    "POSTGRES_EMBEDDING_INDEX", "chatgpt_datastore_embedding_index"
+PGML_HOST = os.environ.get("PGML_HOST", "localhost")
+PGML_PORT = os.environ.get("PGML_PORT", "5433")
+PGML_USERNAME = os.environ.get("PGML_USERNAME", "postgres")
+PGML_PASSWORD = os.environ.get("PGML_PASSWORD", "")
+PGML_DATABASE = os.environ.get("PGML_DATABASE", "pgml_development")
+PGML_TABLENAME = os.environ.get("PGML_TABLENAME", "chatgpt_datastore")
+PGML_EMBEDDING_INDEX = os.environ.get(
+    "PGML_EMBEDDING_INDEX", "chatgpt_datastore_embedding_index"
 )
-POSTGRESML_DOCID_INDEX = os.environ.get(
-    "POSTGRES_EMBEDDING_INDEX", "chatgpt_datastore_docid_index"
+PGML_DOCID_INDEX = os.environ.get(
+    "PGML_EMBEDDING_INDEX", "chatgpt_datastore_docid_index"
 )
-POSTGRESML_UPSERT_COMMAND = os.environ.get("POSTGRES_UPSERT_COMMAND", "INSERT")
-POSTGRESML_MIN_ROWS_FOR_INDEX = int(os.environ.get("POSTGRES_MIN_ROWS_FOR_INDEX", 1000))
-POSTGRESML_MIN_NEW_ROWS_FOR_REINDEX = int(
-    os.environ.get("POSTGRES_MIN_NEW_ROWS_FOR_REINDEX", 1000)
+PGML_UPSERT_COMMAND = os.environ.get("PGML_UPSERT_COMMAND", "INSERT")
+PGML_MIN_ROWS_FOR_INDEX = int(os.environ.get("PGML_MIN_ROWS_FOR_INDEX", 1000))
+PGML_MIN_NEW_ROWS_FOR_REINDEX = int(
+    os.environ.get("PGML_MIN_NEW_ROWS_FOR_REINDEX", 1000)
 )
 
-assert POSTGRESML_UPSERT_COMMAND in ["COPY", "INSERT"]
+assert PGML_UPSERT_COMMAND in ["COPY", "INSERT"]
 
 # OpenAI Ada Embeddings Dimension
 VECTOR_DIMENSION = 1536
@@ -47,44 +47,44 @@ class PostgresMLDataStore(DataStore):
     def __init__(self) -> None:
         conninfo = (
             "postgresql://"
-            + POSTGRESML_USERNAME
+            + PGML_USERNAME
             + ":"
-            + POSTGRESML_PASSWORD
+            + PGML_PASSWORD
             + "@"
-            + POSTGRESML_HOST
+            + PGML_HOST
             + ":"
-            + POSTGRESML_PORT
+            + PGML_PORT
             + "/"
-            + POSTGRESML_DATABASE
+            + PGML_DATABASE
         )
         self.pool = ConnectionPool(conninfo)
         conn = self.pool.getconn()
         conn.autocommit = True
         # Insert the vector and text into the database
-        logging.info("Creating table %s" % POSTGRESML_TABLENAME)
+        logging.info("Creating table %s" % PGML_TABLENAME)
         create_table = (
             "CREATE TABLE IF NOT EXISTS %s (doc_id TEXT, chunk_id TEXT, text TEXT, embedding vector(%s), metadata JSONB)"
-            % (POSTGRESML_TABLENAME, str(VECTOR_DIMENSION))
+            % (PGML_TABLENAME, str(VECTOR_DIMENSION))
         )
         cur = conn.cursor()
         cur.execute(create_table)
         index_exists_staetment = (
             "SELECT EXISTS (SELECT 1 FROM pg_indexes  WHERE tablename = '%s' AND indexname = '%s')"
-            % (POSTGRESML_TABLENAME, POSTGRESML_DOCID_INDEX)
+            % (PGML_TABLENAME, PGML_DOCID_INDEX)
         )
         cur.execute(index_exists_staetment)
         self.docid_index_exists = cur.fetchall()[0][0]
 
         if not self.docid_index_exists:
             index_doc_ids = (
-                "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % POSTGRESML_TABLENAME
+                "CREATE INDEX CONCURRENTLY ON %s (doc_id) " % PGML_TABLENAME
             )
             cur.execute(index_doc_ids)
 
         self.index_counter = 0
         index_exists_staetment = (
             "SELECT EXISTS (SELECT 1 FROM pg_indexes  WHERE tablename = '%s' AND indexname = '%s')"
-            % (POSTGRESML_TABLENAME, POSTGRESML_EMBEDDING_INDEX)
+            % (PGML_TABLENAME, PGML_EMBEDDING_INDEX)
         )
         cur.execute(index_exists_staetment)
         self.index_exists = cur.fetchall()[0][0]
@@ -105,7 +105,7 @@ class PostgresMLDataStore(DataStore):
 
         # Initialize a list of ids to return
         doc_ids: List[str] = []
-        if POSTGRESML_UPSERT_COMMAND == "INSERT":
+        if PGML_UPSERT_COMMAND == "INSERT":
             # Loop through docs/chunks
             for doc_id, chunk_list in chunks.items():
                 doc_ids.append(doc_id)
@@ -120,7 +120,7 @@ class PostgresMLDataStore(DataStore):
                     insert_statement = sql.SQL(
                         "INSERT INTO {} (doc_id, chunk_id, text, embedding, metadata) VALUES ({}, {}, {}, {}, {})"
                     ).format(
-                        sql.Identifier(POSTGRESML_TABLENAME),
+                        sql.Identifier(PGML_TABLENAME),
                         sql.Literal(doc_id),
                         sql.Literal(chunk.id),
                         sql.Literal(chunk.text),
@@ -130,10 +130,10 @@ class PostgresMLDataStore(DataStore):
                     cur.execute(insert_statement)
                     self.index_counter += 1
 
-        if POSTGRESML_UPSERT_COMMAND == "COPY":
+        if PGML_UPSERT_COMMAND == "COPY":
             with cur.copy(
                 "COPY %s (doc_id, chunk_id, text, embedding, metadata) FROM STDIN"
-                % POSTGRESML_TABLENAME
+                % PGML_TABLENAME
             ) as copy:
                 for doc_id, chunk_list in chunks.items():
                     doc_ids.append(doc_id)
@@ -155,13 +155,13 @@ class PostgresMLDataStore(DataStore):
                         copy.write_row(row)
                         self.index_counter += 1
 
-        cur.execute("SELECT COUNT(*) from %s" % POSTGRESML_TABLENAME)
+        cur.execute("SELECT COUNT(*) from %s" % PGML_TABLENAME)
         nrows = cur.fetchall()[0][0]
 
         if self.index_exists:
-            if self.index_counter > POSTGRESML_MIN_NEW_ROWS_FOR_REINDEX:
+            if self.index_counter > PGML_MIN_NEW_ROWS_FOR_REINDEX:
                 reindex_statement = "REINDEX INDEX CONCURRENTLY %s" % (
-                    POSTGRESML_EMBEDDING_INDEX
+                    PGML_EMBEDDING_INDEX
                 )
                 cur.execute(reindex_statement)
                 print(
@@ -171,10 +171,10 @@ class PostgresMLDataStore(DataStore):
                 self.index_counter = 0
 
         else:
-            if nrows > POSTGRESML_MIN_ROWS_FOR_INDEX:
+            if nrows > PGML_MIN_ROWS_FOR_INDEX:
                 index_statement = (
                     "CREATE INDEX CONCURRENTLY %s ON %s USING ivfflat (embedding vector_cosine_ops)"
-                    % (POSTGRESML_EMBEDDING_INDEX, POSTGRESML_TABLENAME)
+                    % (PGML_EMBEDDING_INDEX, PGML_TABLENAME)
                 )
                 cur.execute(index_statement)
                 self.index_exists = True
@@ -204,9 +204,9 @@ class PostgresMLDataStore(DataStore):
             query_statement = (
                 "SELECT doc_id, text, metadata, 1 - (%s.embedding <=> ARRAY[%s]::vector) AS score FROM %s ORDER BY score DESC LIMIT %d;"
                 % (
-                    POSTGRESML_TABLENAME,
+                    PGML_TABLENAME,
                     embedding,
-                    POSTGRESML_TABLENAME,
+                    PGML_TABLENAME,
                     query.top_k,
                 )
             )
@@ -243,7 +243,7 @@ class PostgresMLDataStore(DataStore):
         cur = conn.cursor()
 
         if delete_all:
-            delete_statement = "TRUNCATE %s" % (POSTGRESML_TABLENAME)
+            delete_statement = "TRUNCATE %s" % (PGML_TABLENAME)
             try:
                 cur.execute(delete_statement)
             except Exception as e:
@@ -264,7 +264,7 @@ class PostgresMLDataStore(DataStore):
                     end_date = to_unix_timestamp(end_date)
 
             if start_date and end_date:
-                delete_statement = "DELETE FROM %s" % POSTGRESML_TABLENAME
+                delete_statement = "DELETE FROM %s" % PGML_TABLENAME
                 delete_statement += " WHERE metadata --> created_at > %d " % start_date
                 delete_statement += " AND metadata --> created_at < %d " % end_date
                 try:
@@ -273,7 +273,7 @@ class PostgresMLDataStore(DataStore):
                     print(e)
             else:
                 if start_date:
-                    delete_statement = "DELETE FROM %s" % POSTGRESML_TABLENAME
+                    delete_statement = "DELETE FROM %s" % PGML_TABLENAME
                     delete_statement += (
                         " WHERE metadata --> created_at > %d " % start_date
                     )
@@ -282,7 +282,7 @@ class PostgresMLDataStore(DataStore):
                     except Exception as e:
                         print(e)
                 if end_date:
-                    delete_statement = "DELETE FROM %s" % POSTGRESML_TABLENAME
+                    delete_statement = "DELETE FROM %s" % PGML_TABLENAME
                     delete_statement += (
                         " WHERE metadata --> created_at < %d " % end_date
                     )
@@ -292,7 +292,7 @@ class PostgresMLDataStore(DataStore):
                         print(e)
 
             counter = 0
-            delete_statement = "DELETE FROM %s" % POSTGRESML_TABLENAME
+            delete_statement = "DELETE FROM %s" % PGML_TABLENAME
             for key, value in filter.dict().items():
                 if value:
                     if counter == 0:
@@ -315,7 +315,7 @@ class PostgresMLDataStore(DataStore):
 
         if ids:
             delete_statement = "DELETE FROM %s WHERE doc_id IN (%s);" % (
-                POSTGRESML_TABLENAME,
+                PGML_TABLENAME,
                 ",".join(["'" + str(_id) + "'" for _id in ids]),
             )
 
