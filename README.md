@@ -8,18 +8,18 @@ Find an example video of a Retrieval Plugin that has access to the UN Annual Rep
 
 The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. The repository is organized into several directories:
 
-| Directory                     | Description                                                                                                                |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [`datastore`](/datastore)     | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
-| [`docs`](/docs)               | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
-| [`examples`](/examples)       | Provides example configurations, authentication methods, and provider-specific examples.                                   |
-| [`local_server`](/local_server) | Contains an implementation of the retrieval plugin configured for localhost testing. |
-| [`models`](/models)           | Contains the data models used by the plugin, such as document and metadata models.                                         |
-| [`scripts`](/scripts)         | Offers scripts for processing and uploading documents from different data sources.                                         |
-| [`server`](/server)           | Houses the main FastAPI server implementation.                                                                             |
-| [`services`](/services)       | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                                 |
-| [`tests`](/tests)             | Includes integration tests for various vector database providers.                                                          |
-| [`.well-known`](/.well-known) | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
+| Directory                       | Description                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [`datastore`](/datastore)       | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
+| [`docs`](/docs)                 | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
+| [`examples`](/examples)         | Provides example configurations, authentication methods, and provider-specific examples.                                   |
+| [`local_server`](/local_server) | Contains an implementation of the retrieval plugin configured for localhost testing.                                       |
+| [`models`](/models)             | Contains the data models used by the plugin, such as document and metadata models.                                         |
+| [`scripts`](/scripts)           | Offers scripts for processing and uploading documents from different data sources.                                         |
+| [`server`](/server)             | Houses the main FastAPI server implementation.                                                                             |
+| [`services`](/services)         | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                                 |
+| [`tests`](/tests)               | Includes integration tests for various vector database providers.                                                          |
+| [`.well-known`](/.well-known)   | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
 
 This README provides detailed information on how to set up, develop, and deploy the ChatGPT Retrieval Plugin.
 
