@@ -13,6 +13,7 @@ The ChatGPT Retrieval Plugin repository provides a flexible solution for semanti
 | [`datastore`](/datastore)     | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
 | [`docs`](/docs)               | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
 | [`examples`](/examples)       | Provides example configurations, authentication methods, and provider-specific examples.                                   |
+| [`local_server`](/local_server) | Contains an implementation of the retrieval plugin configured for localhost testing. |
 | [`models`](/models)           | Contains the data models used by the plugin, such as document and metadata models.                                         |
 | [`scripts`](/scripts)         | Offers scripts for processing and uploading documents from different data sources.                                         |
 | [`server`](/server)           | Houses the main FastAPI server implementation.                                                                             |
