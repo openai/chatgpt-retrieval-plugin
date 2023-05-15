@@ -360,7 +360,7 @@ Append `docs` to the URL shown in the terminal and open it in a browser to acces
 
 ### Testing a Localhost Plugin in ChatGPT
 
-To test a localhost plugin in ChatGPT, use the provided [`local-server/main.py`](/local-server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
+To test a localhost plugin in ChatGPT, use the provided [`local_server/main.py`](/local_server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
 
 Follow these steps to test your localhost plugin:
 
