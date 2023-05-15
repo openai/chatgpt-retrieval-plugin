@@ -46,6 +46,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Azure Cognitive Search](#azure-cognitive-search)
     - [Supabase](#supabase)
     - [Postgres](#postgres)
+    - [PostgresML](#postgresml)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -155,6 +156,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
    export PG_DATABASE=<postgres_database>
+
+   # PostgresML
+   export PGML_HOST=<postgresml_host>
+   export PGML_PORT=<postgresml_port>
+   export PGML_USERNAME=<postgresml_username>
+   export PGML_PASSWORD=<postgresml_password>
+   export PGML_DATABASE=<postgresml_database>
+   export PGML_TABLENAME=<postgresml_tablename>
+   export PGML_EMBEDDING_INDEX=<postgresml_embedding_index>
    ```
 
 10. Run the API locally: `poetry run start`
