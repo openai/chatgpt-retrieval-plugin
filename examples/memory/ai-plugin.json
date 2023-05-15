@@ -10,10 +10,10 @@
     },
     "api": {
       "type": "openapi",
-      "url": "https://your-app-url.com/.well-known/openapi.yaml",
+      "url": "https://your-app-url.com/.well_known/openapi.yaml",
       "has_user_authentication": false
     },
-    "logo_url": "https://your-app-url.com/.well-known/logo.png",
+    "logo_url": "https://your-app-url.com/.well_known/logo.png",
     "contact_email": "hello@contact.com", 
     "legal_info_url": "hello@legal.com"
   }
