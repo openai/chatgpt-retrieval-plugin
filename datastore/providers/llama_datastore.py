@@ -1,21 +1,23 @@
 import json
 import os
 from typing import Dict, List, Optional, Type
+
+from llama_index import StorageContext, load_index_from_storage
+from llama_index.data_structs import Node
+from llama_index.data_structs.node import DocumentRelationship, NodeWithScore
+from llama_index.indices.response import ResponseMode
 from loguru import logger
 from datastore.datastore import DataStore
-from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
+from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, QueryResult, QueryWithEmbedding
 
 from llama_index.indices.base import BaseGPTIndex
 from llama_index.indices.vector_store.base import GPTVectorStoreIndex
 from llama_index.indices.query.schema import QueryBundle
 from llama_index.response.schema import Response
-from llama_index.data_structs.node_v2 import Node, DocumentRelationship, NodeWithScore
 from llama_index.indices.registry import INDEX_STRUCT_TYPE_TO_INDEX_CLASS
 from llama_index.data_structs.struct_type import IndexStructType
-from llama_index.indices.response.builder import ResponseMode
-
-INDEX_STRUCT_TYPE_STR = os.environ.get('LLAMA_INDEX_TYPE', IndexStructType.SIMPLE_DICT.value)
-INDEX_JSON_PATH = os.environ.get('LLAMA_INDEX_JSON_PATH', None)
+INDEX_STRUCT_TYPE_STR = os.environ.get('LLAMA_INDEX_TYPE', IndexStructType.VECTOR_STORE.value)
+INDEX_PERSIST_DIR = os.environ.get('LLAMA_INDEX_PERSIST_DIR', None)
 QUERY_KWARGS_JSON_PATH = os.environ.get('LLAMA_QUERY_KWARGS_JSON_PATH', None)
 RESPONSE_MODE = os.environ.get('LLAMA_RESPONSE_MODE', ResponseMode.NO_TEXT.value)
 
@@ -25,16 +27,15 @@ EXTERNAL_VECTOR_STORE_INDEX_STRUCT_TYPES = [
     IndexStructType.PINECONE,
     IndexStructType.QDRANT,
     IndexStructType.CHROMA,
-    IndexStructType.VECTOR_STORE,
 ]
 
 def _create_or_load_index(
-    index_type_str: Optional[str] = None,
-    index_json_path: Optional[str] = None,
-    index_type_to_index_cls: Optional[dict[str, Type[BaseGPTIndex]]] = None,
+        index_type_str: Optional[str] = None,
+        index_persist_dir: Optional[str] = None,
+        index_type_to_index_cls: Optional[dict[str, Type[BaseGPTIndex]]] = None,
 ) -> BaseGPTIndex:
     """Create or load index from json path."""
-    index_json_path = index_json_path or INDEX_JSON_PATH
+    index_persist_dir = index_persist_dir or INDEX_PERSIST_DIR
     index_type_to_index_cls = index_type_to_index_cls or INDEX_STRUCT_TYPE_TO_INDEX_CLASS
     index_type_str = index_type_str or INDEX_STRUCT_TYPE_STR
     index_type = IndexStructType(index_type_str)
@@ -46,17 +47,18 @@ def _create_or_load_index(
         raise ValueError('Please use vector store directly.')
 
     index_cls = index_type_to_index_cls[index_type]
-    if index_json_path is None:
+    if index_persist_dir is None:
         return index_cls(nodes=[])  # Create empty index
     else:
-        return index_cls.load_from_disk(index_json_path) # Load index from disk
+        storage_context = StorageContext.from_defaults(persist_dir=index_persist_dir)
+        return load_index_from_storage(storage_context)  # Load index from disk
 
 def _create_or_load_query_kwargs(query_kwargs_json_path: Optional[str] = None) -> Optional[dict]:
     """Create or load query kwargs from json path."""
     query_kwargs_json_path= query_kwargs_json_path or QUERY_KWARGS_JSON_PATH
     query_kargs: Optional[dict] = None
-    if  query_kwargs_json_path is not None:
-        with open(INDEX_JSON_PATH, 'r') as f:
+    if query_kwargs_json_path is not None:
+        with open(query_kwargs_json_path, 'r') as f:
             query_kargs = json.load(f)
     return query_kargs
 
@@ -144,8 +146,9 @@ class LlamaDataStore(DataStore):
             if isinstance(self._index, GPTVectorStoreIndex):
                 query_kwargs['similarity_top_k'] = query.top_k
 
-            response = await self._index.aquery(query_bundle, response_mode=RESPONSE_MODE, **query_kwargs)
-            
+            query_engine = self._index.as_query_engine(**query_kwargs)
+            response = await query_engine.aquery(query_bundle)
+
             query_result = _response_to_query_result(response, query)
             query_result_all.append(query_result)
         
