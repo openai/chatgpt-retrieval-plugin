@@ -409,21 +409,13 @@ You can deploy your app to different cloud providers, depending on your preferen
 
 Before deploying your app, you might want to remove unused dependencies from your [pyproject.toml](/pyproject.toml) file to reduce the size of your app and improve its performance. Depending on the vector database provider you choose, you can remove the packages that are not needed for your specific provider. Refer to the respective documentation in the [`/docs/deployment/removing-unused-dependencies.md`](/docs/deployment/removing-unused-dependencies.md) file for information on removing unused dependencies for each provider.
 
-Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
-
-- **Chroma:** Remove `pinecone-client`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Pinecone:** Remove `chromadb`, `weaviate-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Weaviate:** Remove `chromadb`, `pinecone-client`, `pymilvus`, `qdrant-client`, and `redis`.
-- **Zilliz:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Milvus:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `qdrant-client`, and `redis`.
-- **Qdrant:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `redis`.
-- **Redis:** Remove `chromadb`, `pinecone-client`, `weaviate-client`, `pymilvus`, and `qdrant-client`.
+Instructions:
 
 - [Deploying to Fly.io](/docs/deployment/flyio.md)
 - [Deploying to Heroku](/docs/deployment/heroku.md)
 - [Other Deployment Options](/docs/deployment/other-options.md) (Azure Container Apps, Google Cloud Run, AWS Elastic Container Service, etc.)
 
-After you create your app, make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy.
+Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
 ## Installing a Developer Plugin
 
