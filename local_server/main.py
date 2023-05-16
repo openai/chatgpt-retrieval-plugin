@@ -42,7 +42,9 @@ app.add_middleware(
 @app.route("/.well-known/ai-plugin.json")
 async def get_manifest(request):
     file_path = "./local_server/ai-plugin.json"
-    return FileResponse(file_path, media_type="text/json")
+    simple_headers = {}
+    simple_headers["Access-Control-Allow-Private-Network"] = "true"
+    return FileResponse(file_path, media_type="text/json", headers=simple_headers)
 
 
 @app.route("/.well-known/logo.png")
