@@ -52,8 +52,13 @@ async def get_datastore() -> DataStore:
             from datastore.providers.postgres_datastore import PostgresDataStore
 
             return PostgresDataStore()
+        case "postgresml":
+            from datastore.providers.postgresml_datastore import PostgresMLDataStore
+
+            return PostgresMLDataStore()
+        
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, or qdrant"
+                f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, postgresml or qdrant"
             )
