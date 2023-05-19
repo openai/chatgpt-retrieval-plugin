@@ -27,8 +27,12 @@ Postgres Database offers an easy and efficient way to store vectors via [pgvecto
 
 In order to test your changes to the Postgres Datastore, you can run the following:
 
-1. You can run local or self-hosted instance of PostgreSQL with `pgvector` enabled using Docker.
+1. You can run local or self-hosted instance of PostgreSQL with `pgvector` enabled using Docker, or use any of the cloud vendors which support [pgvector](https://github.com/pgvector/pgvector#hosted-postgres):
+- [Neon](https://neon.tech/docs/release-notes/2023-02-14)
+- [Crunchy Bridge](https://docs.crunchybridge.com/extensions-and-languages/extensions/)
+- [bit.io](https://docs.bit.io/docs/supported-sql).
 
+### Using Docker
 ```bash
 docker pull ankane/pgvector
 ```
@@ -43,15 +47,15 @@ Check PostgreSQL [official docker image](https://github.com/docker-library/docs/
 
 ```bash
 # apply migrations using psql cli
-psql -h localhost -p 5432 -U postgres -d postgres -f examples/providers/supabase/migrations/20230414142107_init_pg_vector.sql
+psql -h PG_HOST -p PG_PORT -U PG_USER -d PG_DB -f examples/providers/supabase/migrations/20230414142107_init_pg_vector.sql
 ```
 
 3. Export environment variables required for the Postgres Datastore
 
 ```bash
-export PG_HOST=localhost
-export PG_PORT=54322
-export PG_PASSWORD=mysecretpassword
+export PG_HOST=<PG_HOST>
+export PG_PORT=<PG_PORT>
+export PG_PASSWORD=<PG_PASSWORD>
 ```
 
 4. Run the Postgres datastore tests from the project's root directory
