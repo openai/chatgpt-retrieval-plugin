@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader
 import docx2txt
 import csv
 import pptx
+import uuid
 
 from models.models import Document, DocumentMetadata
 
@@ -97,7 +98,8 @@ async def extract_text_from_form_file(file: UploadFile):
 
     file_stream = await file.read()
 
-    temp_file_path = "/tmp/temp_file"
+    # to prevent collisions in concurrent scenarios, append a random UUID to the temp file name
+    temp_file_path = "/tmp/temp_file_" + str(uuid.uuid4())
 
     # write the file to a temporary location
     with open(temp_file_path, "wb") as f:
