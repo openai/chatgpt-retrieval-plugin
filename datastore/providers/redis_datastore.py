@@ -44,7 +44,8 @@ REDIS_REQUIRED_MODULES = [
     {"name": "search", "ver": 20600},
     {"name": "ReJSON", "ver": 20404}
 ]
-REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
+
+REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
 
 # Helper functions
 def unpack_schema(d: dict):
@@ -55,25 +56,23 @@ def unpack_schema(d: dict):
             yield v
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
-
     installed_modules = (await client.info()).get("modules", [])
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
         if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
-            error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+            error_message = "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
             logging.error(error_message)
             raise AttributeError(error_message)
 
 
-
 class RedisDataStore(DataStore):
-    def __init__(self, client: redis.Redis, redisearch_schema):
+    def __init__(self, client: redis.Redis, redisearch_schema: dict):
         self.client = client
         self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
-            field: "_null_" for field in redisearch_schema["metadata"]
+            field: (0 if field == "created_at" else "_null_") for field in redisearch_schema["metadata"]
         }
 
     ### Redis Helper Methods ###
@@ -94,11 +93,11 @@ class RedisDataStore(DataStore):
             raise e
 
         await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
-       
+
         dim = kwargs.get("dim", VECTOR_DIMENSION)
         redisearch_schema = {
-            "document_id": TagField("$.document_id", as_name="document_id"),
             "metadata": {
+                "document_id": TagField("$.metadata.document_id", as_name="document_id"),
                 "source_id": TagField("$.metadata.source_id", as_name="source_id"),
                 "source": TagField("$.metadata.source", as_name="source"),
                 "author": TextField("$.metadata.author", as_name="author"),
@@ -209,7 +208,7 @@ class RedisDataStore(DataStore):
             if isinstance(typ, TagField):
                 return f"@{field}:{{{self._escape(value)}}} "
             elif isinstance(typ, TextField):
-                return f"@{field}:{self._escape(value)} "
+                return f"@{field}:{value} "
             elif isinstance(typ, NumericField):
                 num = to_unix_timestamp(value)
                 match field:
@@ -300,7 +299,7 @@ class RedisDataStore(DataStore):
         results: List[QueryResult] = []
 
         # Gather query results in a pipeline
-        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        logging.info(f"Gathering {len(queries)} query results")
         for query in queries:
 
             logging.info(f"Query: {query.query}")
