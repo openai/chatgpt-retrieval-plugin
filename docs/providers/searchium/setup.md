@@ -40,9 +40,13 @@ client or cloud interface as needed."**
 **The actual minimum dataset size should be at least 4,001.**
 
 **Searchium cloud platform**
-To start using our client, you need to [sign up at searchium.ai](https://app.searchium.ai/signup). 
-You can use the free tier for a few hours. 
-Afterward, you can retrieve your `SEARCHIUM_INSTANCE_ID` and `SEARCHIUM_CLIENT_API_URL` in your account.
+To start using our client, [sign up at searchium.ai](https://app.searchium.ai/signup). 
+A free tier is available.
+Afterward, you can retrieve your `SEARCHIUM_INSTANCE_ID` and `SEARCHIUM_CLIENT_API_URL` from your account:
+ * Sign in -> Skip for now -> Skip for now again
+ * API settings -> Create instance -> Launch Instance.
+ 
+
 Read more details on [searchium.ai](https://searchium.ai/).
 
 ```python

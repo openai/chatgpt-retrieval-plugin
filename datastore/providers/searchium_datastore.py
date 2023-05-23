@@ -55,6 +55,7 @@ class SearchiumDataStore(DataStore):
                 self.d_train = True if (dataset.datasetStatus is None or size_db == 0 or size_db < int(
                     SEARCHIUM_DATASET_SIZE)) else False
                 self.d_size = size_db
+            self.lock = asyncio.Lock()
         except Exception as e:
             raise e
 
@@ -90,19 +91,26 @@ class SearchiumDataStore(DataStore):
                 print(f"Upserted batch successfully")
 
                 if ((self.d_size + 10) >= int(SEARCHIUM_DATASET_SIZE)) and self.d_train:
-                    print("start train dataset..")
+                    await self.lock.acquire()
+                    print("training of the dataset has started.")
                     searchium.train_dataset(self.dataset_id)
                     self.d_train = False
-                    while searchium.train_status(self.dataset_id).datasetStatus is DatasetStatus.training:
-                        print("waiting for train..")
-                        time.sleep(5)
 
-                    print("start load..")
+                    status = searchium.train_status(self.dataset_id).datasetStatus
+                    while (status is DatasetStatus.training) or (status is DatasetStatus.pending):
+                        status = searchium.train_status(self.dataset_id).datasetStatus
+                        print(f"dataset status: {status} in progress, awaiting {status} completion.")
+                        time.sleep(10)
+
+                    print("dataset loading has started.")
                     searchium.load_dataset(self.dataset_id)
-                    print("dataset was loaded successfully.")
+                    print("dataset loaded successfully.")
             except Exception as e:
                 print(f"Error upserting batch: {e}")
                 raise e
+            finally:
+                if self.lock.locked():
+                    self.lock.release()
         return doc_ids
 
     async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
