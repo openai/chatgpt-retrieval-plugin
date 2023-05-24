@@ -418,7 +418,7 @@ Instructions:
 - [Deploying to Fly.io](/docs/deployment/flyio.md)
 - [Deploying to Heroku](/docs/deployment/heroku.md)
 - [Deploying to Render](/docs/deployment/render.md)
-- [Deploying to Gold Retriever](/docs/deployment/goldretriever.md)
+- [Deploying with Gold Retriever](/docs/deployment/goldretriever.md)
 - [Other Deployment Options](/docs/deployment/other-options.md) (Azure Container Apps, Google Cloud Run, AWS Elastic Container Service, etc.)
 
 Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.

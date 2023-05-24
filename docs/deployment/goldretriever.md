@@ -1,4 +1,4 @@
-# Deploying to Gold Retriever
+# Deploying with Gold Retriever
 
 [goldretriever](https://github.com/jina-ai/GoldRetriever) is an open-source CLI tool, powered by [jina](https://github.com/jina-ai/jina) and [docarray](https://github.com/docarray/docarray), that enables you to create and host ChatGPT retrieval plugins in a few simple steps.
 
