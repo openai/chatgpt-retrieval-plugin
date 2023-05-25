@@ -23,6 +23,7 @@ class DataStore(ABC):
         First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
         Return a list of document ids.
         """
+        print("upsert")
         # Delete any existing vectors for documents with the input document ids
         await asyncio.gather(
             *[
