@@ -1,4 +1,4 @@
-# Deploying with Gold Retriever
+# Deploying to Jina Cloud with Gold Retriever
 
 [goldretriever](https://github.com/jina-ai/GoldRetriever) is an open-source CLI tool, powered by [jina](https://github.com/jina-ai/jina) and [docarray](https://github.com/docarray/docarray), that enables you to create and host ChatGPT retrieval plugins in a few simple steps.
 
@@ -37,4 +37,4 @@ goldretriever index --data my_files
 2. Select "Develop your own plugin".
 3. Enter the "Gateway (Http)" URL and Bearer token from the deployment step.
 
-To learn more, feel free to visit [goldretriever](https://github.com/jina-ai/GoldRetriever) and take a look at this [blogpost](https://jina.ai/news/gold-retriever-let-chatgpt-talk-to-your-data/) that highlights one of the many ways you can use goldretriever.
+To learn more, consider visiting [goldretriever](https://github.com/jina-ai/GoldRetriever) and reviewing our featured [blogpost](https://jina.ai/news/gold-retriever-let-chatgpt-talk-to-your-data/) and [video tutorial](https://www.youtube.com/watch?v=gQz-vuo8w5I), which highlight one of the many ways you can effectively use goldretriever.
