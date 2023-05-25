@@ -155,7 +155,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_PORT=<postgres_port>
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
-   export PG_DATABASE=<postgres_database>
+   export PG_DB=<postgres_database>
    ```
 
 10. Run the API locally: `poetry run start`
