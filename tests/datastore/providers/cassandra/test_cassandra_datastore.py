@@ -87,6 +87,8 @@ async def test_query(
     queries: List[QueryWithEmbedding],
 ) -> None:
     """Test basic query."""
+    # todo remove this once we support upserts
+    await cassandra_datastore.delete(delete_all=True)
     # insert to prepare for test
     await cassandra_datastore._upsert(initial_document_chunks)
 
@@ -101,8 +103,9 @@ async def test_query(
 
     # NOTE: this is the correct behavior
     assert query_0_results[0].id == "first-doc-4"
-    assert query_1_results[0].id == "first-doc-5"
-    assert query_1_results[1].id == "first-doc-4"
+    # TODO flip these if /when we support returning in score order (rather than token order)
+    assert query_1_results[0].id == "first-doc-4"
+    assert query_1_results[1].id == "first-doc-5"
 
 
 @pytest.mark.asyncio

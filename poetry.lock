@@ -334,7 +334,7 @@ graph = ["gremlinpython (==3.4.6)"]
 type = "git"
 url = "https://github.com/datastax/python-driver.git"
 reference = "cep-vsearch"
-resolved_reference = "c83021d2004cd89eff11b084bc67220c2a817af4"
+resolved_reference = "e031256f790b6cd271023fec0b3942ae3d76f0a3"
 
 [[package]]
 name = "certifi"

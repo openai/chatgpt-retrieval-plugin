@@ -88,7 +88,7 @@ class CassandraDataStore():
                 #    params["in_end_date"] = datetime.fromtimestamp(
                 #        to_unix_timestamp(query.filter.end_date)
                 #    )
-            data = await self.client.query(query)
+            data = await self.client.runQuery(query)
 
             if data is None:
                 query_results.append(QueryResult(query=query.query, results=[]))
@@ -149,16 +149,18 @@ class CassandraClient():
 
     def create_table(self):
         try:
+            self.session.execute(f"""create keyspace if not exists {CASSANDRA_KEYSPACE} WITH replication = {{'class': 'SimpleStrategy', 'replication_factor': 1 }};""")
+
             self.session.execute(f"""create table if not exists {CASSANDRA_KEYSPACE}.documents (
-                id text primary key,
-                source text,
-                source_id text,
-                content text,
-                document_id text,
-                author text,
-                url text,
-                created_at timestamp,
-                embedding FLOAT VECTOR[1536]
+                    id text primary key,
+                    source text,
+                    source_id text,
+                    content text,
+                    document_id text,
+                    author text,
+                    url text,
+                    created_at timestamp,
+                    embedding VECTOR<float,1536>
             );""")
 
             statement = SimpleStatement(
@@ -175,7 +177,7 @@ class CassandraClient():
         # close the connection when the client is destroyed
         self.cluster.shutdown()
 
-    async def query(self, query):
+    async def runQuery(self, query):
         try:
             queryString = f"SELECT * from {CASSANDRA_KEYSPACE}.documents where embedding ann of {query.embedding} LIMIT {query.top_k};"
             print(queryString)
@@ -187,7 +189,7 @@ class CassandraClient():
             print(f"Exception during query (retrying): {e}")
             #sleep 10 seconds and retry
             time.sleep(10)
-            query(query)
+            self.runQuery(query)
 
     async def upsert(self, table: str, json: dict[str, Any]):
         """
