@@ -70,24 +70,6 @@ class CassandraDataStore():
             }
             if not query.top_k:
                 query.top_k = 10
-            if query.filter:
-                raise NotImplementedError
-                #if query.filter.document_id:
-                #    params["in_document_id"] = query.filter.document_id
-                #if query.filter.source:
-                #    params["in_source"] = query.filter.source.value
-                #if query.filter.source_id:
-                #    params["in_source_id"] = query.filter.source_id
-                #if query.filter.author:
-                #    params["in_author"] = query.filter.author
-                #if query.filter.start_date:
-                #    params["in_start_date"] = datetime.fromtimestamp(
-                #        to_unix_timestamp(query.filter.start_date)
-                #    )
-                #if query.filter.end_date:
-                #    params["in_end_date"] = datetime.fromtimestamp(
-                #        to_unix_timestamp(query.filter.end_date)
-                #    )
             data = await self.client.runQuery(query)
 
             if data is None:
@@ -138,10 +120,11 @@ class CassandraDataStore():
             except:
                 return False
         elif filter:
-            try:
-                await self.client._delete_by_filters("documents", filter)
-            except:
-                return False
+            raise NotImplementedError
+            #try:
+            #    await self.client._delete_by_filters("documents", filter)
+            #except:
+            #    return False
         return True
 
 
@@ -194,18 +177,74 @@ class CassandraClient():
             )
             self.session.execute(statement)
 
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (document_id) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
+
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (author) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
+
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (source) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
+
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (source_id) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
+
+
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (created_at) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
+
+
+            statement = SimpleStatement(
+                f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.documents (url) USING 'StorageAttachedIndex';"
+                , consistency_level=ConsistencyLevel.QUORUM
+            )
+            self.session.execute(statement)
         except Exception as e:
-            print(f"Exception creating table or index: {e}")
-            exit(1)
+                print(f"Exception creating table or index: {e}")
+                exit(1)
 
     def __del__(self):
         # close the connection when the client is destroyed
         self.cluster.shutdown()
 
     async def runQuery(self, query):
+        filters = ""
+        if query.filter:
+            filter = query.filter
+            #TODO, change to WHERE when syntax changes
+            filters = "AND"
+            if filter.document_id:
+                filters += f" document_id = '{filter.document_id}' AND"
+            if filter.source:
+                filters += f" source = '{filter.source}' AND"
+            if filter.source_id:
+                filters += f" source_id = '{filter.source_id}' AND"
+            if filter.author:
+                filters += f" author = '{filter.author}' AND"
+            if filter.start_date:
+                filters += f" created_at >= '{filter.start_date}' AND"
+            if filter.end_date:
+                filters += f" created_at <= '{filter.end_date}' AND"
+            filters = filters[:-4]
+
         try:
-            queryString = f"SELECT * from {CASSANDRA_KEYSPACE}.documents where embedding ann of {query.embedding} LIMIT {query.top_k};"
-            # print(queryString)
+            queryString = f"SELECT * from {CASSANDRA_KEYSPACE}.documents where embedding ann of {query.embedding} {filters} LIMIT {query.top_k};"
+            print(queryString)
             statement = SimpleStatement(queryString, consistency_level=ConsistencyLevel.QUORUM)
             resultset = self.session.execute(statement)
             return resultset
