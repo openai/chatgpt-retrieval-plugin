@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    ports:
+      - "9099:8080"
+    environment:
+      - BEARER_TOKEN=111mFtZSI6ImFuZHlTdW4iLCJpYXQiOjEzNTg4NzkyNzYyfQ.gkvK6TKwQL9Ra691aPOzxMwA5GAb7y4hSchbomN6Guk
+      - DATASTORE=pinecone
+      - OPENAI_API_KEY=1111FJfeAOtsHatVYA6IsDWEB9
+      - PINECONE_API_KEY=1111306-be11a5526eb0
+      - PINECONE_ENVIRONMENT=111gcp
+      - PINECONE_INDEX=mypinecone
+  redis:
+    image: "redis:latested"
+    ports: 
+      - "6379:6379"
