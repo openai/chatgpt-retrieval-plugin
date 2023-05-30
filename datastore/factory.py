@@ -24,6 +24,12 @@ async def get_datastore() -> DataStore:
             from datastore.providers.weaviate_datastore import WeaviateDataStore
 
             return WeaviateDataStore()
+    
+        case "marqo":
+            from datastore.providers.marqo_datastore import MarqoDataStore
+
+            return MarqoDataStore()
+        
         case "milvus":
             from datastore.providers.milvus_datastore import MilvusDataStore
 
