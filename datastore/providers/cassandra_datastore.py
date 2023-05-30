@@ -1,14 +1,14 @@
 import os
 import base64
 import time
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 from datetime import datetime
 import numpy as np
 from cassandra import ConsistencyLevel
 
 from cassandra.cluster import Cluster, NoHostAvailable
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.query import SimpleStatement
+from cassandra.query import SimpleStatement, ValueSequence
 
 from services.date import to_unix_timestamp
 from models.models import (
@@ -116,8 +116,33 @@ class CassandraDataStore():
                 query_results.append(QueryResult(query=query.query, results=results))
         return query_results
 
-    async def delete(self, delete_all):
-       await self.client._delete(delete_all)
+    async def delete(
+            self,
+            ids: Optional[List[str]] = None,
+            filter: Optional[DocumentMetadataFilter] = None,
+            delete_all: Optional[bool] = None,
+    ) -> bool:
+        """
+        Removes vectors by ids, filter, or everything in the datastore.
+        Multiple parameters can be used at once.
+        Returns whether the operation was successful.
+        """
+        if delete_all:
+            try:
+                await self.client._delete("documents",delete_all)
+            except:
+                return False
+        elif ids:
+            try:
+                await self.client._delete_in("documents", "document_id", ids)
+            except:
+                return False
+        elif filter:
+            try:
+                await self.client._delete_by_filters("documents", filter)
+            except:
+                return False
+        return True
 
 
 class CassandraClient():
@@ -180,7 +205,7 @@ class CassandraClient():
     async def runQuery(self, query):
         try:
             queryString = f"SELECT * from {CASSANDRA_KEYSPACE}.documents where embedding ann of {query.embedding} LIMIT {query.top_k};"
-            print(queryString)
+            # print(queryString)
             statement = SimpleStatement(queryString, consistency_level=ConsistencyLevel.QUORUM)
             resultset = self.session.execute(statement)
             return resultset
@@ -226,7 +251,7 @@ class CassandraClient():
             print(f"Exception inserting into table: {e}")
             exit(1)
 
-    async def delete_by_filters(self, table: str, filter: DocumentMetadataFilter):
+    async def _delete_by_filters(self, table: str, filter: DocumentMetadataFilter):
         """
         Deletes rows in the table that match the filter.
         """
@@ -247,8 +272,32 @@ class CassandraClient():
         filters = filters[:-4]
         self.session.execute(f"DELETE FROM {table} {filters}")
 
-    async def _delete(self, delete_all):
+    async def _delete(self, table, delete_all):
         if delete_all:
-            self.session.execute(f"TRUNCATE TABLE {CASSANDRA_KEYSPACE}.documents")
+            self.session.execute(f"TRUNCATE TABLE {CASSANDRA_KEYSPACE}.{table}")
         else:
             raise NotImplementedError
+
+
+    async def _delete_in(self, table: str, column: str, doc_ids: List[str]):
+        """
+        Deletes rows in the table that match the ids.
+        """
+        try:
+            query = f"SELECT id FROM {CASSANDRA_KEYSPACE}.{table} WHERE {column} IN (%s)"
+            statement = SimpleStatement(query, consistency_level=ConsistencyLevel.QUORUM)
+            parameters = ValueSequence(doc_ids)
+            rows = self.session.execute(
+                statement,
+                parameters
+            )
+
+            ids = ValueSequence([row.id for row in rows])
+
+            self.session.execute(
+                f"DELETE FROM {CASSANDRA_KEYSPACE}.{table} WHERE id IN (%s)",
+                ids
+            )
+        except Exception as e:
+            print(f"Exception deleting from table: {e}")
+            exit(1)

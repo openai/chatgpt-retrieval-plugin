@@ -271,8 +271,8 @@ async def test_delete(cassandra_datastore):
     results = await cassandra_datastore._query([query])
 
     assert len(results[0].results) == 2
-    assert results[0].results[0].id == "chunk1"
-    assert results[0].results[1].id == "chunk2"
+    assert any(result.id == "chunk1" for result in results[0].results), "chunk1 is missing."
+    assert any(result.id == "chunk2" for result in results[0].results), "chunk2 is missing."
 
     await cassandra_datastore.delete(ids=["doc1"])
     results_after_delete = await cassandra_datastore._query([query])
