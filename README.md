@@ -25,39 +25,45 @@ This README provides detailed information on how to set up, develop, and deploy 
 
 ## Table of Contents
 
-- [Quickstart](#quickstart)
-- [About](#about)
-  - [Plugins](#plugins)
-  - [Retrieval Plugin](#retrieval-plugin)
-  - [Memory Feature](#memory-feature)
-  - [Security](#security)
-  - [API Endpoints](#api-endpoints)
-- [Development](#development)
-  - [Setup](#setup)
-    - [General Environment Variables](#general-environment-variables)
-  - [Choosing a Vector Database](#choosing-a-vector-database)
-    - [Pinecone](#pinecone)
-    - [Weaviate](#weaviate)
-    - [Zilliz](#zilliz)
-    - [Milvus](#milvus)
-    - [Qdrant](#qdrant)
-    - [Redis](#redis)
-    - [Llama Index](#llamaindex)
-    - [Chroma](#chroma)
-    - [Azure Cognitive Search](#azure-cognitive-search)
-    - [Supabase](#supabase)
-    - [Postgres](#postgres)
-  - [Running the API Locally](#running-the-api-locally)
-  - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
-  - [Personalization](#personalization)
-  - [Authentication Methods](#authentication-methods)
-- [Deployment](#deployment)
-- [Installing a Developer Plugin](#installing-a-developer-plugin)
-- [Webhooks](#webhooks)
-- [Scripts](#scripts)
-- [Limitations](#limitations)
-- [Contributors](#contributors)
-- [Future Directions](#future-directions)
+- [ChatGPT Retrieval Plugin](#chatgpt-retrieval-plugin)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Quickstart](#quickstart)
+    - [Testing in ChatGPT](#testing-in-chatgpt)
+  - [About](#about)
+    - [Plugins](#plugins)
+    - [Retrieval Plugin](#retrieval-plugin)
+    - [Memory Feature](#memory-feature)
+    - [Security](#security)
+    - [API Endpoints](#api-endpoints)
+  - [Development](#development)
+    - [Setup](#setup)
+      - [General Environment Variables](#general-environment-variables)
+    - [Using the plugin with Azure OpenAI](#using-the-plugin-with-azure-openai)
+    - [Choosing a Vector Database](#choosing-a-vector-database)
+      - [Pinecone](#pinecone)
+      - [Weaviate](#weaviate)
+      - [Marqo](#marqo)
+      - [Zilliz](#zilliz)
+      - [Milvus](#milvus)
+      - [Qdrant](#qdrant)
+      - [Redis](#redis)
+      - [LlamaIndex](#llamaindex)
+      - [Chroma](#chroma)
+      - [Azure Cognitive Search](#azure-cognitive-search)
+      - [Supabase](#supabase)
+      - [Postgres](#postgres)
+    - [Running the API locally](#running-the-api-locally)
+    - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
+    - [Personalization](#personalization)
+    - [Authentication Methods](#authentication-methods)
+  - [Deployment](#deployment)
+  - [Installing a Developer Plugin](#installing-a-developer-plugin)
+  - [Webhooks](#webhooks)
+  - [Scripts](#scripts)
+  - [Limitations](#limitations)
+  - [Future Directions](#future-directions)
+  - [Contributors](#contributors)
 
 ## Quickstart
 
@@ -98,6 +104,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export WEAVIATE_URL=<your_weaviate_instance_url>
    export WEAVIATE_API_KEY=<your_api_key_for_WCS>
    export WEAVIATE_CLASS=<your_optional_weaviate_class>
+
+   # marqo
+   export MARQO_API_URL=<your_marqo_instance_url>
+   export MARQO_API_KEY=<your_api_key_for_marqo_if_using_cloud>
+   export MARQO_INDEX=<your_marqo_index_class>
+   export MARQO_INFERENCE_MODEL=<optional_marqo_embeddings_model>
+   export MARQO_UPSERT_BATCH_SIZE=<option_batched_upsert_size>
+   export TREAT_URLS_AND_POINTERS_AS_IMAGES=<optional_download_images_from_urls_for_multimodal>
+
 
    # Zilliz
    export ZILLIZ_COLLECTION=<your_zilliz_collection>
@@ -269,7 +284,7 @@ The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                                                    |
 | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`. |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `marqo`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                    |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                     |
 
@@ -295,6 +310,10 @@ For more detailed instructions on setting up and using each vector database prov
 #### Weaviate
 
 [Weaviate](https://weaviate.io/) is an open-source vector search engine built to scale seamlessly into billions of data objects. It supports hybrid search out-of-the-box, making it suitable for users who require efficient keyword searches. Weaviate can be self-hosted or managed, offering flexibility in deployment. For detailed setup instructions, refer to [`/docs/providers/weaviate/setup.md`](/docs/providers/weaviate/setup.md).
+
+#### Marqo
+
+[Marqo](https://www.marqo.ai/) is an open-source, end-to-end, multimodal vector search engine. With Marqo, users can store and query unstructured data such as text, images, and code through a single easy-to-use API. Input preprocessing, machine learning inference, and storage are all included out of the box and can be easily scaled. Marqo can be self-hosted or you can use our managed cloud. For detailed setup instructions, refer to [`/docs/providers/marqo/setup.md`](/docs/providers/marqo/setup.md).
 
 #### Zilliz
 
@@ -513,6 +532,8 @@ We would like to extend our gratitude to the following contributors for their co
   - [byronvoorbach](https://github.com/byronvoorbach)
   - [hsm207](https://github.com/hsm207)
   - [sebawita](https://github.com/sebawita)
+- [Marqo](https://www.marqo.ai)
+  - [OwenPendrighElliott](https://github.com/OwenPendrighElliott)
 - [Zilliz](https://zilliz.com/)
   - [filip-halt](https://github.com/filip-halt)
 - [Milvus](https://milvus.io/)
