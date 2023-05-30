@@ -47,6 +47,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Azure Cognitive Search](#azure-cognitive-search)
     - [Supabase](#supabase)
     - [Postgres](#postgres)
+    - [AnalyticDB](#analyticdb)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
