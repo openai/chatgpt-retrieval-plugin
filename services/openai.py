@@ -48,7 +48,9 @@ def get_chat_completion(
 
     Args:
         messages: The list of messages in the chat history.
-        model: The name of the model to use for the completion. Default is gpt-3.5-turbo, which is a fast, cheap and versatile model. Use gpt-4 for higher quality but slower results.
+        model: The name of the model to use for the completion. Default is gpt-3.5-turbo, which is a fast,
+               cheap and versatile model. Use gpt-4 for higher quality but slower results.
+        deployment_id: optional deployment id for Azure OpenAI
 
     Returns:
         A string containing the chat completion.
