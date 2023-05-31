@@ -54,7 +54,7 @@ class DataStore(ABC):
         """
         Takes in a list of queries and filters and returns a list of query results with matching document chunks and scores.
         """
-        # get a list of of just the queries from the Query list
+        # get a list of just the queries from the Query list
         query_texts = [query.query for query in queries]
         query_embeddings = get_embeddings(query_texts)
         # hydrate the queries with embeddings

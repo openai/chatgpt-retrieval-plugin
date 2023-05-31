@@ -10,7 +10,7 @@
 - Cloud scalability
 - A developer-first community with multi-language support
 
-Visit the [Github](https://github.com/milvus-io/milvus) to learn more.
+Visit the [GitHub](https://github.com/milvus-io/milvus) to learn more.
 
 ## Deploying the Database
 

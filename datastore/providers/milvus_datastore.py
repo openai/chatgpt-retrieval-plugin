@@ -169,9 +169,9 @@ class MilvusDataStore(DataStore):
             if utility.has_collection(collection_name, using=self.alias) and create_new:
                 utility.drop_collection(collection_name, using=self.alias)
 
-            # Check if the collection doesnt exist
+            # Check if the collection doesn't exist
             if utility.has_collection(collection_name, using=self.alias) is False:
-                # If it doesnt exist use the field params from init to create a new schem
+                # If it doesn't exist use the field params from init to create a new schema
                 schema = [field[1] for field in SCHEMA_V2]
                 schema = CollectionSchema(schema)
                 # Use the schema to create a new collection

@@ -80,7 +80,7 @@ class RedisDataStore(DataStore):
     @classmethod
     async def init(cls, **kwargs):
         """
-        Setup the index if it does not exist.
+        Set up the index if it does not exist.
         """
         try:
             # Connect to the Redis Client
