@@ -2716,6 +2716,21 @@ files = [
 ]
 
 [[package]]
+name = "psycopg2cffi"
+version = "2.9.0"
+description = ".. image:: https://travis-ci.org/chtd/psycopg2cffi.svg?branch=master"
+category = "main"
+optional = true
+python-versions = "*"
+files = [
+    {file = "psycopg2cffi-2.9.0.tar.gz", hash = "sha256:7e272edcd837de3a1d12b62185eb85c45a19feda9e62fa1b120c54f9e8d35c52"},
+]
+
+[package.dependencies]
+cffi = ">=1.0"
+six = "*"
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -4728,6 +4743,9 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 
 [package.extras]
 cffi = ["cffi (>=1.11)"]
+
+[extras]
+postgresql = ["psycopg2cffi"]
 
 [metadata]
 lock-version = "2.0"
