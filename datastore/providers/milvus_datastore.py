@@ -98,7 +98,7 @@ SCHEMA_V1 = [
     ),
 ]
 
-# V2 schema, remomve the "pk" field
+# V2 schema, remove the "pk" field
 SCHEMA_V2 = SCHEMA_V1[1:]
 SCHEMA_V2[4][1].is_primary = True
 
