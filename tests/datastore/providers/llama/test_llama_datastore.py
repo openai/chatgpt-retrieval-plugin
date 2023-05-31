@@ -47,6 +47,7 @@ def queries() -> List[QueryWithEmbedding]:
 def llama_datastore() -> LlamaDataStore:
     return LlamaDataStore()
 
+
 @pytest.mark.asyncio
 async def test_upsert(
     llama_datastore: LlamaDataStore, 

@@ -47,6 +47,7 @@ EMBEDDING_FIELD = "embedding"
 class Required:
     pass
 
+
 # The fields names that we are going to be storing within Milvus, the field declaration for schema creation, and the default value
 SCHEMA_V1 = [
     (
@@ -325,7 +326,6 @@ class MilvusDataStore(DataStore):
         except Exception as e:
             logger.error("Failed to insert records, error: {}".format(e))
             return []
-
 
     def _get_values(self, chunk: DocumentChunk) -> List[any] | None:  # type: ignore
         """Convert the chunk into a list of values to insert whose indexes align with fields.

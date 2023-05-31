@@ -21,7 +21,7 @@ AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
 AZURESEARCH_LANGUAGE = os.environ.get("AZURESEARCH_LANGUAGE", "en-us")
 AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
-AZURESEARCH_DIMENSIONS = os.environ.get("AZURESEARCH_DIMENSIONS", 1536) # Default to OpenAI's ada-002 embedding model vector size
+AZURESEARCH_DIMENSIONS = os.environ.get("AZURESEARCH_DIMENSIONS", 1536)  # Default to OpenAI's ada-002 embedding model vector size
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
 
@@ -38,6 +38,7 @@ FIELDS_AUTHOR = os.environ.get("AZURESEARCH_FIELDS_AUTHOR", "author")
 
 MAX_UPLOAD_BATCH_SIZE = 1000
 MAX_DELETE_BATCH_SIZE = 1000
+
 
 class AzureSearchDataStore(DataStore):
     def __init__(self):

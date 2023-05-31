@@ -47,6 +47,7 @@ REDIS_REQUIRED_MODULES = [
 
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
 
+
 # Helper functions
 def unpack_schema(d: dict):
     for v in d.values():
@@ -54,6 +55,7 @@ def unpack_schema(d: dict):
             yield from unpack_schema(v)
         else:
             yield v
+
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
     installed_modules = (await client.info()).get("modules", [])

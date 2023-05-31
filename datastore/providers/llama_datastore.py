@@ -28,6 +28,7 @@ EXTERNAL_VECTOR_STORE_INDEX_STRUCT_TYPES = [
     IndexStructType.VECTOR_STORE,
 ]
 
+
 def _create_or_load_index(
     index_type_str: Optional[str] = None,
     index_json_path: Optional[str] = None,
@@ -49,11 +50,12 @@ def _create_or_load_index(
     if index_json_path is None:
         return index_cls(nodes=[])  # Create empty index
     else:
-        return index_cls.load_from_disk(index_json_path) # Load index from disk
+        return index_cls.load_from_disk(index_json_path)  # Load index from disk
+
 
 def _create_or_load_query_kwargs(query_kwargs_json_path: Optional[str] = None) -> Optional[dict]:
     """Create or load query kwargs from json path."""
-    query_kwargs_json_path= query_kwargs_json_path or QUERY_KWARGS_JSON_PATH
+    query_kwargs_json_path = query_kwargs_json_path or QUERY_KWARGS_JSON_PATH
     query_kargs: Optional[dict] = None
     if  query_kwargs_json_path is not None:
         with open(INDEX_JSON_PATH, 'r') as f:
@@ -73,11 +75,13 @@ def _doc_chunk_to_node(doc_chunk: DocumentChunk, source_doc_id: str) -> Node:
         }
     )
 
+
 def _query_with_embedding_to_query_bundle(query: QueryWithEmbedding) -> QueryBundle:
     return QueryBundle(
-        query_str = query.query,
+        query_str=query.query,
         embedding=query.embedding,
     )
+
 
 def _source_node_to_doc_chunk_with_score(node_with_score: NodeWithScore) -> DocumentChunkWithScore:
     node = node_with_score.node
@@ -93,9 +97,11 @@ def _source_node_to_doc_chunk_with_score(node_with_score: NodeWithScore) -> Docu
         metadata=metadata,
     )
 
+
 def _response_to_query_result(response: Response, query: QueryWithEmbedding) -> QueryResult:
     results = [_source_node_to_doc_chunk_with_score(node) for node in response.source_nodes]
     return QueryResult(query=query.query, results=results,)
+
 
 class LlamaDataStore(DataStore):
     def __init__(self, index: Optional[BaseGPTIndex] = None, query_kwargs: Optional[dict] = None):

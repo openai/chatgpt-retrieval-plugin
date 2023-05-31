@@ -20,6 +20,7 @@ ZILLIZ_USE_SECURITY = False if ZILLIZ_PASSWORD is None else True
 
 ZILLIZ_CONSISTENCY_LEVEL = os.environ.get("ZILLIZ_CONSISTENCY_LEVEL")
 
+
 class ZillizDataStore(MilvusDataStore):
     def __init__(self, create_new: Optional[bool] = False):
         """Create a Zilliz DataStore.

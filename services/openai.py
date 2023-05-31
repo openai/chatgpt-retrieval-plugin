@@ -41,7 +41,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 def get_chat_completion(
     messages,
     model="gpt-3.5-turbo",  # use "gpt-4" for better results
-    deployment_id = None
+    deployment_id=None
 ):
     """
     Generate a chat completion using OpenAI's chat completion API.
@@ -68,12 +68,12 @@ def get_chat_completion(
         )
     else:
         response = openai.ChatCompletion.create(
-            deployment_id = deployment_id,
+            deployment_id=deployment_id,
             messages=messages,
         )
-
 
     choices = response["choices"]  # type: ignore
     completion = choices[0].message.content.strip()
     logger.info(f"Completion: {completion}")
+
     return completion
