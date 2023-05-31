@@ -19,7 +19,7 @@ You can deploy and manage Milvus using Docker Compose, Helm, K8's Operator, or A
 **Environment Variables:**
 
 | Name                       | Required | Description                                                                                                                                  |
-|----------------------------| -------- |----------------------------------------------------------------------------------------------------------------------------------------------|
+|----------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------|
 | `DATASTORE`                | Yes      | Datastore name, set to `milvus`                                                                                                              |
 | `BEARER_TOKEN`             | Yes      | Your bearer token                                                                                                                            |
 | `OPENAI_API_KEY`           | Yes      | Your OpenAI API key                                                                                                                          |

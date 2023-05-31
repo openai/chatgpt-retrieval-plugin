@@ -8,7 +8,7 @@ Postgres Database offers an easy and efficient way to store vectors via [pgvecto
 **Retrieval App Environment Variables**
 
 | Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
+|------------------|----------|----------------------------------------|
 | `DATASTORE`      | Yes      | Datastore name. Set this to `postgres` |
 | `BEARER_TOKEN`   | Yes      | Your secret token                      |
 | `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
@@ -16,7 +16,7 @@ Postgres Database offers an easy and efficient way to store vectors via [pgvecto
 **Postgres Datastore Environment Variables**
 
 | Name          | Required | Description       | Default    |
-| ------------- | -------- | ----------------- | ---------- |
+|---------------|----------|-------------------|------------|
 | `PG_HOST`     | Optional | Postgres host     | localhost  |
 | `PG_PORT`     | Optional | Postgres port     | `5432`     |
 | `PG_PASSWORD` | Optional | Postgres password | `postgres` |

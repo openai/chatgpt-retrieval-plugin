@@ -6,7 +6,7 @@ solution. The configuration is almost identical for both options, except for the
 **Environment Variables:**
 
 | Name                | Required | Description                                                 | Default            |
-| ------------------- | -------- | ----------------------------------------------------------- | ------------------ |
+|---------------------|----------|-------------------------------------------------------------|--------------------|
 | `DATASTORE`         | Yes      | Datastore name, set to `qdrant`                             |                    |
 | `BEARER_TOKEN`      | Yes      | Secret token                                                |                    |
 | `OPENAI_API_KEY`    | Yes      | OpenAI API key                                              |                    |

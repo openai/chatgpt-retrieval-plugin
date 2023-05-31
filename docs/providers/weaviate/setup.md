@@ -56,24 +56,24 @@ You need to set some environment variables to connect to your Weaviate instance.
 **Retrieval App Environment Variables**
 
 | Name             | Required | Description                                                                          |
-| ---------------- | -------- |--------------------------------------------------------------------------------------|
+|------------------|----------|--------------------------------------------------------------------------------------|
 | `DATASTORE`      | Yes      | Datastore name. Set this to `weaviate`                                               |
 | `BEARER_TOKEN`   | Yes      | Your [secret token](/README.md#general-environment-variables) (not the Weaviate one) |
 | `OPENAI_API_KEY` | Yes      | Your OpenAI API key                                                                  |
 
 **Weaviate Datastore Environment Variables**
 
-| Name             | Required | Description                                                        | Default            |
-|------------------| -------- | ------------------------------------------------------------------ | ------------------ |
-| `WEAVIATE_URL`  | Optional | Your weaviate instance's url/WCS endpoint              | `http://localhost:8080` |           |
-| `WEAVIATE_CLASS` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument     |
+| Name             | Required | Description                                                        | Default                 |
+|------------------|----------|--------------------------------------------------------------------|-------------------------|
+| `WEAVIATE_URL`   | Optional | Your weaviate instance's url/WCS endpoint                          | `http://localhost:8080` |
+| `WEAVIATE_CLASS` | Optional | Your chosen Weaviate class/collection name to store your documents | OpenAIDocument          |
 
 **Weaviate Auth Environment Variables**
 
 If using WCS instances, set the following environment variables:
 
-| Name                | Required | Description                    |
-| ------------------- | -------- | ------------------------------ |
-| `WEAVIATE_API_KEY` | Yes      | Your API key WCS      |
+| Name               | Required | Description      |
+|--------------------|----------|------------------|
+| `WEAVIATE_API_KEY` | Yes      | Your API key WCS |
 
 Learn more about accessing your [WCS API key](https://weaviate.io/developers/wcs/guides/authentication#access-api-keys).

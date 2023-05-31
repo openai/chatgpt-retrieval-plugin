@@ -6,18 +6,18 @@ You can find the Azure Cognitive Search documentation [here](https://learn.micro
 
 ## Environment variables
 
-| Name                         | Required | Description                                                                           | Default             |
-| ---------------------------- | -------- | ------------------------------------------------------------------------------------- | ------------------- |
-| `DATASTORE`                  | Yes      | Datastore name, set to `azuresearch`                                                  |                     |
-| `BEARER_TOKEN`               | Yes      | Secret token                                                                          |                     |
-| `OPENAI_API_KEY`             | Yes      | OpenAI API key                                                                        |                     |
-| `AZURESEARCH_SERVICE`        | Yes      | Name of your search service                                                           |                     |
-| `AZURESEARCH_INDEX`          | Yes      | Name of your search index                                                             |                     |
-| `AZURESEARCH_API_KEY`        | No       | Your API key, if using key-based auth instead of Azure managed identity               |Uses managed identity|
-| `AZURESEARCH_DISABLE_HYBRID` | No       | Disable hybrid search and only use vector similarity                                  |Use hybrid search    |
-| `AZURESEARCH_SEMANTIC_CONFIG`| No       | Enable L2 re-ranking with this configuration name [see re-ranking below](#re-ranking) |L2 not enabled       |
-| `AZURESEARCH_LANGUAGE`       | No       | If using L2 re-ranking, language for queries/documents (valid values [listed here](https://learn.microsoft.com/rest/api/searchservice/preview-api/search-documents#queryLanguage))     |`en-us`              |
-| `AZURESEARCH_DIMENSIONS`     | No       | Vector size for embeddings                                                            |1536 (OpenAI's Ada002)|
+| Name                          | Required | Description                                                                                                                                                                        | Default                |
+|-------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|
+| `DATASTORE`                   | Yes      | Datastore name, set to `azuresearch`                                                                                                                                               |                        |
+| `BEARER_TOKEN`                | Yes      | Secret token                                                                                                                                                                       |                        |
+| `OPENAI_API_KEY`              | Yes      | OpenAI API key                                                                                                                                                                     |                        |
+| `AZURESEARCH_SERVICE`         | Yes      | Name of your search service                                                                                                                                                        |                        |
+| `AZURESEARCH_INDEX`           | Yes      | Name of your search index                                                                                                                                                          |                        |
+| `AZURESEARCH_API_KEY`         | No       | Your API key, if using key-based auth instead of Azure managed identity                                                                                                            | Uses managed identity  |
+| `AZURESEARCH_DISABLE_HYBRID`  | No       | Disable hybrid search and only use vector similarity                                                                                                                               | Use hybrid search      |
+| `AZURESEARCH_SEMANTIC_CONFIG` | No       | Enable L2 re-ranking with this configuration name [see re-ranking below](#re-ranking)                                                                                              | L2 not enabled         |
+| `AZURESEARCH_LANGUAGE`        | No       | If using L2 re-ranking, language for queries/documents (valid values [listed here](https://learn.microsoft.com/rest/api/searchservice/preview-api/search-documents#queryLanguage)) | `en-us`                |
+| `AZURESEARCH_DIMENSIONS`      | No       | Vector size for embeddings                                                                                                                                                         | 1536 (OpenAI's Ada002) |
 
 ## Authentication Options
 
