@@ -81,7 +81,7 @@ async def process_file_dump(
                 documents.append(document)
             except Exception as e:
                 # log the error and continue with the next file
-                logger.exception(f"Error processing {filepath}: {e}")
+                logger.error(f"Error processing {filepath}: {e}")
                 skipped_files.append(filepath)  # add the skipped file to the list
 
     # do this in batches, the upsert method already batches documents but this allows

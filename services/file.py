@@ -39,7 +39,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         with open(filepath, "rb") as file:
             extracted_text = extract_text_from_file(file, mimetype)
     except Exception as e:
-        logger.exception(f"Error: {e}")
+        logger.error(e)
         raise e
 
     return extracted_text
@@ -107,7 +107,7 @@ async def extract_text_from_form_file(file: UploadFile):
     try:
         extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
     except Exception as e:
-        logger.exception(f"Error: {e}")
+        logger.error(e)
         os.remove(temp_file_path)
         raise e
 

@@ -60,6 +60,6 @@ class ZillizDataStore(MilvusDataStore):
             self.col.load()
             self.search_params = {"metric_type": "IP", "params": {}}
         except Exception as e:
-            logger.exception("Failed to create index, error: {}".format(e))
+            logger.error("Failed to create index, error: {}".format(e))
 
 

@@ -53,7 +53,7 @@ class PineconeDataStore(DataStore):
                 self.index = pinecone.Index(PINECONE_INDEX)
                 logger.info(f"Index {PINECONE_INDEX} created successfully")
             except Exception as e:
-                logger.exception(f"Error creating index {PINECONE_INDEX}: {e}")
+                logger.error(f"Error creating index {PINECONE_INDEX}: {e}")
                 raise e
         elif PINECONE_INDEX and PINECONE_INDEX in pinecone.list_indexes():
             # Connect to an existing index with the specified name
@@ -62,7 +62,7 @@ class PineconeDataStore(DataStore):
                 self.index = pinecone.Index(PINECONE_INDEX)
                 logger.info(f"Connected to index {PINECONE_INDEX} successfully")
             except Exception as e:
-                logger.exception(f"Error connecting to index {PINECONE_INDEX}: {e}")
+                logger.error(f"Error connecting to index {PINECONE_INDEX}: {e}")
                 raise e
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
@@ -102,7 +102,7 @@ class PineconeDataStore(DataStore):
                 self.index.upsert(vectors=batch)
                 logger.info(f"Upserted batch successfully")
             except Exception as e:
-                logger.exception(f"Error upserting batch: {e}")
+                logger.error(f"Error upserting batch: {e}")
                 raise e
 
         return doc_ids
@@ -133,7 +133,7 @@ class PineconeDataStore(DataStore):
                     include_metadata=True,
                 )
             except Exception as e:
-                logger.exception(f"Error querying index: {e}")
+                logger.error(f"Error querying index: {e}")
                 raise e
 
             query_results: List[DocumentChunkWithScore] = []
@@ -190,7 +190,7 @@ class PineconeDataStore(DataStore):
                 logger.info(f"Deleted all vectors successfully")
                 return True
             except Exception as e:
-                logger.exception(f"Error deleting all vectors: {e}")
+                logger.error(f"Error deleting all vectors: {e}")
                 raise e
 
         # Convert the metadata filter object to a dict with pinecone filter expressions
@@ -202,7 +202,7 @@ class PineconeDataStore(DataStore):
                 self.index.delete(filter=pinecone_filter)
                 logger.info(f"Deleted vectors with filter successfully")
             except Exception as e:
-                logger.exception(f"Error deleting vectors with filter: {e}")
+                logger.error(f"Error deleting vectors with filter: {e}")
                 raise e
 
         # Delete vectors that match the document ids from the index if the ids list is not empty
@@ -213,7 +213,7 @@ class PineconeDataStore(DataStore):
                 self.index.delete(filter=pinecone_filter)  # type: ignore
                 logger.info(f"Deleted vectors with ids successfully")
             except Exception as e:
-                logger.exception(f"Error deleting vectors with ids: {e}")
+                logger.error(f"Error deleting vectors with ids: {e}")
                 raise e
 
         return True

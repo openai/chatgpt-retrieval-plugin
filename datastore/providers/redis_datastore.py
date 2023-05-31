@@ -62,7 +62,7 @@ async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
         if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
             error_message = "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
-            logger.exception(error_message)
+            logger.error(error_message)
             raise AttributeError(error_message)
 
 
@@ -89,7 +89,7 @@ class RedisDataStore(DataStore):
                 host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD
             )
         except Exception as e:
-            logger.exception(f"Error setting up Redis: {e}")
+            logger.error(f"Error setting up Redis: {e}")
             raise e
 
         await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
@@ -353,7 +353,7 @@ class RedisDataStore(DataStore):
                 logger.info(f"Deleted all documents successfully")
                 return True
             except Exception as e:
-                logger.exception(f"Error deleting all documents: {e}")
+                logger.error(f"Error deleting all documents: {e}")
                 raise e
 
         # Delete by filter
@@ -367,7 +367,7 @@ class RedisDataStore(DataStore):
                     await self._redis_delete(keys)
                     logger.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
-                    logger.exception(f"Error deleting document {filter.document_id}: {e}")
+                    logger.error(f"Error deleting document {filter.document_id}: {e}")
                     raise e
 
         # Delete by explicit ids (Redis keys)
@@ -385,7 +385,7 @@ class RedisDataStore(DataStore):
                 logger.info(f"Deleting {len(keys)} keys from Redis")
                 await self._redis_delete(keys)
             except Exception as e:
-                logger.exception(f"Error deleting ids: {e}")
+                logger.error(f"Error deleting ids: {e}")
                 raise e
 
         return True

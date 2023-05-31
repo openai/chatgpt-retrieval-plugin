@@ -88,7 +88,7 @@ async def process_json_dump(
             documents.append(document)
         except Exception as e:
             # log the error and continue with the next item
-            logger.exception(f"Error processing {item}: {e}")
+            logger.error(f"Error processing {item}: {e}")
             skipped_items.append(item)  # add the skipped item to the list
 
     # do this in batches, the upsert method already batches documents but this allows

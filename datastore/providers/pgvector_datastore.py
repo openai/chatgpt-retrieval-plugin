@@ -148,7 +148,7 @@ class PgVectorDataStore(DataStore):
                     results.append(document_chunk)
                 query_results.append(QueryResult(query=query.query, results=results))
             except Exception as e:
-                logger.exception("error:", e)
+                logger.error(e)
                 query_results.append(QueryResult(query=query.query, results=[]))
         return query_results
 

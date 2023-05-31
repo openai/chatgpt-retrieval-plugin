@@ -253,7 +253,7 @@ class AnalyticDBDataStore(DataStore):
                             QueryResult(query=query.query, results=results)
                         )
                 except Exception as e:
-                    logger.exception("error:", e)
+                    logger.error(e)
                     query_results.append(QueryResult(query=query.query, results=[]))
             return query_results
         finally:
@@ -276,7 +276,7 @@ class AnalyticDBDataStore(DataStore):
                     self.conn.commit()
                 return True
             except Exception as e:
-                logger.exception(f"Error: {e}")
+                logger.error(e)
                 return False
             finally:
                 self.connection_pool.putconn(conn)

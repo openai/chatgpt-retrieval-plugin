@@ -154,7 +154,7 @@ class MilvusDataStore(DataStore):
                 logger.info("Create connection to Milvus server '{}:{}' with alias '{:s}'"
                                  .format(MILVUS_HOST, MILVUS_PORT, self.alias))
         except Exception as e:
-            logger.exception("Failed to create connection to Milvus server '{}:{}', error: {}"
+            logger.error("Failed to create connection to Milvus server '{}:{}', error: {}"
                             .format(MILVUS_HOST, MILVUS_PORT, e))
 
     def _create_collection(self, collection_name, create_new: bool) -> None:
@@ -197,7 +197,7 @@ class MilvusDataStore(DataStore):
                 logger.info("Milvus collection '{}' already exists with schema {}"
                                  .format(collection_name, self._schema_ver))
         except Exception as e:
-            logger.exception("Failed to create collection '{}', error: {}".format(collection_name, e))
+            logger.error("Failed to create collection '{}', error: {}".format(collection_name, e))
 
     def _create_index(self):
         # TODO: verify index/search params passed by os.environ
@@ -267,7 +267,7 @@ class MilvusDataStore(DataStore):
                 self.search_params = default_search_params[self.index_params["index_type"]]
             logger.info("Milvus search parameters: {}".format(self.search_params))
         except Exception as e:
-            logger.exception("Failed to create index, error: {}".format(e))
+            logger.error("Failed to create index, error: {}".format(e))
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """Upsert chunks into the datastore.
@@ -316,14 +316,14 @@ class MilvusDataStore(DataStore):
                         self.col.insert(batch)
                         logger.info(f"Upserted batch successfully")
                     except Exception as e:
-                        logger.exception(f"Failed to insert batch records, error: {e}")
+                        logger.error(f"Failed to insert batch records, error: {e}")
                         raise e
 
             # This setting perfoms flushes after insert. Small insert == bad to use
             # self.col.flush()
             return doc_ids
         except Exception as e:
-            logger.exception("Failed to insert records, error: {}".format(e))
+            logger.error("Failed to insert records, error: {}".format(e))
             return []
 
 
@@ -429,7 +429,7 @@ class MilvusDataStore(DataStore):
 
                 return QueryResult(query=query.query, results=results)
             except Exception as e:
-                logger.exception("Failed to query, error: {}".format(e))
+                logger.error("Failed to query, error: {}".format(e))
                 return QueryResult(query=query.query, results=[])
 
         results: List[QueryResult] = await asyncio.gather(
@@ -492,7 +492,7 @@ class MilvusDataStore(DataStore):
                     # Increment our deleted count
                     delete_count += int(res.delete_count)  # type: ignore
         except Exception as e:
-            logger.exception("Failed to delete by ids, error: {}".format(e))
+            logger.error("Failed to delete by ids, error: {}".format(e))
 
         try:
             # Check if empty filter
@@ -517,7 +517,7 @@ class MilvusDataStore(DataStore):
                         # Increment our delete count
                         delete_count += int(res.delete_count)  # type: ignore
         except Exception as e:
-            logger.exception("Failed to delete by filter, error: {}".format(e))
+            logger.error("Failed to delete by filter, error: {}".format(e))
 
         logger.info("{:d} records deleted".format(delete_count))
 
