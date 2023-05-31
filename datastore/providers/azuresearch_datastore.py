@@ -173,7 +173,7 @@ class AzureSearchDataStore(DataStore):
             raise Exception(f"Error querying the index: {e}")
 
     @staticmethod    
-    def _translate_filter(filter: DocumentMetadataFilter) -> str:
+    def _translate_filter(filter: DocumentMetadataFilter) -> str | None:
         """
         Translates a DocumentMetadataFilter into an Azure Search filter string
         """
