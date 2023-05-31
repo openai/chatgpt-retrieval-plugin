@@ -23,7 +23,7 @@ def zilliz_datastore():
 
 @pytest.mark.asyncio
 async def test_zilliz(zilliz_datastore):
-    assert True == zilliz_datastore.col.has_index()
+    assert zilliz_datastore.col.has_index() is True
     index_list = [x.to_dict() for x in zilliz_datastore.col.indexes]
     for index in index_list:
         if index['index_name'] == EMBEDDING_FIELD:
