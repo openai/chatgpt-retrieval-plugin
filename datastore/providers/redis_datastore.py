@@ -265,7 +265,7 @@ class RedisDataStore(DataStore):
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
-        Takes in a list of list of document chunks and inserts them into the database.
+        Takes in a dictionary from document ids to lists of document chunks and inserts the chunks into the database.
         Return a list of document ids.
         """
         # Initialize a list of ids to return
