@@ -140,7 +140,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 
    # Llama
    export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
-   export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
+   export LLAMA_INDEX_PERSIST_DIR=<directory_where_index_is_saved>
    export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
    export LLAMA_RESPONSE_MODE=<response_mode_for_query>
 

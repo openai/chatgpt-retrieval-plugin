@@ -24,16 +24,16 @@ with ChatGPT and your external data.
 
 **Llama Datastore Environment Variables**
 
-| Name                           | Required | Description                          | Default       |
-|--------------------------------|----------|--------------------------------------|---------------|
-| `LLAMA_INDEX_TYPE`             | Optional | Index type (see below for details)   | `simple_dict` |
-| `LLAMA_INDEX_JSON_PATH`        | Optional | Path to saved Index json file        | None          |
-| `LLAMA_QUERY_KWARGS_JSON_PATH` | Optional | Path to saved query kwargs json file | None          |
-| `LLAMA_RESPONSE_MODE`          | Optional | Response mode for query              | `no_text`     | 
+| Name                          | Required | Description                          | Default       |
+|-------------------------------|----------|--------------------------------------|---------------|
+| `LLAMA_INDEX_TYPE`            | Optional | Index type (see below for details)   | `simple_dict` |
+| `LLAMA_INDEX_PERSIST_DIR`     | Optional | Directory where index is saved       | None          |
+| `LLAMA_QUERY_KWARGS_JSON_PATH`| Optional | Path to saved query kwargs json file | None          |
+| `LLAMA_RESPONSE_MODE`         | Optional | Response mode for query              | `no_text`     | 
 
 
 **Different Index Types**
-By default, we use a `GPTSimpleVectorIndex` to store document chunks in memory, 
+By default, we use a `GPTVectorStoreIndex` to store document chunks in memory, 
 and retrieve top-k nodes by embedding similarity.
 Different index types are optimized for different data and query use-cases.
 See this guide on [How Each Index Works](https://gpt-index.readthedocs.io/en/latest/guides/primer/index_guide.html) to learn more.
