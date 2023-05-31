@@ -25,7 +25,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
     deployment = os.environ.get("OPENAI_EMBEDDINGMODEL_DEPLOYMENTID")
 
     response = {}
-    if deployment == None:
+    if deployment is None:
         response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
@@ -61,7 +61,7 @@ def get_chat_completion(
     # call the OpenAI chat completion API with the given messages
     # Note: Azure Open AI requires deployment id
     response = {}
-    if deployment_id == None:
+    if deployment_id is None:
         response = openai.ChatCompletion.create(
             model=model,
             messages=messages,

@@ -8,8 +8,8 @@ from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 
 AZURESEARCH_TEST_INDEX = "testindex"
 os.environ["AZURESEARCH_INDEX"] = AZURESEARCH_TEST_INDEX
-if os.environ.get("AZURESEARCH_SERVICE") == None:
-    os.environ["AZURESEARCH_SERVICE"] = "invalid service name" # Will fail anyway if not set to a real service, but allows tests to be discovered
+if os.environ.get("AZURESEARCH_SERVICE") is None:
+    os.environ["AZURESEARCH_SERVICE"] = "invalid service name"  # Will fail anyway if not set to a real service, but allows tests to be discovered
 
 
 @pytest.fixture(scope="module")
@@ -24,7 +24,7 @@ def azuresearch_mgmt_client():
 def test_translate_filter():
     assert AzureSearchDataStore._translate_filter(
         DocumentMetadataFilter()
-    ) == None
+    ) is None
 
     for field in ["document_id", "source", "source_id", "author"]:
         value = Source.file if field == "source" else f"test_{field}"
@@ -32,7 +32,7 @@ def test_translate_filter():
         assert AzureSearchDataStore._translate_filter(
             DocumentMetadataFilter(**{field: value})
         ) == f"{field} eq '{value}'"
-        if needs_escaping_value != None:
+        if needs_escaping_value is not None:
             assert AzureSearchDataStore._translate_filter(
                 DocumentMetadataFilter(**{field: needs_escaping_value})
             ) == f"{field} eq 'test''_{field}'"

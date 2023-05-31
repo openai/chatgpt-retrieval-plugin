@@ -135,7 +135,7 @@ class AzureSearchDataStore(DataStore):
         try:
             vector_top_k = query.top_k if filter is None else query.top_k * 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
-            if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
+            if AZURESEARCH_SEMANTIC_CONFIG is not None and not AZURESEARCH_DISABLE_HYBRID:
                 # Ensure we're feeding a good number of candidates to the L2 reranker
                 vector_top_k = max(50, vector_top_k)
                 r = await self.client.search(

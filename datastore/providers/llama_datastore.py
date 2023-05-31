@@ -57,7 +57,7 @@ def _create_or_load_query_kwargs(query_kwargs_json_path: Optional[str] = None) -
     """Create or load query kwargs from json path."""
     query_kwargs_json_path = query_kwargs_json_path or QUERY_KWARGS_JSON_PATH
     query_kargs: Optional[dict] = None
-    if  query_kwargs_json_path is not None:
+    if query_kwargs_json_path is not None:
         with open(INDEX_JSON_PATH, 'r') as f:
             query_kargs = json.load(f)
     return query_kargs
