@@ -23,7 +23,7 @@ pip3 install tair
 | `TAIR_PASSWORD`        | Yes      | Tair password                          |             |
 | `TAIR_INDEX_NAME`      | Optional | Tair vector index name                 | `index`     |
 | `TAIR_INDEX_TYPE`      | Optional | Tair vector index algorithms           | `FLAT`      |
-| `TAIR_DISTANCE_METRIC` | Optional | Tair vector similarity distance metric | `L2`        |
+| `TAIR_DISTANCE_METRIC` | Optional | Tair vector similarity distance metric | `InnerProduct`        |
 
 
 ## Tair 

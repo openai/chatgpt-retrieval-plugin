@@ -22,7 +22,7 @@ TAIR_USERNAME = os.environ.get("TAIR_USERNAME")
 TAIR_PASSWORD = os.environ.get("TAIR_PASSWORD")
 TAIR_INDEX_NAME = os.environ.get("TAIR_INDEX_NAME", "index")
 TAIR_INDEX_TYPE = os.environ.get("TAIR_INDEX_TYPE", "FLAT")
-TAIR_DISTANCE_METRIC = os.environ.get("TAIR_DISTANCE_METRIC", DistanceMetric.L2)
+TAIR_DISTANCE_METRIC = os.environ.get("TAIR_DISTANCE_METRIC", DistanceMetric.InnerProduct)
 assert TAIR_INDEX_TYPE in ("FLAT", "HNSW")
 assert TAIR_USERNAME is not None
 assert TAIR_PASSWORD is not None
@@ -199,7 +199,8 @@ class TairDataStore(DataStore):
                 for k in (self._find_keys(f"doc:{document_id}:*")).iter():
                     keys.append(k)
 
-            self._tair_delete(keys)
+            if len(keys) > 0:
+                self._tair_delete(keys)
         except Exception as e:
             raise e
 
