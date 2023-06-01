@@ -48,6 +48,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
+    - [Tair](#tair)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -128,6 +129,14 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_DATABASE=<your_analyticdb_database>
    export PG_COLLECTION=<your_analyticdb_collection>
 
+   # Tair
+   export TAIR_HOST=<your_tair_host>
+   export TAIR_PORT=<your_tair_port>
+   export TAIR_USERNAME=<your_tair_username>
+   export TAIR_PASSWORD=<your_tair_password>
+   export TAIR_INDEX_NAME=<your_tair_vector_index_name>
+   export TAIR_INDEX_TYPE=<your_tair_vector_index_type>
+   export TAIR_DISTANCE_METRIC=<your_tair_vector_distance_metric>
 
    # Redis
    export REDIS_HOST=<your_redis_host>
@@ -277,11 +286,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                                  |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                  |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                   |
+| Name             | Required | Description                                                                                                                                                                                                                                          |
+| ---------------- | -------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `tair`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                          |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                           |
 
 ### Using the plugin with Azure OpenAI
 
@@ -352,6 +361,9 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 [AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
 
+#### Tair 
+
+[Tair](https://www.alibabacloud.com/help/en/tair/latest/getting-started-overview) is a Redis compatible cloud-native in-memory database developed by Alibaba Cloud. It has an extension named TairVector which can be used as vector store. For detailed setup instructions, refer to [`/docs/providers/tair/setup.md`](/docs/providers/tair/setup.md).
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
@@ -544,3 +556,5 @@ We would like to extend our gratitude to the following contributors for their co
 - [Postgres](https://www.postgresql.org/)
   - [egor-romanov](https://github.com/egor-romanov)
   - [mmmaia](https://github.com/mmmaia)
+- [Tair](https://www.alibabacloud.com/help/en/tair/latest/what-is-tair)
+  - [qiaogong](https://github.com/sandszhouSZ)
