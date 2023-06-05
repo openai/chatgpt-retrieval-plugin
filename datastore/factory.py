@@ -52,6 +52,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.postgres_datastore import PostgresDataStore
 
             return PostgresDataStore()
+       case "analyticdb":
+            from datastore.providers.analyticdb_datastore import AnalyticDBDataStore
+
+            return AnalyticDBDataStore()
         case "cassandra":
             from datastore.providers.cassandra_datastore import CassandraDataStore
 

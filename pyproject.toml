@@ -39,10 +39,15 @@ azure-search-documents = {version = "11.4.0a20230509004", source = "azure-sdk-de
 pgvector = "^0.1.7"
 sentence-transformers = "^2.2.2"
 cassandra-driver = {git = "https://github.com/datastax/python-driver.git", rev = "cep-vsearch"}
+psycopg2cffi = {version = "^2.9.0", optional = true}
+loguru = "^0.7.0"
 
 [tool.poetry.scripts]
 start = "server.main:start"
 dev = "local_server.main:start"
+
+[tool.poetry.extras]
+postgresql = ["psycopg2cffi"]
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"
