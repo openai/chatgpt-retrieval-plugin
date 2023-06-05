@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 import pinecone
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import asyncio
+from loguru import logger
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -41,7 +42,7 @@ class PineconeDataStore(DataStore):
 
             # Create a new index with the specified name, dimension, and metadata configuration
             try:
-                print(
+                logger.info(
                     f"Creating index {PINECONE_INDEX} with metadata config {fields_to_index}"
                 )
                 pinecone.create_index(
@@ -50,18 +51,18 @@ class PineconeDataStore(DataStore):
                     metadata_config={"indexed": fields_to_index},
                 )
                 self.index = pinecone.Index(PINECONE_INDEX)
-                print(f"Index {PINECONE_INDEX} created successfully")
+                logger.info(f"Index {PINECONE_INDEX} created successfully")
             except Exception as e:
-                print(f"Error creating index {PINECONE_INDEX}: {e}")
+                logger.error(f"Error creating index {PINECONE_INDEX}: {e}")
                 raise e
         elif PINECONE_INDEX and PINECONE_INDEX in pinecone.list_indexes():
             # Connect to an existing index with the specified name
             try:
-                print(f"Connecting to existing index {PINECONE_INDEX}")
+                logger.info(f"Connecting to existing index {PINECONE_INDEX}")
                 self.index = pinecone.Index(PINECONE_INDEX)
-                print(f"Connected to index {PINECONE_INDEX} successfully")
+                logger.info(f"Connected to index {PINECONE_INDEX} successfully")
             except Exception as e:
-                print(f"Error connecting to index {PINECONE_INDEX}: {e}")
+                logger.error(f"Error connecting to index {PINECONE_INDEX}: {e}")
                 raise e
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
@@ -78,7 +79,7 @@ class PineconeDataStore(DataStore):
         for doc_id, chunk_list in chunks.items():
             # Append the id to the ids list
             doc_ids.append(doc_id)
-            print(f"Upserting document_id: {doc_id}")
+            logger.info(f"Upserting document_id: {doc_id}")
             for chunk in chunk_list:
                 # Create a vector tuple of (id, embedding, metadata)
                 # Convert the metadata object to a dict with unix timestamps for dates
@@ -97,11 +98,11 @@ class PineconeDataStore(DataStore):
         # Upsert each batch to Pinecone
         for batch in batches:
             try:
-                print(f"Upserting batch of size {len(batch)}")
+                logger.info(f"Upserting batch of size {len(batch)}")
                 self.index.upsert(vectors=batch)
-                print(f"Upserted batch successfully")
+                logger.info(f"Upserted batch successfully")
             except Exception as e:
-                print(f"Error upserting batch: {e}")
+                logger.error(f"Error upserting batch: {e}")
                 raise e
 
         return doc_ids
@@ -117,7 +118,7 @@ class PineconeDataStore(DataStore):
 
         # Define a helper coroutine that performs a single query and returns a QueryResult
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
-            print(f"Query: {query.query}")
+            logger.debug(f"Query: {query.query}")
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter)
@@ -132,7 +133,7 @@ class PineconeDataStore(DataStore):
                     include_metadata=True,
                 )
             except Exception as e:
-                print(f"Error querying index: {e}")
+                logger.error(f"Error querying index: {e}")
                 raise e
 
             query_results: List[DocumentChunkWithScore] = []
@@ -184,12 +185,12 @@ class PineconeDataStore(DataStore):
         # Delete all vectors from the index if delete_all is True
         if delete_all:
             try:
-                print(f"Deleting all vectors from index")
+                logger.info(f"Deleting all vectors from index")
                 self.index.delete(delete_all=True)
-                print(f"Deleted all vectors successfully")
+                logger.info(f"Deleted all vectors successfully")
                 return True
             except Exception as e:
-                print(f"Error deleting all vectors: {e}")
+                logger.error(f"Error deleting all vectors: {e}")
                 raise e
 
         # Convert the metadata filter object to a dict with pinecone filter expressions
@@ -197,22 +198,22 @@ class PineconeDataStore(DataStore):
         # Delete vectors that match the filter from the index if the filter is not empty
         if pinecone_filter != {}:
             try:
-                print(f"Deleting vectors with filter {pinecone_filter}")
+                logger.info(f"Deleting vectors with filter {pinecone_filter}")
                 self.index.delete(filter=pinecone_filter)
-                print(f"Deleted vectors with filter successfully")
+                logger.info(f"Deleted vectors with filter successfully")
             except Exception as e:
-                print(f"Error deleting vectors with filter: {e}")
+                logger.error(f"Error deleting vectors with filter: {e}")
                 raise e
 
         # Delete vectors that match the document ids from the index if the ids list is not empty
         if ids is not None and len(ids) > 0:
             try:
-                print(f"Deleting vectors with ids {ids}")
+                logger.info(f"Deleting vectors with ids {ids}")
                 pinecone_filter = {"document_id": {"$in": ids}}
                 self.index.delete(filter=pinecone_filter)  # type: ignore
-                print(f"Deleted vectors with ids successfully")
+                logger.info(f"Deleted vectors with ids successfully")
             except Exception as e:
-                print(f"Error deleting vectors with ids: {e}")
+                logger.error(f"Error deleting vectors with ids: {e}")
                 raise e
 
         return True
