@@ -90,8 +90,8 @@ class CassandraDataStore():
                         text=row.content,
                         # TODO: add embedding to the response ?
                         # embedding=row.embedding,
-                        # score=float(row.similarity),
-                        score=float(1),
+                        score=float(row.score),
+                        #score=float(1),
                         metadata=doc_metadata
                     )
                     results.append(document_chunk)
@@ -227,7 +227,7 @@ class CassandraClient():
         if query.filter:
             filter = query.filter
             #TODO, change to WHERE when syntax changes
-            filters = "AND"
+            filters = " WHERE "
             if filter.document_id:
                 filters += f" document_id = '{filter.document_id}' AND"
             if filter.source:
@@ -243,17 +243,25 @@ class CassandraClient():
             filters = filters[:-4]
 
         try:
-            queryString = f"SELECT * from {CASSANDRA_KEYSPACE}.documents where embedding ann of {query.embedding} {filters} LIMIT {query.top_k};"
+            queryString = f"""SELECT id, content, embedding, document_id, 
+            source, source_id, url, author, created_at, 
+            similarity_cosine(?, embedding) as score
+            from {CASSANDRA_KEYSPACE}.documents {filters} 
+            ORDER BY embedding ann of {query.embedding} 
+            LIMIT {query.top_k};"""
             print(queryString)
-            statement = SimpleStatement(queryString, consistency_level=ConsistencyLevel.QUORUM)
-            resultset = self.session.execute(statement)
+            statement = self.session.prepare(queryString)
+            statement.consistency_level = ConsistencyLevel.QUORUM
+            boundStatement = statement.bind([query.embedding])
+            resultset = self.session.execute(boundStatement)
             return resultset
 
         except Exception as e:
             print(f"Exception during query (retrying): {e}")
             #sleep 10 seconds and retry
             time.sleep(10)
-            self.runQuery(query)
+            exit(1)
+            #await self.runQuery(query)
 
     async def upsert(self, table: str, json: dict[str, Any]):
         """

@@ -103,9 +103,8 @@ async def test_query(
 
     # NOTE: this is the correct behavior
     assert query_0_results[0].id == "first-doc-4"
-    # TODO flip these if /when we support returning in score order (rather than token order)
-    assert query_1_results[0].id == "first-doc-4"
-    assert query_1_results[1].id == "first-doc-5"
+    assert query_1_results[1].id == "first-doc-4"
+    assert query_1_results[0].id == "first-doc-5"
 
 
 @pytest.mark.asyncio
@@ -191,7 +190,8 @@ async def test_query_score(cassandra_datastore):
     results = await cassandra_datastore._query([query])
 
     assert results[0].results[0].id == "chunk1"
-    assert int(results[0].results[0].score) == 1536
+    assert results[0].results[0].score == 1
+    assert results[0].results[1].score == 0.5
 
 
 @pytest.mark.asyncio
