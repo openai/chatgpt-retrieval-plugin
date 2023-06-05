@@ -1,5 +1,6 @@
 import os
 
+from loguru import logger
 from typing import Optional
 from pymilvus import (
     connections,
@@ -47,7 +48,7 @@ class ZillizDataStore(MilvusDataStore):
             # Connect to the Zilliz instance using the passed in Environment variables
             self.alias = uuid4().hex
             connections.connect(alias=self.alias, uri=ZILLIZ_URI, user=ZILLIZ_USER, password=ZILLIZ_PASSWORD, secure=ZILLIZ_USE_SECURITY)  # type: ignore
-            self._print_info("Connect to zilliz cloud server")
+            logger.info("Connect to zilliz cloud server")
 
     def _create_index(self):
         try:
@@ -59,6 +60,6 @@ class ZillizDataStore(MilvusDataStore):
             self.col.load()
             self.search_params = {"metric_type": "IP", "params": {}}
         except Exception as e:
-            self._print_err("Failed to create index, error: {}".format(e))
+            logger.error("Failed to create index, error: {}".format(e))
 
 

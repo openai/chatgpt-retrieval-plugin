@@ -25,45 +25,41 @@ This README provides detailed information on how to set up, develop, and deploy 
 
 ## Table of Contents
 
-- [ChatGPT Retrieval Plugin](#chatgpt-retrieval-plugin)
-  - [Introduction](#introduction)
-  - [Table of Contents](#table-of-contents)
-  - [Quickstart](#quickstart)
-    - [Testing in ChatGPT](#testing-in-chatgpt)
-  - [About](#about)
-    - [Plugins](#plugins)
-    - [Retrieval Plugin](#retrieval-plugin)
-    - [Memory Feature](#memory-feature)
-    - [Security](#security)
-    - [API Endpoints](#api-endpoints)
-  - [Development](#development)
-    - [Setup](#setup)
-      - [General Environment Variables](#general-environment-variables)
-    - [Using the plugin with Azure OpenAI](#using-the-plugin-with-azure-openai)
-    - [Choosing a Vector Database](#choosing-a-vector-database)
-      - [Pinecone](#pinecone)
-      - [Weaviate](#weaviate)
-      - [Marqo](#marqo)
-      - [Zilliz](#zilliz)
-      - [Milvus](#milvus)
-      - [Qdrant](#qdrant)
-      - [Redis](#redis)
-      - [LlamaIndex](#llamaindex)
-      - [Chroma](#chroma)
-      - [Azure Cognitive Search](#azure-cognitive-search)
-      - [Supabase](#supabase)
-      - [Postgres](#postgres)
-    - [Running the API locally](#running-the-api-locally)
-    - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
-    - [Personalization](#personalization)
-    - [Authentication Methods](#authentication-methods)
-  - [Deployment](#deployment)
-  - [Installing a Developer Plugin](#installing-a-developer-plugin)
-  - [Webhooks](#webhooks)
-  - [Scripts](#scripts)
-  - [Limitations](#limitations)
-  - [Future Directions](#future-directions)
-  - [Contributors](#contributors)
+- [Quickstart](#quickstart)
+- [About](#about)
+  - [Plugins](#plugins)
+  - [Retrieval Plugin](#retrieval-plugin)
+  - [Memory Feature](#memory-feature)
+  - [Security](#security)
+  - [API Endpoints](#api-endpoints)
+- [Development](#development)
+  - [Setup](#setup)
+    - [General Environment Variables](#general-environment-variables)
+  - [Choosing a Vector Database](#choosing-a-vector-database)
+    - [Pinecone](#pinecone)
+    - [Weaviate](#weaviate)
+    - [Marqo](#marqo)
+    - [Zilliz](#zilliz)
+    - [Milvus](#milvus)
+    - [Qdrant](#qdrant)
+    - [Redis](#redis)
+    - [Llama Index](#llamaindex)
+    - [Chroma](#chroma)
+    - [Azure Cognitive Search](#azure-cognitive-search)
+    - [Supabase](#supabase)
+    - [Postgres](#postgres)
+    - [AnalyticDB](#analyticdb)
+  - [Running the API Locally](#running-the-api-locally)
+  - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
+  - [Personalization](#personalization)
+  - [Authentication Methods](#authentication-methods)
+- [Deployment](#deployment)
+- [Installing a Developer Plugin](#installing-a-developer-plugin)
+- [Webhooks](#webhooks)
+- [Scripts](#scripts)
+- [Limitations](#limitations)
+- [Contributors](#contributors)
+- [Future Directions](#future-directions)
 
 ## Quickstart
 
@@ -133,6 +129,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export QDRANT_GRPC_PORT=<your_qdrant_grpc_port>
    export QDRANT_API_KEY=<your_qdrant_api_key>
    export QDRANT_COLLECTION=<your_qdrant_collection>
+
+   # AnalyticDB
+   export PG_HOST=<your_analyticdb_host>
+   export PG_PORT=<your_analyticdb_port>
+   export PG_USER=<your_analyticdb_username>
+   export PG_PASSWORD=<your_analyticdb_password>
+   export PG_DATABASE=<your_analyticdb_database>
+   export PG_COLLECTION=<your_analyticdb_collection>
+
 
    # Redis
    export REDIS_HOST=<your_redis_host>
@@ -282,11 +287,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                    |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `marqo`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                    |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                     |
+| Name             | Required | Description                                                                                                                                                                                                                                  |
+| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `marqo`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                  |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                   |
 
 ### Using the plugin with Azure OpenAI
 
@@ -356,6 +361,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Postgres
 
 [Postgres](https://www.postgresql.org) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled. For example, you can [use docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) to run locally. For a hosted/managed solution, you can use any of the cloud vendors which support [pgvector](https://github.com/pgvector/pgvector#hosted-postgres). For detailed setup instructions, refer to [`/docs/providers/postgres/setup.md`](/docs/providers/postgres/setup.md).
+
+#### AnalyticDB
+
+[AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
 
 ### Running the API locally
 
@@ -492,6 +501,47 @@ The scripts are:
 - [`process_json`](scripts/process_json/): This script processes a file dump of documents in a JSON format and stores them in the vector database with some metadata. The format of the JSON file should be a list of JSON objects, where each object represents a document. The JSON object should have a `text` field and optionally other fields to populate the metadata. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
 - [`process_jsonl`](scripts/process_jsonl/): This script processes a file dump of documents in a JSONL format and stores them in the vector database with some metadata. The format of the JSONL file should be a newline-delimited JSON file, where each line is a valid JSON object representing a document. The JSON object should have a `text` field and optionally other fields to populate the metadata. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
 - [`process_zip`](scripts/process_zip/): This script processes a file dump of documents in a zip file and stores them in the vector database with some metadata. The format of the zip file should be a flat zip file folder of docx, pdf, txt, md, pptx or csv files. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
+
+## Pull Request (PR) Checklist
+If you'd like to contribute, please follow the checklist below when submitting a PR. This will help us review and merge your changes faster! Thank you for contributing!
+
+1. **Type of PR**: Indicate the type of PR by adding a label in square brackets at the beginning of the title, such as `[Bugfix]`, `[Feature]`, `[Enhancement]`, `[Refactor]`, or `[Documentation]`.
+
+2. **Short Description**: Provide a brief, informative description of the PR that explains the changes made.
+
+3. **Issue(s) Linked**: Mention any related issue(s) by using the keyword `Fixes` or `Closes` followed by the respective issue number(s) (e.g., Fixes #123, Closes #456).
+
+4. **Branch**: Ensure that you have created a new branch for the changes, and it is based on the latest version of the `main` branch.
+
+5. **Code Changes**: Make sure the code changes are minimal, focused, and relevant to the issue or feature being addressed.
+
+6. **Commit Messages**: Write clear and concise commit messages that explain the purpose of each commit.
+
+7. **Tests**: Include unit tests and/or integration tests for any new code or changes to existing code. Make sure all tests pass before submitting the PR.
+
+8. **Documentation**: Update relevant documentation (e.g., README, inline comments, or external documentation) to reflect any changes made.
+
+9. **Review Requested**: Request a review from at least one other contributor or maintainer of the repository.
+
+10. **Video Submission** (For Complex/Large PRs): If your PR introduces significant changes, complexities, or a large number of lines of code, submit a brief video walkthrough along with the PR. The video should explain the purpose of the changes, the logic behind them, and how they address the issue or add the proposed feature. This will help reviewers to better understand your contribution and expedite the review process.
+
+## Pull Request Naming Convention
+
+Use the following naming convention for your PR branches:
+
+```
+<type>/<short-description>-<issue-number>
+```
+
+- `<type>`: The type of PR, such as `bugfix`, `feature`, `enhancement`, `refactor`, or `docs`. Multiple types are ok and should appear as <type>, <type2>
+- `<short-description>`: A brief description of the changes made, using hyphens to separate words.
+- `<issue-number>`: The issue number associated with the changes made (if applicable).
+
+Example:
+
+```
+feature/advanced-chunking-strategy-123
+```
 
 ## Limitations
 
