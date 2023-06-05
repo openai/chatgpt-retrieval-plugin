@@ -55,21 +55,6 @@ def queries() -> List[QueryWithEmbedding]:
 def cassandra_datastore() -> CassandraDataStore:
     return CassandraDataStore()
 
-
-@pytest.mark.skip
-async def test_upsert_astra(
-        cassandra_datastore: CassandraDataStore,
-        initial_document_chunks: Dict[str, List[DocumentChunk]],
-):
-    with unittest.mock.patch.multiple('datastore.providers.cassandra_datastore',
-                                      CASSANDRA_PORT=29042,
-                                      CASSANDRA_USER= os.environ.get("ASTRA_USER", None),
-                                      CASSANDRA_KEYSPACE='vsearch',
-                                      CASSANDRA_PASSWORD=os.environ.get("ASTRA_PW", None),
-                                      ASTRA_BUNDLE='/home/tato/Downloads/secure-connect-vsearch.zip'
-                                      ):
-        await test_upsert(cassandra_datastore,initial_document_chunks)
-
 @pytest.mark.asyncio
 async def test_upsert(
     cassandra_datastore: CassandraDataStore,
