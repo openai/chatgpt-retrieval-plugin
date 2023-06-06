@@ -364,7 +364,7 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 #### Apache Cassandra
 
-[Apache Cassandra](https://cassandra.apache.org) Apache Cassandra is an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability without compromising performance. Linear scalability and proven fault-tolerance on commodity hardware or cloud infrastructure make it the perfect platform for mission-critical data. For a hosted service check out [DataStax AstraDB](https://cloud.datastax.com/). For detailed setup instructions, refer to [`/docs/providers/cassandra/setup.md`](/docs/providers/cassandra/setup.md).
+[Apache Cassandra](https://cassandra.apache.org) Apache Cassandra® is an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability without compromising performance. Linear scalability and proven fault-tolerance on commodity hardware or cloud infrastructure make it the perfect platform for mission-critical data. For a hosted service check out [DataStax Astra DB](https://www.datastax.com/astra). For detailed setup instructions, refer to [`/docs/providers/cassandra/setup.md`](/docs/providers/cassandra/setup.md).
 
 
 ### Running the API locally
