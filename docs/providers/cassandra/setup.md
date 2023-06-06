@@ -1,6 +1,6 @@
 # Apache Cassandra
 
-[Apache Cassandra](https://docs.datastax.com/en/astra-serverless/docs/vector-search/overview.html) is a scalable, high-performance distributed database designed to handle large amounts of data for mission critical workloads. Cassandra powers ML/AI use cases in some of the largest compaines in the world including Uber, Apple, and Netflix. Get started using Cassandra [here](https://cassandra.apache.org/_/quickstart.html). For a db as a service solution from DataStax, check out [AstraDB](https://cloud.datastax.com/). For resources around using Cassandra for AI/ML see [awesome astra](https://awesome-astra.github.io/docs/pages/aiml/).
+[Apache Cassandra®](https://docs.datastax.com/en/astra-serverless/docs/vector-search/overview.html) is a scalable, high-performance distributed database designed to handle large amounts of data for mission critical workloads. Cassandra powers ML/AI use cases in some of the largest compaines in the world including Uber, Apple, and Netflix. Get started using Cassandra [here](https://cassandra.apache.org/_/quickstart.html). For a db as a service solution from DataStax, check out [Astra DB](https://www.datastax.com/astra). For resources around using Cassandra for AI/ML see [awesome astra](https://awesome-astra.github.io/docs/pages/aiml/).
 
 - Read about vector search in Cassandra in [this CEP](https://cwiki.apache.org/confluence/display/CASSANDRA/CEP-30%3A+Approximate+Nearest+Neighbor%28ANN%29+Vector+Search+via+Storage-Attached+Indexes)
 
@@ -16,7 +16,7 @@
 | `CASSANDRA_USER`        | Optional | Cassandra user                                                                                                     | `cassandra` |
 | `CASSANDRA_PASSWORD`    | Optional | Cassandra password                                                                                                 | `cassandra` |
 | `CASSANDRA_KEYSPACE`    | Optional | Cassandra keyspace                                                                                                 | `cassandra` |
-| `ASTRA_BUNDLE`          | Optional | Path to AstraDB secure-connect bundle                                                                              | None        |
+| `ASTRA_BUNDLE`          | Optional | Path to [Astra DB secure-connect bundle](https://docs.datastax.com/en/astra-serverless/docs/connect/secure-connect-bundle.html)                                                                              | None        |
 
 
 ## Cassandra Datastore development & testing

@@ -170,11 +170,11 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    
    # Cassandra
    export CASSANDRA_KEYSPACE=<cassandra_keyspace>
-   export CASSANDRA_USER=<cassandra_user>                     # or AstraDB clientid
-   export CASSANDRA_PASSWORD=<cassandra_password>             # or AstraDB clientsecret
+   export CASSANDRA_USER=<cassandra_user>                     # or Astra DB clientid
+   export CASSANDRA_PASSWORD=<cassandra_password>             # or Astra DB clientsecret
    export CASSANDRA_PORT=<cassandra_port>                     # if using non standard port (9042)
-   export CASSANDRA_HOST=<cassandra_contact_point>            # contact point not required for AstraDB
-   export ASTRA_BUNDLE=<path_to_astra_secure_connect_bundle>  # required for AstraDB only, not required for self-hosted Cassandra
+   export CASSANDRA_HOST=<cassandra_contact_point>            # contact point not required for Astra DB
+   export ASTRA_BUNDLE=<path_to_astra_secure_connect_bundle>  # required for Astra DB only, not required for self-hosted Cassandra
 
    ```
 
