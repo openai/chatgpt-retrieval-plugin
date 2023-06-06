@@ -2,7 +2,7 @@
 
 [Apache Cassandra](https://docs.datastax.com/en/astra-serverless/docs/vector-search/overview.html) is a scalable, high-performance distributed database designed to handle large amounts of data for mission critical workloads. Cassandra powers ML/AI use cases in some of the largest compaines in the world including Uber, Apple, and Netflix. Get started using Cassandra [here](https://cassandra.apache.org/_/quickstart.html). For a db as a service solution from DataStax, check out [AstraDB](https://cloud.datastax.com/). For resources around using Cassandra for AI/ML see [awesome astra](https://awesome-astra.github.io/docs/pages/aiml/).
 
-- Read about vector search in cassandra in [this CEP](https://cwiki.apache.org/confluence/display/CASSANDRA/CEP-30%3A+Approximate+Nearest+Neighbor%28ANN%29+Vector+Search+via+Storage-Attached+Indexes)
+- Read about vector search in Cassandra in [this CEP](https://cwiki.apache.org/confluence/display/CASSANDRA/CEP-30%3A+Approximate+Nearest+Neighbor%28ANN%29+Vector+Search+via+Storage-Attached+Indexes)
 
 **Environment Variables:**
 
