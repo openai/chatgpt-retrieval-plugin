@@ -46,7 +46,6 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
 
 
 def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
-    print(mimetype)
     if mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
