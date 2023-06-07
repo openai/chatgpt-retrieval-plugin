@@ -4,7 +4,6 @@ import json
 import os
 from typing import Dict, List, Optional
 
-
 from alibabacloud_ha3engine import models, client
 from alibabacloud_tea_util import models as util_models
 from loguru import logger
@@ -26,7 +25,7 @@ OS_CONFIG_PARA_NAME_ALIYUN_USER_NAME = "access_user_name"
 OS_CONFIG_PARA_NAME_ALIYUN_PASSWORD = "access_pass_word"
 OS_CONFIG_PARA_NAME_EMBEDDING_INDEX_NAME = "embedding_index_name"
 
-# Allow overriding field names for OpenSearch
+# Allow overriding field names for Alibaba Cloud OpenSearch
 OS_FIELDS_ID = os.environ.get("OS_FIELDS_ID", "id")
 OS_FIELDS_TEXT = os.environ.get("OS_FIELDS_TEXT", "text")
 OS_FIELDS_EMBEDDING = os.environ.get("OS_FIELDS_EMBEDDING", "embedding")
@@ -38,18 +37,21 @@ OS_FIELDS_CREATED_AT = os.environ.get("OS_FIELDS_CREATED_AT", "created_at")
 OS_FIELDS_AUTHOR = os.environ.get("OS_FIELDS_AUTHOR", "author")
 
 OS_CONFIG = {
-    OS_CONFIG_PARA_NAME_ENDPOINT: os.environ.get("OS_ENDPOINT", "your opensearch instance endpoint"),
-    OS_CONFIG_PARA_NAME_INSTANCE_ID: os.environ.get("OS_INSTANCE_ID", "your opensearch instance id"),
+    OS_CONFIG_PARA_NAME_ENDPOINT: os.environ.get("OS_ENDPOINT", "your alibaba cloud opensearch instance endpoint"),
+    OS_CONFIG_PARA_NAME_INSTANCE_ID: os.environ.get("OS_INSTANCE_ID", "your alibaba cloud opensearch instance id"),
     OS_CONFIG_PARA_NAME_PROTOCOL: os.environ.get("OS_PROTOCOL", "http"),
-    OS_CONFIG_PARA_NAME_TABLE_NAME: os.environ.get("OS_TABLE_NAME", "your opensearch instance table name"),
-    OS_CONFIG_PARA_NAME_ALIYUN_USER_NAME: os.environ.get("OS_ACCESS_USER_NAME", "your opensearch instance user name"),
-    OS_CONFIG_PARA_NAME_ALIYUN_PASSWORD: os.environ.get("OS_ACCESS_PASS_WORD", "your opensearch instance password"),
-    OS_CONFIG_PARA_NAME_EMBEDDING_INDEX_NAME: os.environ.get("OS_EMBEDDING_INDEX_NAME", "your opensearch instance embedding index name")
+    OS_CONFIG_PARA_NAME_TABLE_NAME: os.environ.get("OS_TABLE_NAME", "your alibaba cloud opensearch instance table name"),
+    OS_CONFIG_PARA_NAME_ALIYUN_USER_NAME: os.environ.get("OS_ACCESS_USER_NAME",
+                                                         "your alibaba cloud opensearch instance user name"),
+    OS_CONFIG_PARA_NAME_ALIYUN_PASSWORD: os.environ.get("OS_ACCESS_PASS_WORD",
+                                                        "your alibaba cloud opensearch instance password"),
+    OS_CONFIG_PARA_NAME_EMBEDDING_INDEX_NAME: os.environ.get("OS_EMBEDDING_INDEX_NAME",
+                                                             "your alibaba cloud opensearch instance embedding index name")
 }
 
 OUTPUT_DIM = 1536
 
-class OpenSearchDataStore(DataStore):
+class AlibabaCloudOpenSearchDataStore(DataStore):
     def __init__(self):
         self.osConfig = models.Config(
             endpoint=OS_CONFIG[OS_CONFIG_PARA_NAME_ENDPOINT],
@@ -114,7 +116,7 @@ class OpenSearchDataStore(DataStore):
                 return list(chunks.keys())
             return []
         except Exception as e:
-            logger.error("failed to upsert chunk to opensearch server endpoint:{}, tableName:{}, error: {}"
+            logger.error("failed to upsert chunk to alibaba cloud opensearch server endpoint:{}, tableName:{}, error: {}"
                          .format(self.endpoint, self.tableName, e))
             raise e
 
@@ -130,8 +132,10 @@ class OpenSearchDataStore(DataStore):
             if single_query.filter is None:
                 return tmp_search_config_str + tmp_query_str
 
-            start_date_filter = None if query_filter.start_date is None else int(datetime.datetime.fromisoformat(query_filter.start_date).timestamp())
-            end_date_filter = None if query_filter.end_date is None else int(datetime.datetime.fromisoformat(query_filter.end_date).timestamp())
+            start_date_filter = None if query_filter.start_date is None else int(
+                datetime.datetime.fromisoformat(query_filter.start_date).timestamp())
+            end_date_filter = None if query_filter.end_date is None else int(
+                datetime.datetime.fromisoformat(query_filter.end_date).timestamp())
             conditions = [
                 (OS_FIELDS_DOCUMENT_ID + "=\"{0}\"", query_filter.document_id),
                 (OS_FIELDS_SOURCE_ID + "=\"{0}\"", query_filter.source_id),
@@ -184,7 +188,8 @@ class OpenSearchDataStore(DataStore):
                     results = create_results(json_response)
                     return QueryResult(query=query.query, results=results)
             except Exception as e:
-                logger.error(f"query opensearch endpoint:{self.endpoint} instance_id:{self.instance_id} failed", e)
+                logger.error(
+                    f"query alibaba cloud opensearch endpoint:{self.endpoint} instance_id:{self.instance_id} failed", e)
             return QueryResult(query=query.query, results=[])
 
         return await asyncio.gather(*(single_query(query) for query in queries))
@@ -213,8 +218,9 @@ class OpenSearchDataStore(DataStore):
                 json_response = json.loads(delete_response.body)
                 return json_response["status"] == 'OK'
             except Exception as e:
-                logger.error(f"delete opensearch doc failed, endpoint:{self.endpoint} instance_id:{self.instance_id}",
-                             e)
+                logger.error(
+                    f"delete alibaba cloud opensearch doc failed, endpoint:{self.endpoint} instance_id:{self.instance_id}",
+                    e)
                 return False
 
         if delete_all:

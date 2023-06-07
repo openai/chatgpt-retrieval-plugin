@@ -8,15 +8,15 @@ from models.models import (
     QueryWithEmbedding,
     Source,
 )
-from datastore.providers.opensearch_datastore import (
+from datastore.providers.alibabacloud_opensearch_datastore import (
     OUTPUT_DIM,
-    OpenSearchDataStore,
+    AlibabaCloudOpenSearchDataStore,
 )
 import datetime
 
 @pytest.fixture
 def opensearch_datastore():
-    return OpenSearchDataStore()
+    return AlibabaCloudOpenSearchDataStore()
 
 @pytest.fixture
 def document_chunk_one():
@@ -169,7 +169,7 @@ async def test_reload(opensearch_datastore, document_chunk_one, document_chunk_t
 
     query_results = await opensearch_datastore._query(queries=[query])
     assert 3 == len(query_results[0].results)
-    new_store = OpenSearchDataStore()
+    new_store = AlibabaCloudOpenSearchDataStore()
     another_in = {i: document_chunk_two[i] for i in document_chunk_two if i != res[0]}
     res = await new_store._upsert(another_in)
     time.sleep(1)

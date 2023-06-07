@@ -56,10 +56,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.analyticdb_datastore import AnalyticDBDataStore
 
             return AnalyticDBDataStore()
-        case "opensearch":
-            from datastore.providers.opensearch_datastore import OpenSearchDataStore
+        case "alibabacloud-opensearch":
+            from datastore.providers.alibabacloud_opensearch_datastore import AlibabaCloudOpenSearchDataStore
 
-            return OpenSearchDataStore()
+            return AlibabaCloudOpenSearchDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "

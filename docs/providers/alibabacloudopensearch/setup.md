@@ -1,24 +1,24 @@
-# OpenSearch
+# Alibaba Cloud OpenSearch
 
-[OpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises.
+[Alibaba Cloud OpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises.
 
 
-**OpenSearch Cloud Service Instance Environment Variables:**
+**Environment Variables:**
 
 | Name                      | Required | Description                                              | Default           |
 | ------------------------- | -------- | -------------------------------------------------------- | ----------------- |
 | `DATASTORE`               | Yes      | Datastore name, set to `opensearch`                      |                   |
 | `BEARER_TOKEN`            | Yes      | Secret token                                             |                   |
 | `OPENAI_API_KEY`          | Yes      | OpenAI API key                                           |                   |
-| `OS_ENDPOINT`             | Yes      | OpenSearch cloud service instance endpoint address       |                   |
-| `OS_INSTANCE_ID`          | Yes      | OpenSearch cloud service instance instance id            |                   |
-| `OS_TABLE_NAME`           | Yes      | OpenSearch cloud service instance table name             |                   |
-| `OS_ACCESS_USER_NAME`     | Yes      | OpenSearch cloud service instance access user name       |                   |
-| `OS_ACCESS_PASS_WORD`     | Yes      | OpenSearch cloud service instance access password        |                   |
-| `OS_EMBEDDING_INDEX_NAME` | YES      | OpenSearch cloud service instance embedding index name   |                   |
+| `OS_ENDPOINT`             | Yes      | Alibaba Cloud OpenSearch instance endpoint address       |                   |
+| `OS_INSTANCE_ID`          | Yes      | Alibaba Cloud OpenSearch instance instance id            |                   |
+| `OS_TABLE_NAME`           | Yes      | Alibaba Cloud OpenSearch instance table name             |                   |
+| `OS_ACCESS_USER_NAME`     | Yes      | Alibaba Cloud OpenSearch instance access user name       |                   |
+| `OS_ACCESS_PASS_WORD`     | Yes      | Alibaba Cloud OpenSearch instance access password        |                   |
+| `OS_EMBEDDING_INDEX_NAME` | YES      | Alibaba Cloud OpenSearch instance embedding index name   |                   |
 
 
-**OpenSearch Cloud Service Instance Field Name Mapping Environment Variables:**
+**Field Name Mapping Environment Variables:**
 
 | Name                     | Required | Description                         | Default           |
 | ------------------------ | -------- | ----------------------------------- | ----------------- |
@@ -38,5 +38,5 @@
 A suite of integration tests verifies the OpenSearch integration. Launch the test suite with this command:
 
 ```bash
-pytest ./tests/datastore/providers/opensearch/test_opensearch_datastore.py
+pytest ./tests/datastore/providers/alibabacloudopensearch/test_alibabacloud_opensearch_datastore.py
 ```

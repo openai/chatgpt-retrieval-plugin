@@ -48,6 +48,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
+    - [Alibaba Cloud Opensearch](#alibaba-cloud-opensearch)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -167,13 +168,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_PASSWORD=<postgres_password>
    export PG_DATABASE=<postgres_database>
   
-   # Opensearch
-   export OS_ENDPOINT=<your_opensearch_instance_endpoint>
-   export OS_INSTANCE_ID=<your_opensearch_instance_id>
-   export OS_TABLE_NAME=<your_opensearch_instance_table_name>
-   export OS_ACCESS_USER_NAME=<your_opensearch_instance_access_user_name>
-   export OS_ACCESS_PASS_WORD=<your_opensearch_instance_access_password>
-   export OS_EMBEDDING_INDEX_NAME=<your_opensearch_instance_embedding_index_name>
+   # Alibaba Cloud Opensearch
+   export OS_ENDPOINT=<your_alibaba_cloud_opensearch_instance_endpoint>
+   export OS_INSTANCE_ID=<your_alibaba_cloud_opensearch_instance_id>
+   export OS_TABLE_NAME=<your_alibaba_cloud_opensearch_instance_table_name>
+   export OS_ACCESS_USER_NAME=<your_alibaba_cloud_opensearch_instance_access_user_name>
+   export OS_ACCESS_PASS_WORD=<your_alibaba_cloud_opensearch_instance_access_password>
+   export OS_EMBEDDING_INDEX_NAME=<your_alibaba_cloud_opensearch_instance_embedding_index_name>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -285,11 +286,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                                                |
-| ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `opensearch`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                 |
+| Name             | Required | Description                                                                                                                                                                                                                                                             |
+| ---------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `alibabacloud-opensearch`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                             |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                              |
 
 ### Using the plugin with Azure OpenAI
 
@@ -361,8 +362,8 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 [AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
 
 
-#### OpenSearch
-[OpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises, , refer to [`/docs/providers/opensearch/setup.md`](/docs/providers/opensearch/setup.md).
+#### Alibaba Cloud OpenSearch
+[AlibabaCloudOpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises, , refer to [`/docs/providers/opensearch/setup.md`](/docs/providers/alibabacloudopensearch/setup.md).
 
 
 ### Running the API locally
