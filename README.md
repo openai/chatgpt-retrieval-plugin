@@ -363,7 +363,7 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 
 #### Alibaba Cloud OpenSearch
-[AlibabaCloudOpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises, , refer to [`/docs/providers/opensearch/setup.md`](/docs/providers/alibabacloudopensearch/setup.md).
+[AlibabaCloudOpenSearch](https://www.alibabacloud.com/product/opensearch?spm=a3c0i.24291077.6791778070.126.79176df571ilTO) is a one-stop platform to develop intelligent search services. OpenSearch was built based on the large-scale distributed search engine developed by Alibaba. OpenSearch serves more than 500 business cases in Alibaba Group and thousands of Alibaba Cloud customers. OpenSearch helps develop search services in different search scenarios, including e-commerce, O2O, multimedia, the content industry, communities and forums, and big data query in enterprises, , refer to [`/docs/providers/alibabacloudopensearch/setup.md`](/docs/providers/alibabacloudopensearch/setup.md).
 
 
 ### Running the API locally
