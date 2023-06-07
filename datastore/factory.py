@@ -56,6 +56,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.analyticdb_datastore import AnalyticDBDataStore
 
             return AnalyticDBDataStore()
+        case "opensearch":
+            from datastore.providers.opensearch_datastore import OpenSearchDataStore
+
+            return OpenSearchDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
