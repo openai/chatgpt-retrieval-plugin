@@ -16,6 +16,10 @@ WORKDIR /code
 
 COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 
+ENV PATH="${PATH}:/root/.cargo/bin"
+RUN curl --proto '=https' --tlsv1.3 -o rust.sh -sSf https://sh.rustup.rs && \
+    chmod +x rust.sh;./rust.sh -y
+
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . /code/
