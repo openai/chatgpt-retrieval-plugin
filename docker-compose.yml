@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  server:
+    image: chatgpt-retrieval-plugin:latest
+    container_name: chatgpt-api
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/code/
