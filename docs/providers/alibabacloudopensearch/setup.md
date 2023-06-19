@@ -40,3 +40,5 @@ A suite of integration tests verifies the OpenSearch integration. Launch the tes
 ```bash
 pytest ./tests/datastore/providers/alibabacloudopensearch/test_alibabacloud_opensearch_datastore.py
 ```
+
+If you encounter any problems during use, please feel free to contact [xingshaomin.xsm@alibaba-inc.com](xingshaomin.xsm@alibaba-inc.com) , and we will do our best to provide you with assistance and support.
