@@ -4,32 +4,8 @@ info:
   description: A retrieval API for querying and filtering documents based on natural language queries and metadata
   version: 1.0.0
 servers:
-  - url: http://localhost:3333
+    - url: http://localhost:3333
 paths:
-  /upsert:
-    post:
-      summary: Upsert
-      description: Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp, no ID as this will be generated). Confirm with the user before saving, ask for more details/context.
-      operationId: upsert_upsert_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertRequest"
-        required: true
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpsertResponse"
-        "422":
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
   /query:
     post:
       summary: Query
@@ -56,20 +32,6 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
 components:
   schemas:
-    Document:
-      title: Document
-      required:
-        - text
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        text:
-          title: Text
-          type: string
-        metadata:
-          $ref: "#/components/schemas/DocumentMetadata"
     DocumentChunkMetadata:
       title: DocumentChunkMetadata
       type: object
@@ -115,24 +77,6 @@ components:
         score:
           title: Score
           type: number
-    DocumentMetadata:
-      title: DocumentMetadata
-      type: object
-      properties:
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
-          type: string
-        url:
-          title: Url
-          type: string
-        created_at:
-          title: Created At
-          type: string
-        author:
-          title: Author
-          type: string
     DocumentMetadataFilter:
       title: DocumentMetadataFilter
       type: object
@@ -223,28 +167,6 @@ components:
         - chat
       type: string
       description: An enumeration.
-    UpsertRequest:
-      title: UpsertRequest
-      required:
-        - documents
-      type: object
-      properties:
-        documents:
-          title: Documents
-          type: array
-          items:
-            $ref: "#/components/schemas/Document"
-    UpsertResponse:
-      title: UpsertResponse
-      required:
-        - ids
-      type: object
-      properties:
-        ids:
-          title: Ids
-          type: array
-          items:
-            type: string
     ValidationError:
       title: ValidationError
       required:
