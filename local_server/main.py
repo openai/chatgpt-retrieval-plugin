@@ -50,7 +50,7 @@ async def get_manifest(request):
 
 @app.route("/.well-known/logo.png")
 async def get_logo(request):
-    file_path = "./local_server/logo.png"
+    file_path = "./local_server/logo-local.png"
     return FileResponse(file_path, media_type="text/json")
 
 
@@ -59,6 +59,14 @@ async def get_openapi(request):
     file_path = "./local_server/openapi.yaml"
     return FileResponse(file_path, media_type="text/json")
 
+# Create a sub-application, in order to access just the upsert and query endpoints in the OpenAPI schema, found at http://0.0.0.0:3333/sub/openapi.json when the app is running locally
+sub_app = FastAPI(
+    title="Retrieval Plugin API",
+    description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
+    version="1.0.0",
+    servers=[{"url": "http://localhost:{PORT}"}],
+)
+app.mount("/sub", sub_app)
 
 @app.post(
     "/upsert-file",
@@ -91,6 +99,23 @@ async def upsert_file(
     "/upsert",
     response_model=UpsertResponse,
 )
+async def upsert_main(
+    request: UpsertRequest = Body(...),
+):
+    try:
+        ids = await datastore.upsert(request.documents)
+        return UpsertResponse(ids=ids)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@sub_app.post(
+    "/upsert",
+    response_model=UpsertResponse,
+    # NOTE: We are describing the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in the future.
+    description="Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp, no ID as this will be generated). Confirm with the user before saving, ask for more details/context.",
+)
 async def upsert(
     request: UpsertRequest = Body(...),
 ):
@@ -102,8 +127,32 @@ async def upsert(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.post("/query", response_model=QueryResponse)
-async def query_main(request: QueryRequest = Body(...)):
+@app.post(
+    "/query",
+    response_model=QueryResponse,
+)
+async def query_main(
+    request: QueryRequest = Body(...),
+):
+    try:
+        results = await datastore.query(
+            request.queries,
+        )
+        return QueryResponse(results=results)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@sub_app.post(
+    "/query",
+    response_model=QueryResponse,
+    # NOTE: We are describing the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in the future.
+    description="Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.",
+)
+async def query(
+    request: QueryRequest = Body(...),
+):
     try:
         results = await datastore.query(
             request.queries,
