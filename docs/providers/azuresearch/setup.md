@@ -4,6 +4,10 @@
 
 You can find the Azure Cognitive Search documentation [here](https://learn.microsoft.com/azure/search/search-what-is-azure-search). If you don't have an Azure account, you can start setting one up [here](https://azure.microsoft.com/).
 
+## Signing up for vector search
+
+Azure Cognitive Search supports searching using pure vectors, pure text, or hybrid mode where both are combined. For the vector-based cases, you'll need to sign up for vector search private preview. To sign up, please fill in this form: https://aka.ms/VectorSearchSignUp
+
 ## Environment variables
 
 | Name                         | Required | Description                                                                           | Default             |
@@ -27,3 +31,19 @@ You can find the Azure Cognitive Search documentation [here](https://learn.micro
 ## Re-ranking
 
 Azure Cognitive Search offers the option to enable a second (L2) ranking step after retrieval to further improve results quality. This only applies when using text or hybrid search. Since it has latency and cost implications, if you want to try this option you need to explicitly [enable "semantic search"](https://learn.microsoft.com/azure/search/semantic-search-overview#enable-semantic-search) in your Cognitive Search service, and [create a semantic search configuration](https://learn.microsoft.com/azure/search/semantic-how-to-query-request#2---create-a-semantic-configuration) for your index.
+
+## Using existing search indexes
+
+If an existing index has fields that align with what's needed by the retrieval plugin but just differ in names, you can map your fields to the plugin fields using the following environment variables:
+
+|Plugin field name|Environment variable to override it|
+|-----------------|-----------------------------------|
+|id               |AZURESEARCH_FIELDS_ID              |
+|text             |AZURESEARCH_FIELDS_TEXT            |
+|embedding        |AZURESEARCH_FIELDS_EMBEDDING       |
+|document_id      |AZURESEARCH_FIELDS_DOCUMENT_ID     |
+|source           |AZURESEARCH_FIELDS_SOURCE          |
+|source_id        |AZURESEARCH_FIELDS_SOURCE_ID       |
+|url              |AZURESEARCH_FIELDS_URL             |
+|created_at       |AZURESEARCH_FIELDS_CREATED_AT      |
+|author           |AZURESEARCH_FIELDS_AUTHOR          |
