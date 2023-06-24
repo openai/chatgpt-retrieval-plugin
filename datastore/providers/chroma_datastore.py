@@ -46,7 +46,7 @@ class ChromaDataStore(DataStore):
         if client:
             self._client = client
         else:
-            if in_memory:
+            if in_memory == "True":
                 settings = (
                     chromadb.config.Settings(
                         chroma_db_impl="duckdb+parquet",
