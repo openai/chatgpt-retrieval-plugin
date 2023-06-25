@@ -56,6 +56,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.analyticdb_datastore import AnalyticDBDataStore
 
             return AnalyticDBDataStore()
+        case "tair":
+            from datastore.providers.tair_datastore import TairDataStore
+
+            return TairDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
