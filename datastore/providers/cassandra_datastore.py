@@ -5,7 +5,7 @@ from typing import Any, List, Dict, Optional
 from datetime import datetime
 import numpy as np
 from cassandra import ConsistencyLevel
-
+from datastore.datastore import DataStore
 from cassandra.cluster import Cluster, NoHostAvailable
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.query import SimpleStatement, ValueSequence
@@ -25,7 +25,7 @@ ASTRA_BUNDLE = os.environ.get("ASTRA_BUNDLE", None)
 
 
 # class that implements the DataStore interface for Cassandra Datastore provider
-class CassandraDataStore():
+class CassandraDataStore(DataStore):
     def __init__(self):
         self.client = self.create_db_client()
     def create_db_client(self):
