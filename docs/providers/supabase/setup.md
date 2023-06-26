@@ -9,7 +9,7 @@
 **Retrieval App Environment Variables**
 
 | Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
+|------------------|----------|----------------------------------------|
 | `DATASTORE`      | Yes      | Datastore name. Set this to `supabase` |
 | `BEARER_TOKEN`   | Yes      | Your secret token                      |
 | `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
@@ -17,7 +17,7 @@
 **Supabase Datastore Environment Variables**
 
 | Name                        | Required | Description                                                                    | Default |
-| --------------------------- | -------- | ------------------------------------------------------------------------------ | ------- |
+|-----------------------------|----------|--------------------------------------------------------------------------------|---------|
 | `SUPABASE_URL`              | Yes      | Supabase Project URL                                                           |         |
 | `SUPABASE_ANON_KEY`         | Optional | Supabase Project API anon key                                                  |         |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional | Supabase Project API service key, will be used if provided instead of anon key |         |

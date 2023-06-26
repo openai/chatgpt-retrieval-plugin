@@ -47,6 +47,7 @@ EMBEDDING_FIELD = "embedding"
 class Required:
     pass
 
+
 # The fields names that we are going to be storing within Milvus, the field declaration for schema creation, and the default value
 SCHEMA_V1 = [
     (
@@ -97,7 +98,7 @@ SCHEMA_V1 = [
     ),
 ]
 
-# V2 schema, remomve the "pk" field
+# V2 schema, remove the "pk" field
 SCHEMA_V2 = SCHEMA_V1[1:]
 SCHEMA_V2[4][1].is_primary = True
 
@@ -169,9 +170,9 @@ class MilvusDataStore(DataStore):
             if utility.has_collection(collection_name, using=self.alias) and create_new:
                 utility.drop_collection(collection_name, using=self.alias)
 
-            # Check if the collection doesnt exist
+            # Check if the collection doesn't exist
             if utility.has_collection(collection_name, using=self.alias) is False:
-                # If it doesnt exist use the field params from init to create a new schem
+                # If it doesn't exist use the field params from init to create a new schema
                 schema = [field[1] for field in SCHEMA_V2]
                 schema = CollectionSchema(schema)
                 # Use the schema to create a new collection
@@ -325,7 +326,6 @@ class MilvusDataStore(DataStore):
         except Exception as e:
             logger.error("Failed to insert records, error: {}".format(e))
             return []
-
 
     def _get_values(self, chunk: DocumentChunk) -> List[any] | None:  # type: ignore
         """Convert the chunk into a list of values to insert whose indexes align with fields.

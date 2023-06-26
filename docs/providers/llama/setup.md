@@ -11,7 +11,7 @@ Note that metadata filters in queries are not yet supported.
 ## Setup
 Currently, LlamaIndex requires no additional deployment
 and runs as a part of the Retrieval Plugin.
-It is super easy to setup and great for quick prototyping
+It is super easy to set up and great for quick prototyping
 with ChatGPT and your external data.
 
 **Retrieval App Environment Variables**

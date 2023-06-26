@@ -10,7 +10,7 @@
 - Cloud scalability
 - A developer-first community with multi-language support
 
-Visit the [Github](https://github.com/milvus-io/milvus) to learn more.
+Visit the [GitHub](https://github.com/milvus-io/milvus) to learn more.
 
 ## Deploying the Database
 
@@ -19,7 +19,7 @@ You can deploy and manage Milvus using Docker Compose, Helm, K8's Operator, or A
 **Environment Variables:**
 
 | Name                       | Required | Description                                                                                                                                  |
-|----------------------------| -------- |----------------------------------------------------------------------------------------------------------------------------------------------|
+|----------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------|
 | `DATASTORE`                | Yes      | Datastore name, set to `milvus`                                                                                                              |
 | `BEARER_TOKEN`             | Yes      | Your bearer token                                                                                                                            |
 | `OPENAI_API_KEY`           | Yes      | Your OpenAI API key                                                                                                                          |

@@ -14,6 +14,6 @@ Render maintains a [fork](https://github.com/render-examples/chatgpt-retrieval-p
 
 [<img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />](https://render.com/deploy?repo=https://github.com/render-examples/chatgpt-retrieval-plugin/tree/main)
 
-The bearer token will be randomly generated for you. You can view it in in the "Environment" tab on the [Render dashboard](https://dashboard.render.com) page for your server. For more guidance, consult the [README in Render's fork](https://github.com/render-examples/chatgpt-retrieval-plugin/blob/main/README.md), [Render's documentation](https://render.com/docs), or the screen recording linked below.
+The bearer token will be randomly generated for you. You can view it in the "Environment" tab on the [Render dashboard](https://dashboard.render.com) page for your server. For more guidance, consult the [README in Render's fork](https://github.com/render-examples/chatgpt-retrieval-plugin/blob/main/README.md), [Render's documentation](https://render.com/docs), or the screen recording linked below.
 
 [![Deploy to Render screen recording](render-thumbnail.png)](https://vimeo.com/823610578)

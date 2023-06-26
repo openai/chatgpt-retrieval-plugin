@@ -25,7 +25,7 @@ Zilliz Cloud is deployable in a few simple steps. First, create an account [here
 Environment Variables:
 
 | Name                       | Required | Description                                                      |
-|----------------------------| -------- |------------------------------------------------------------------|
+|----------------------------|----------|------------------------------------------------------------------|
 | `DATASTORE`                | Yes      | Datastore name, set to `zilliz`                                  |
 | `BEARER_TOKEN`             | Yes      | Your secret token                                                |
 | `OPENAI_API_KEY`           | Yes      | Your OpenAI API key                                              |

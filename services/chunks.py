@@ -58,7 +58,7 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
         # Skip the chunk if it is empty or whitespace
         if not chunk_text or chunk_text.isspace():
             # Remove the tokens corresponding to the chunk text from the remaining tokens
-            tokens = tokens[len(chunk) :]
+            tokens = tokens[len(chunk):]
             # Continue to the next iteration of the loop
             continue
 
@@ -83,7 +83,7 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
             chunks.append(chunk_text_to_append)
 
         # Remove the tokens corresponding to the chunk text from the remaining tokens
-        tokens = tokens[len(tokenizer.encode(chunk_text, disallowed_special=())) :]
+        tokens = tokens[len(tokenizer.encode(chunk_text, disallowed_special=())):]
 
         # Increment the number of chunks
         num_chunks += 1

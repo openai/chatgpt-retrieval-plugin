@@ -48,7 +48,7 @@ Now, try installing `psycopg2cffi` again using Poetry.
 **Environment Variables:**
 
 | Name             | Required | Description                         | Default           |
-| ---------------- | -------- | ----------------------------------- | ----------------- |
+|------------------|----------|-------------------------------------|-------------------|
 | `DATASTORE`      | Yes      | Datastore name, set to `analyticdb` |                   |
 | `BEARER_TOKEN`   | Yes      | Secret token                        |                   |
 | `OPENAI_API_KEY` | Yes      | OpenAI API key                      |                   |

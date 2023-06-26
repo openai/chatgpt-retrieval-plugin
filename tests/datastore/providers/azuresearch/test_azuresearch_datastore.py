@@ -1,17 +1,16 @@
 import pytest
 import os
 import time
-from typing import Union
 from azure.search.documents.indexes import SearchIndexClient
 from models.models import DocumentMetadataFilter, Query, Source, Document, DocumentMetadata
+import datastore.providers.azuresearch_datastore
+from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 
 AZURESEARCH_TEST_INDEX = "testindex"
 os.environ["AZURESEARCH_INDEX"] = AZURESEARCH_TEST_INDEX
-if os.environ.get("AZURESEARCH_SERVICE") == None:
-    os.environ["AZURESEARCH_SERVICE"] = "invalid service name" # Will fail anyway if not set to a real service, but allows tests to be discovered
+if os.environ.get("AZURESEARCH_SERVICE") is None:
+    os.environ["AZURESEARCH_SERVICE"] = "invalid service name"  # Will fail anyway if not set to a real service, but allows tests to be discovered
 
-import datastore.providers.azuresearch_datastore
-from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 
 @pytest.fixture(scope="module")
 def azuresearch_mgmt_client():
@@ -21,10 +20,11 @@ def azuresearch_mgmt_client():
         credential=AzureSearchDataStore._create_credentials(False)
     )    
 
+
 def test_translate_filter():
     assert AzureSearchDataStore._translate_filter(
         DocumentMetadataFilter()
-    ) == None
+    ) is None
 
     for field in ["document_id", "source", "source_id", "author"]:
         value = Source.file if field == "source" else f"test_{field}"
@@ -32,17 +32,17 @@ def test_translate_filter():
         assert AzureSearchDataStore._translate_filter(
             DocumentMetadataFilter(**{field: value})
         ) == f"{field} eq '{value}'"
-        if needs_escaping_value != None:
+        if needs_escaping_value is not None:
             assert AzureSearchDataStore._translate_filter(
                 DocumentMetadataFilter(**{field: needs_escaping_value})
             ) == f"{field} eq 'test''_{field}'"
 
     assert AzureSearchDataStore._translate_filter(
         DocumentMetadataFilter(
-            document_id = "test_document_id",
-            source = Source.file,
-            source_id = "test_source_id",
-            author = "test_author"
+            document_id="test_document_id",
+            source=Source.file,
+            source_id="test_source_id",
+            author="test_author"
         )
     ) == "document_id eq 'test_document_id' and source eq 'file' and source_id eq 'test_source_id' and author eq 'test_author'"
 
@@ -56,8 +56,9 @@ def test_translate_filter():
         )
     
     assert AzureSearchDataStore._translate_filter(
-        DocumentMetadataFilter(start_date="2023-01-01T00:00:00Z", end_date="2023-01-02T00:00:00Z", document_id = "test_document_id")
+        DocumentMetadataFilter(start_date="2023-01-01T00:00:00Z", end_date="2023-01-02T00:00:00Z", document_id="test_document_id")
     ) == "document_id eq 'test_document_id' and created_at ge 2023-01-01T00:00:00Z and created_at le 2023-01-02T00:00:00Z"
+
 
 @pytest.mark.asyncio
 async def test_lifecycle_hybrid(azuresearch_mgmt_client: SearchIndexClient):
@@ -65,17 +66,20 @@ async def test_lifecycle_hybrid(azuresearch_mgmt_client: SearchIndexClient):
     datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = None
     await lifecycle(azuresearch_mgmt_client)
 
+
 @pytest.mark.asyncio
 async def test_lifecycle_vectors_only(azuresearch_mgmt_client: SearchIndexClient):
     datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID = "1"
     datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = None
     await lifecycle(azuresearch_mgmt_client)
 
+
 @pytest.mark.asyncio
 async def test_lifecycle_semantic(azuresearch_mgmt_client: SearchIndexClient):
     datastore.providers.azuresearch_datastore.AZURESEARCH_DISABLE_HYBRID = None
     datastore.providers.azuresearch_datastore.AZURESEARCH_SEMANTIC_CONFIG = "testsemconfig"
     await lifecycle(azuresearch_mgmt_client)
+
 
 async def lifecycle(azuresearch_mgmt_client: SearchIndexClient):
     if AZURESEARCH_TEST_INDEX in azuresearch_mgmt_client.list_index_names():

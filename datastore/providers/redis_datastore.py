@@ -47,6 +47,7 @@ REDIS_REQUIRED_MODULES = [
 
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
 
+
 # Helper functions
 def unpack_schema(d: dict):
     for v in d.values():
@@ -54,6 +55,7 @@ def unpack_schema(d: dict):
             yield from unpack_schema(v)
         else:
             yield v
+
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
     installed_modules = (await client.info()).get("modules", [])
@@ -80,7 +82,7 @@ class RedisDataStore(DataStore):
     @classmethod
     async def init(cls, **kwargs):
         """
-        Setup the index if it does not exist.
+        Set up the index if it does not exist.
         """
         try:
             # Connect to the Redis Client
@@ -265,7 +267,7 @@ class RedisDataStore(DataStore):
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
-        Takes in a list of list of document chunks and inserts them into the database.
+        Takes in a dictionary from document ids to lists of document chunks and inserts the chunks into the database.
         Return a list of document ids.
         """
         # Initialize a list of ids to return

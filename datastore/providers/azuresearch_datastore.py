@@ -21,7 +21,7 @@ AZURESEARCH_API_KEY = os.environ.get("AZURESEARCH_API_KEY")
 AZURESEARCH_SEMANTIC_CONFIG = os.environ.get("AZURESEARCH_SEMANTIC_CONFIG")
 AZURESEARCH_LANGUAGE = os.environ.get("AZURESEARCH_LANGUAGE", "en-us")
 AZURESEARCH_DISABLE_HYBRID = os.environ.get("AZURESEARCH_DISABLE_HYBRID")
-AZURESEARCH_DIMENSIONS = os.environ.get("AZURESEARCH_DIMENSIONS", 1536) # Default to OpenAI's ada-002 embedding model vector size
+AZURESEARCH_DIMENSIONS = os.environ.get("AZURESEARCH_DIMENSIONS", 1536)  # Default to OpenAI's ada-002 embedding model vector size
 assert AZURESEARCH_SERVICE is not None
 assert AZURESEARCH_INDEX is not None
 
@@ -38,6 +38,7 @@ FIELDS_AUTHOR = os.environ.get("AZURESEARCH_FIELDS_AUTHOR", "author")
 
 MAX_UPLOAD_BATCH_SIZE = 1000
 MAX_DELETE_BATCH_SIZE = 1000
+
 
 class AzureSearchDataStore(DataStore):
     def __init__(self):
@@ -134,7 +135,7 @@ class AzureSearchDataStore(DataStore):
         try:
             vector_top_k = query.top_k if filter is None else query.top_k * 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
-            if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
+            if AZURESEARCH_SEMANTIC_CONFIG is not None and not AZURESEARCH_DISABLE_HYBRID:
                 # Ensure we're feeding a good number of candidates to the L2 reranker
                 vector_top_k = max(50, vector_top_k)
                 r = await self.client.search(
@@ -173,7 +174,7 @@ class AzureSearchDataStore(DataStore):
             raise Exception(f"Error querying the index: {e}")
 
     @staticmethod    
-    def _translate_filter(filter: DocumentMetadataFilter) -> str:
+    def _translate_filter(filter: DocumentMetadataFilter) -> str | None:
         """
         Translates a DocumentMetadataFilter into an Azure Search filter string
         """

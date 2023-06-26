@@ -11,7 +11,7 @@ To set up Chroma and start using it as your vector database provider, you need t
 Chroma runs _in-memory_ by default, with local persistence. It can also run in [self-hosted](https://docs.trychroma.com/usage-guide#running-chroma-in-clientserver-mode) client-server mode, with a fully managed hosted version coming soon.
 
 | Name                     | Required | Description                                                                                        | Default          |
-| ------------------------ | -------- | -------------------------------------------------------------------------------------------------- | ---------------- |
+|--------------------------|----------|----------------------------------------------------------------------------------------------------|------------------|
 | `DATASTORE`              | Yes      | Datastore name. Set this to `chroma`                                                               |                  |
 | `BEARER_TOKEN`           | Yes      | Your secret token for authenticating requests to the API                                           |                  |
 | `OPENAI_API_KEY`         | Yes      | Your OpenAI API key for generating embeddings                                                      |                  |
@@ -22,7 +22,7 @@ Chroma runs _in-memory_ by default, with local persistence. It can also run in [
 To run Chroma in self-hosted client-server mode, st the following variables:
 
 | Name          | Required | Description                                         | Default            |
-| ------------- | -------- | --------------------------------------------------- | ------------------ |
+|---------------|----------|-----------------------------------------------------|--------------------|
 | `CHROMA_HOST` | Optional | Your Chroma instance host address (see notes below) | `http://127.0.0.1` |
 | `CHROMA_PORT` | Optional | Your Chroma port number                             | `8000`             |
 

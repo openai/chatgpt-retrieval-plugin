@@ -25,7 +25,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
     deployment = os.environ.get("OPENAI_EMBEDDINGMODEL_DEPLOYMENTID")
 
     response = {}
-    if deployment == None:
+    if deployment is None:
         response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
@@ -41,14 +41,16 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 def get_chat_completion(
     messages,
     model="gpt-3.5-turbo",  # use "gpt-4" for better results
-    deployment_id = None
+    deployment_id=None
 ):
     """
     Generate a chat completion using OpenAI's chat completion API.
 
     Args:
         messages: The list of messages in the chat history.
-        model: The name of the model to use for the completion. Default is gpt-3.5-turbo, which is a fast, cheap and versatile model. Use gpt-4 for higher quality but slower results.
+        model: The name of the model to use for the completion. Default is gpt-3.5-turbo, which is a fast,
+               cheap and versatile model. Use gpt-4 for higher quality but slower results.
+        deployment_id: optional deployment id for Azure OpenAI
 
     Returns:
         A string containing the chat completion.
@@ -59,19 +61,19 @@ def get_chat_completion(
     # call the OpenAI chat completion API with the given messages
     # Note: Azure Open AI requires deployment id
     response = {}
-    if deployment_id == None:
+    if deployment_id is None:
         response = openai.ChatCompletion.create(
             model=model,
             messages=messages,
         )
     else:
         response = openai.ChatCompletion.create(
-            deployment_id = deployment_id,
+            deployment_id=deployment_id,
             messages=messages,
         )
-
 
     choices = response["choices"]  # type: ignore
     completion = choices[0].message.content.strip()
     logger.info(f"Completion: {completion}")
+
     return completion

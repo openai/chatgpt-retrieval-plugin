@@ -9,7 +9,7 @@ The app will create a Pinecone index for you automatically when you run it for t
 **Environment Variables:**
 
 | Name                   | Required | Description                                                                                                                      |
-| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+|------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------|
 | `DATASTORE`            | Yes      | Datastore name, set this to `pinecone`                                                                                           |
 | `BEARER_TOKEN`         | Yes      | Your secret token for authenticating requests to the API                                                                         |
 | `OPENAI_API_KEY`       | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                            |
