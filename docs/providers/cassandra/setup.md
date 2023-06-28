@@ -14,8 +14,8 @@
 | `CASSANDRA_HOST`        | Optional | Contact points for Cassandra                                                                                       | `localhost` |
 | `CASSANDRA_PORT`        | Optional | Cassandra port                                                                                                     | `9042`      |
 | `CASSANDRA_USER`        | Optional | Cassandra user                                                                                                     | `cassandra` |
-| `CASSANDRA_PASSWORD`    | Optional | Cassandra password                                                                                                 | `cassandra` |
-| `CASSANDRA_KEYSPACE`    | Optional | Cassandra keyspace                                                                                                 | `cassandra` |
+| `CASSANDRA_PASSWORD`    | Optional | Cassandra password (for AstaDB use the word `token`                                                                | `cassandra` |
+| `CASSANDRA_KEYSPACE`    | Optional | Cassandra keyspace (for AstraDB use your token which starts with AstraCS:...)                                      | `cassandra` |
 | `ASTRA_BUNDLE`          | Optional | Path to [Astra DB secure-connect bundle](https://docs.datastax.com/en/astra-serverless/docs/connect/secure-connect-bundle.html)                                                                              | None        |
 
 

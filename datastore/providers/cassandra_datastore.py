@@ -5,6 +5,10 @@ from typing import Any, List, Dict, Optional
 from datetime import datetime
 import numpy as np
 from cassandra import ConsistencyLevel
+import zipfile
+import json
+import requests
+from loguru import logger
 
 from cassandra.cluster import Cluster, NoHostAvailable
 from cassandra.auth import PlainTextAuthProvider
@@ -157,7 +161,46 @@ class CassandraClient():
 
     def create_table(self):
         try:
-            self.session.execute(f"""create keyspace if not exists {CASSANDRA_KEYSPACE} WITH replication = {{'class': 'SimpleStrategy', 'replication_factor': 1 }};""")
+            if ASTRA_BUNDLE:
+                # Open the zip file
+                with zipfile.ZipFile(ASTRA_BUNDLE, 'r') as zip_ref:
+                    # Open the JSON file
+                    with zip_ref.open('config.json') as json_file:
+                        # Load the JSON file
+                        data = json.loads(json_file.read().decode('utf-8'))
+
+                # Now `data` is a Python dictionary that contains your JSON data.
+                # You can access values in it like you would with any dictionary.
+                # For example, to get the value of 'key' in the JSON data:
+                host = data['host']
+
+                # databaseID is cf4984cf-4b66-4025-b162-5a951a28777d which can be extracted from host cf4984cf-4b66-4025-b162-5a951a28777d-us-east-1.db.astra-test.datastax.com
+                databaseID = "-".join(host.split("-")[:5])
+
+                # Define the URL
+                url = f"https://api.astra.datastax.com/v2/databases/{databaseID}/keyspaces/{CASSANDRA_KEYSPACE}"
+
+                # Define the headers
+                headers = {
+                    "Authorization": f"Bearer {CASSANDRA_PASSWORD}",
+                    "Content-Type": "application/json"
+                }
+
+                # Define the payload (if any)
+                payload = {}
+
+                # Make the POST request
+                response = requests.post(url, headers=headers, data=json.dumps(payload)).json()
+
+                # Print the response
+                if 'errors' in response:
+                    # Handle the errors
+                    errors = response['errors']
+                    if errors[0]['message']:
+                        if errors[0]['message'] == 'JWT not valid':
+                          logger.warning("Please use the word `token` and your AstraDB token as CASSANDRA_USER and CASSANDRA_PASSWORD respectively instead of client and secret (starting with `ASTRACS:` to allow dynamic astra keyspace creation")
+            else:
+                self.session.execute(f"""create keyspace if not exists {CASSANDRA_KEYSPACE} WITH replication = {{'class': 'SimpleStrategy', 'replication_factor': 1 }};""")
 
             self.session.execute(f"""create table if not exists {CASSANDRA_KEYSPACE}.documents (
                     id text primary key,
