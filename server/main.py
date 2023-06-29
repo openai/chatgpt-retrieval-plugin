@@ -26,7 +26,7 @@ assert BEARER_TOKEN is not None
 
 def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     if credentials.scheme != "Bearer" or credentials.credentials != BEARER_TOKEN:
-        raise HTTPException(status_code=401, detail="Invalid or missing token")
+        raise HTTPException(status_code=401, detail="Invalid or missing token exception")
     return credentials
 
 
@@ -38,7 +38,7 @@ sub_app = FastAPI(
     title="Retrieval Plugin API",
     description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
     version="1.0.0",
-    servers=[{"url": "https://your-app-url.com"}],
+    servers=[{"url": "https://monkfish-app-59nbq.ondigitalocean.app/"}],
     dependencies=[Depends(validate_token)],
 )
 app.mount("/sub", sub_app)
