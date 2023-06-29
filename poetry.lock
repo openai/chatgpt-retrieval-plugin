@@ -1833,6 +1833,22 @@ flake8 = ["flake8"]
 tests = ["psutil", "pytest (!=3.3.0)", "pytest-cov"]
 
 [[package]]
+name = "marqo"
+version = "0.9.6"
+description = "Tensor search for humans"
+optional = false
+python-versions = ">=3"
+files = [
+    {file = "marqo-0.9.6-py3-none-any.whl", hash = "sha256:edccded5dd1e1f519a5419ec9165b65eb3240d94fd0e2875ce2f599248187ecf"},
+    {file = "marqo-0.9.6.tar.gz", hash = "sha256:6b8dd18c6216313a62fae40c62c14e7ea5e76c4f06ca30edbb3157075490a42e"},
+]
+
+[package.dependencies]
+pydantic = "*"
+requests = "*"
+urllib3 = "*"
+
+[[package]]
 name = "marshmallow"
 version = "3.19.0"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
@@ -4187,4 +4203,4 @@ postgresql = ["psycopg2cffi"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8f3842f331bebb624220dc5558ab920c2526d8f22b4cd9f15748b54f5f33a0f3"
+content-hash = "4bb5da8265118c5835487e32fb8a6f060052bc355053b0782d75b7362379ced1"
