@@ -56,8 +56,12 @@ async def get_datastore() -> DataStore:
             from datastore.providers.analyticdb_datastore import AnalyticDBDataStore
 
             return AnalyticDBDataStore()
+        case "hologres":
+            from datastore.providers.hologres_datastore import HologresDataStore
+
+            return HologresDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, or qdrant"
+                f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, qdrant, hologres"
             )
