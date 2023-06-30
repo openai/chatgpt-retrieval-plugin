@@ -99,7 +99,7 @@ class AnalyticDBDataStore(DataStore):
                 USING ann(embedding)
                 WITH (
                     distancemeasure=L2,
-                    dim=OUTPUT_DIM,
+                    dim={OUTPUT_DIM},
                     pq_segments=64,
                     hnsw_m=100,
                     pq_centers=2048
