@@ -61,7 +61,7 @@ Now, try installing `psycopg2cffi` again using Poetry.
 
 ## AnalyticDB Cloud
 
-For a hosted [AnalyticDB Cloud](https://cloud.qdrant.io/) version, provide the AnalyticDB instance URL:
+For a hosted [AnalyticDB Cloud](https://www.alibabacloud.com/product/hybriddb-postgresql) version, provide the AnalyticDB instance URL:
 
 **Example:**
 
