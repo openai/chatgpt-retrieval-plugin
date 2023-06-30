@@ -139,7 +139,7 @@ class CassandraClient():
         try:
             self.connect()
         except NoHostAvailable as e:
-            print(f"No host in the cluster could be contacted: {e}")
+            logger.warning(f"No host in the cluster could be contacted: {e}")
             # sleep and retry
             time.sleep(5)
             self.connect()
@@ -259,7 +259,7 @@ class CassandraClient():
             )
             self.session.execute(statement)
         except Exception as e:
-                print(f"Exception creating table or index: {e}")
+                logger.warning(f"Exception creating table or index: {e}")
                 exit(1)
 
     def __del__(self):
@@ -293,7 +293,6 @@ class CassandraClient():
             from {CASSANDRA_KEYSPACE}.documents {filters} 
             ORDER BY embedding ann of {query.embedding} 
             LIMIT {query.top_k};"""
-            print(queryString)
             statement = self.session.prepare(queryString)
             statement.consistency_level = ConsistencyLevel.QUORUM
             boundStatement = statement.bind([query.embedding])
@@ -301,7 +300,7 @@ class CassandraClient():
             return resultset
 
         except Exception as e:
-            print(f"Exception during query (retrying): {e}")
+            logger.warning(f"Exception during query (retrying): {e}")
             #sleep 10 seconds and retry
             time.sleep(10)
             exit(1)
@@ -325,7 +324,6 @@ class CassandraClient():
                 (id, content, embedding, document_id, source, source_id, url, author, created_at) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
-            print(queryString)
             statement = SimpleStatement(queryString, consistency_level=ConsistencyLevel.QUORUM)
 
             self.session.execute(statement, (json["id"],
@@ -339,7 +337,7 @@ class CassandraClient():
                                              json["created_at"])
                                  )
         except Exception as e:
-            print(f"Exception inserting into table: {e}")
+            logger.warning(f"Exception inserting into table: {e}")
             exit(1)
 
     async def _delete_by_filters(self, table: str, filter: DocumentMetadataFilter):
@@ -390,5 +388,5 @@ class CassandraClient():
                 ids
             )
         except Exception as e:
-            print(f"Exception deleting from table: {e}")
+            logger.warning(f"Exception deleting from table: {e}")
             exit(1)
