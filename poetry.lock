@@ -2730,13 +2730,13 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "7.3.1"
+version = "7.4.0"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-7.3.1-py3-none-any.whl", hash = "sha256:3799fa815351fea3a5e96ac7e503a96fa51cc9942c3753cda7651b93c1cfa362"},
-    {file = "pytest-7.3.1.tar.gz", hash = "sha256:434afafd78b1d78ed0addf160ad2b77a30d35d4bdf8af234fe621919d9ed15e3"},
+    {file = "pytest-7.4.0-py3-none-any.whl", hash = "sha256:78bf16451a2eb8c7a2ea98e32dc119fd2aa758f1d5d66dbf0a59d69a3969df32"},
+    {file = "pytest-7.4.0.tar.gz", hash = "sha256:b4bf8c45bd59934ed84001ad51e11b4ee40d40a1229d2c79f9c592b0a3f6bd8a"},
 ]
 
 [package.dependencies]
@@ -2748,7 +2748,7 @@ pluggy = ">=0.12,<2.0"
 tomli = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
-testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
+testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pytest-asyncio"
@@ -3209,6 +3209,22 @@ idna = {version = "*", optional = true, markers = "extra == \"idna2008\""}
 
 [package.extras]
 idna2008 = ["idna"]
+
+[[package]]
+name = "searchium"
+version = "0.0.1rc5"
+description = ""
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "searchium-0.0.1rc5-py3-none-any.whl", hash = "sha256:0944eee32d271ed298817a5b146d4d827d1efe4cee28116701c4677f7e3be431"},
+    {file = "searchium-0.0.1rc5.tar.gz", hash = "sha256:5aed992b89b726d4c37d0dda469228ab094f4434d4ea9bef07b23de1d13d1b46"},
+]
+
+[package.dependencies]
+pydantic = ">=1.10.7,<2.0.0"
+pytest = ">=7.4.0,<8.0.0"
+requests = ">=2.28.2,<3.0.0"
 
 [[package]]
 name = "secretstorage"
@@ -4187,4 +4203,4 @@ postgresql = ["psycopg2cffi"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8f3842f331bebb624220dc5558ab920c2526d8f22b4cd9f15748b54f5f33a0f3"
+content-hash = "5b24c0910fc2de3eaf8d1a200d959de40db47d4abfac96db6de85b56e9d61404"

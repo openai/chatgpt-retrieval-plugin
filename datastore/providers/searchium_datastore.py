@@ -96,9 +96,9 @@ class SearchiumDataStore(DataStore):
                     searchium.train_dataset(self.dataset_id)
                     self.d_train = False
 
-                    status = searchium.train_status(self.dataset_id).datasetStatus
-                    while (status is DatasetStatus.training) or (status is DatasetStatus.pending):
-                        status = searchium.train_status(self.dataset_id).datasetStatus
+                    status = searchium.get_dataset_status(self.dataset_id).datasetStatus
+                    while (status is DatasetStatus.TRAINING) or (status is DatasetStatus.PENDING):
+                        status = searchium.get_dataset_status(self.dataset_id).datasetStatus
                         print(f"dataset status: {status} in progress, awaiting {status} completion.")
                         time.sleep(10)
 
