@@ -48,6 +48,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
+    - [Searchium](#searchium)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -166,6 +167,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
    export PG_DATABASE=<postgres_database>
+   
+   # Searchium
+   export SEARCHIUM_INSTANCE_ID=<your_instance_id>
+   export SEARCHIUM_DATASET_SIZE=<your_potential_dataset_size>
+   export SEARCHIUM_CLIENT_API_URL=<your_cloud_api_url>
+   export SEARCHIUM_DATASET_ID=<your_dataset_id>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -351,6 +358,13 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### AnalyticDB
 
 [AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
+
+#### Searchium
+
+[Searchium](https://www.searchium.ai/) is a vector search accelerator based on in memory compute APU (Associative Processing Unit)
+Searchium makes it easy to scale seamlessly to billions of vectors.
+Searchium is based on the first purpose built accelerator for vector databases, to enable high-throughput, fast and scalable search.
+For detailed setup instructions, refer to [`/docs/providers/searchium/setup.md`](/docs/providers/searchium/setup.md).
 
 ### Running the API locally
 
