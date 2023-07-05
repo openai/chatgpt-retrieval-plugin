@@ -92,6 +92,11 @@ class SearchiumDataStore(DataStore):
 
                 if ((self.d_size + 10) >= int(SEARCHIUM_DATASET_SIZE)) and self.d_train:
                     await self.lock.acquire()
+                    status = searchium.get_dataset_status(self.dataset_id).datasetStatus
+                    while status is DatasetStatus.ADDING:
+                        status = searchium.get_dataset_status(self.dataset_id).datasetStatus
+                        print(f"dataset status: {status} in progress, awaiting {status} completion.")
+                        time.sleep(5)
                     print("training of the dataset has started.")
                     searchium.train_dataset(self.dataset_id)
                     self.d_train = False
