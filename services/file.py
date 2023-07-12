@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader
 import docx2txt
 import csv
 import pptx
+from loguru import logger
 
 from models.models import Document, DocumentMetadata
 
@@ -38,7 +39,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         with open(filepath, "rb") as file:
             extracted_text = extract_text_from_file(file, mimetype)
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(e)
         raise e
 
     return extracted_text
@@ -91,9 +92,9 @@ async def extract_text_from_form_file(file: UploadFile):
     """Return the text content of a file."""
     # get the file body from the upload file object
     mimetype = file.content_type
-    print(f"mimetype: {mimetype}")
-    print(f"file.file: {file.file}")
-    print("file: ", file)
+    logger.info(f"mimetype: {mimetype}")
+    logger.info(f"file.file: {file.file}")
+    logger.info("file: ", file)
 
     file_stream = await file.read()
 
@@ -106,7 +107,7 @@ async def extract_text_from_form_file(file: UploadFile):
     try:
         extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(e)
         os.remove(temp_file_path)
         raise e
 

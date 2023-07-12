@@ -97,7 +97,7 @@ class WeaviateDataStore(DataStore):
                 continue
             for message in result["result"]["errors"]["error"]:
                 error_messages.append(message["message"])
-                logger.exception(message["message"])
+                logger.error(message["message"])
 
         return error_messages
 
