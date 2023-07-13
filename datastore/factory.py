@@ -1,10 +1,13 @@
 from datastore.datastore import DataStore
+from services.embedding import Embedding
 import os
 
 
 async def get_datastore() -> DataStore:
     datastore = os.environ.get("DATASTORE")
     assert datastore is not None
+
+    dimension = Embedding.instance().dimension
 
     match datastore:
         case "chroma":
@@ -19,7 +22,7 @@ async def get_datastore() -> DataStore:
         case "pinecone":
             from datastore.providers.pinecone_datastore import PineconeDataStore
 
-            return PineconeDataStore()
+            return PineconeDataStore(dimension=dimension)
         case "weaviate":
             from datastore.providers.weaviate_datastore import WeaviateDataStore
 
@@ -35,11 +38,11 @@ async def get_datastore() -> DataStore:
         case "redis":
             from datastore.providers.redis_datastore import RedisDataStore
 
-            return await RedisDataStore.init()
+            return await RedisDataStore.init(dim=dimension)
         case "qdrant":
             from datastore.providers.qdrant_datastore import QdrantDataStore
 
-            return QdrantDataStore()
+            return QdrantDataStore(vector_size=dimension)
         case "azuresearch":
             from datastore.providers.azuresearch_datastore import AzureSearchDataStore
 

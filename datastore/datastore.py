@@ -11,7 +11,7 @@ from models.models import (
     QueryWithEmbedding,
 )
 from services.chunks import get_document_chunks
-from services.openai import get_embeddings
+from services.embedding import Embedding
 
 
 class DataStore(ABC):
@@ -56,7 +56,7 @@ class DataStore(ABC):
         """
         # get a list of of just the queries from the Query list
         query_texts = [query.query for query in queries]
-        query_embeddings = get_embeddings(query_texts)
+        query_embeddings = Embedding.instance().get_embeddings(query_texts)
         # hydrate the queries with embeddings
         queries_with_embeddings = [
             QueryWithEmbedding(**query.dict(), embedding=embedding)
