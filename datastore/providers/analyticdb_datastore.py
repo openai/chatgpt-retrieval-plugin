@@ -30,17 +30,17 @@ PG_CONFIG = {
     "host": os.environ.get("PG_HOST", "localhost"),
     "port": int(os.environ.get("PG_PORT", "5432")),
 }
-OUTPUT_DIM = 1536
 
 
 class AnalyticDBDataStore(DataStore):
-    def __init__(self, config: Dict[str, str] = PG_CONFIG):
+    def __init__(self, config: Dict[str, str] = PG_CONFIG, dimension=1536):
         self.collection_name = config["collection"]
         self.user = config["user"]
         self.password = config["password"]
         self.database = config["database"]
         self.host = config["host"]
         self.port = config["port"]
+        self.dimension = dimension
 
         self.connection_pool = SimpleConnectionPool(
             minconn=1,
@@ -99,7 +99,7 @@ class AnalyticDBDataStore(DataStore):
                 USING ann(embedding)
                 WITH (
                     distancemeasure=L2,
-                    dim=OUTPUT_DIM,
+                    dim={self.dimension},
                     pq_segments=64,
                     hnsw_m=100,
                     pq_centers=2048

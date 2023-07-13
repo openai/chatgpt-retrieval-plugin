@@ -33,7 +33,7 @@ UPSERT_BATCH_SIZE = 100
 
 
 class PineconeDataStore(DataStore):
-    def __init__(self):
+    def __init__(self, dimension=1536):
         # Check if the index name is specified and exists in Pinecone
         if PINECONE_INDEX and PINECONE_INDEX not in pinecone.list_indexes():
 
@@ -47,7 +47,7 @@ class PineconeDataStore(DataStore):
                 )
                 pinecone.create_index(
                     PINECONE_INDEX,
-                    dimension=1536,  # dimensionality of OpenAI ada v2 embeddings
+                    dimension=dimension,
                     metadata_config={"indexed": fields_to_index},
                 )
                 self.index = pinecone.Index(PINECONE_INDEX)
