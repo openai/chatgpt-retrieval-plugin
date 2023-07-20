@@ -2,6 +2,7 @@ import os
 import asyncio
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
+from loguru import logger
 
 from psycopg2cffi import compat
 
@@ -252,7 +253,7 @@ class AnalyticDBDataStore(DataStore):
                             QueryResult(query=query.query, results=results)
                         )
                 except Exception as e:
-                    print("error:", e)
+                    logger.error(e)
                     query_results.append(QueryResult(query=query.query, results=[]))
             return query_results
         finally:
@@ -275,7 +276,7 @@ class AnalyticDBDataStore(DataStore):
                     self.conn.commit()
                 return True
             except Exception as e:
-                print(f"Error: {e}")
+                logger.error(e)
                 return False
             finally:
                 self.connection_pool.putconn(conn)

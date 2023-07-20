@@ -1,6 +1,7 @@
 from typing import List
 import openai
 import os
+from loguru import logger
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
@@ -28,7 +29,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
         response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
-    
+
     # Extract the embedding data from the response
     data = response["data"]  # type: ignore
 
@@ -68,9 +69,9 @@ def get_chat_completion(
             deployment_id = deployment_id,
             messages=messages,
         )
-    
+
 
     choices = response["choices"]  # type: ignore
     completion = choices[0].message.content.strip()
-    print(f"Completion: {completion}")
+    logger.info(f"Completion: {completion}")
     return completion
