@@ -173,8 +173,8 @@ class ElasticsearchDataStore(DataStore):
         }
 
         # For each field in the MetadataFilter, check if it has a value and add the corresponding pinecone filter expression
-        # For start_date and end_date, uses the $gte and $lte operators respectively
-        # For other fields, uses the $eq operator
+        # For start_date and end_date, uses the range query - gte and lte operators respectively
+        # For other fields, uses the term query
         for field, value in filter.dict().items():
             if value is not None:
                 if field == "start_date":
