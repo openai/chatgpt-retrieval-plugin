@@ -15,7 +15,7 @@ from models.models import (
 )
 from services.date import to_unix_timestamp
 
-ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL")
+ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
 ELASTICSEARCH_CLOUD_ID = os.environ.get("ELASTICSEARCH_CLOUD_ID")
 ELASTICSEARCH_USERNAME = os.environ.get("ELASTICSEARCH_USERNAME")
 ELASTICSEARCH_PASSWORD = os.environ.get("ELASTICSEARCH_PASSWORD")
@@ -146,16 +146,17 @@ class ElasticsearchDataStore(DataStore):
                 raise e
 
         if ids:
-            documents_to_delete = [
-                {
-                    "_op_type": "delete",
-                    "_index": self.index_name,
-                    "_id": doc_id,
-                }
-                for doc_id in ids
-            ]
-            res = helpers.bulk(self.client, documents_to_delete, ignore_status=True)
-            return res == (len(ids), [])
+            try:
+                documents_to_delete = [doc_id for doc_id in ids]
+                logger.info(f"Deleting {len(documents_to_delete)} documents")
+                res = self.client.delete_by_query(
+                    index=self.index_name,
+                    query={"terms": {"metadata.document_id": documents_to_delete}},
+                )
+                logger.info(f"Deleted documents successfully")
+            except Exception as e:
+                logger.error(f"Error deleting documents: {e}")
+                raise e
 
         return True
 
@@ -333,12 +334,18 @@ def connect_to_elasticsearch(
     if api_key:
         connection_params["api_key"] = api_key
     elif username and password:
-        connection_params["http_auth"] = (username, password)
+        connection_params["basic_auth"] = (username, password)
     else:
-        raise ValueError(
-            "Please provide either an api_key or both username and password for authentication."
+        logger.warning(
+            "No authentication details provided. Please consider using an api_key or username and password to secure your connection."
         )
 
     # Establish the Elasticsearch client connection
     es_client = Elasticsearch(**connection_params)
+    try:
+        es_client.info()
+    except Exception as e:
+        logger.error(f"Error connecting to Elasticsearch: {e}")
+        raise e
+
     return es_client
