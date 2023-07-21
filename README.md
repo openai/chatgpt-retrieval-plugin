@@ -167,6 +167,18 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
    export PG_DATABASE=<postgres_database>
+
+   # Elasticsearch
+   export ELASTICSEARCH_URL=<elasticsearch_host_and_port> (either specify host or cloud_id)
+   export ELASTICSEARCH_CLOUD_ID=<elasticsearch_cloud_id>
+
+   export ELASTICSEARCH_USERNAME=<elasticsearch_username>
+   export ELASTICSEARCH_PASSWORD=<elasticsearch_password>
+   export ELASTICSEARCH_API_KEY=<elasticsearch_api_key>
+
+   export ELASTICSEARCH_INDEX=<elasticsearch_index_name>
+   export ELASTICSEARCH_REPLICAS=<elasticsearch_replicas>
+   export ELASTICSEARCH_SHARDS=<elasticsearch_shards>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -278,11 +290,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                                  |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                  |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                   |
+| Name             | Required | Description                                                                                                                                                                                                                                                   |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                    |
 
 ### Using the plugin with Azure OpenAI
 
@@ -356,22 +368,6 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Elasticsearch
 
 Elasticsearch currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. This allows users to perform an exact kNN search by scanning all documents. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets.
-
-Note:
-
-- Elasticsearch does not support vectors with dimensions > 1024 due to the Lucene implementation. See [Lucene Issue 11507](https://github.com/apache/lucene/issues/11507) and [Lucene Issue 854](https://github.com/apache/lucene/issues/854) for updates on this issue.
-
-Environment Variables:
-
-| Name                     | Required | Description                               | Default                 |
-| ------------------------ | -------- | ----------------------------------------- | ----------------------- |
-| `DATASTORE`              | Yes      | Datastore name, set to `elasticsearch`    |                         |
-| `BEARER_TOKEN`           | Yes      | Secret token                              |                         |
-| `OPENAI_API_KEY`         | Yes      | OpenAI API key                            |                         |
-| `ELASTICSEARCH_URL`      | Optional | Elasticsearch host and port               | `http://localhost:9200` |
-| `ELASTICSEARCH_INDEX`    | Optional | Elasticsearch vector index name           | `document_chunks`       |
-| `ELASTICSEARCH_REPLICAS` | Optional | Elasticsearch replicas for index creation | `2`                     |
-| `ELASTICSEARCH_SHARDS`   | Optional | Elasticsearch shards for index creation   | `2`                     |
 
 ### Running the API locally
 
