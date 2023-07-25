@@ -5,8 +5,8 @@ import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 from loguru import logger
 
-from models.api import (
-    DeleteRequest,
+from models.api import ( 
+    DeleteRequest, 
     DeleteResponse,
     QueryRequest,
     QueryResponse,
