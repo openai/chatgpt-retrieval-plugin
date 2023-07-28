@@ -927,6 +927,42 @@ files = [
 ]
 
 [[package]]
+name = "elastic-transport"
+version = "8.4.0"
+description = "Transport classes and utilities shared among Python Elastic client libraries"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "elastic-transport-8.4.0.tar.gz", hash = "sha256:b9ad708ceb7fcdbc6b30a96f886609a109f042c0b9d9f2e44403b3133ba7ff10"},
+    {file = "elastic_transport-8.4.0-py3-none-any.whl", hash = "sha256:19db271ab79c9f70f8c43f8f5b5111408781a6176b54ab2e54d713b6d9ceb815"},
+]
+
+[package.dependencies]
+certifi = "*"
+urllib3 = ">=1.26.2,<2"
+
+[package.extras]
+develop = ["aiohttp", "mock", "pytest", "pytest-asyncio", "pytest-cov", "pytest-httpserver", "pytest-mock", "requests", "trustme"]
+
+[[package]]
+name = "elasticsearch"
+version = "8.8.2"
+description = "Python client for Elasticsearch"
+optional = false
+python-versions = ">=3.6, <4"
+files = [
+    {file = "elasticsearch-8.8.2-py3-none-any.whl", hash = "sha256:bffd6ce4faaacf90e6f617241773b3da8fb94e2e83554f5508e2fab92ca79643"},
+    {file = "elasticsearch-8.8.2.tar.gz", hash = "sha256:bed8cf8fcc6c3be7c254b579de4c29afab021f373c832246f912d37aef3c6bd5"},
+]
+
+[package.dependencies]
+elastic-transport = ">=8,<9"
+
+[package.extras]
+async = ["aiohttp (>=3,<4)"]
+requests = ["requests (>=2.4.0,<3.0.0)"]
+
+[[package]]
 name = "environs"
 version = "9.5.0"
 description = "simplified environment variable parsing"
@@ -4187,4 +4223,4 @@ postgresql = ["psycopg2cffi"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8f3842f331bebb624220dc5558ab920c2526d8f22b4cd9f15748b54f5f33a0f3"
+content-hash = "9140339a3000bae678247d4ec1c314ed4842957d435a7ae28cc928c7678f84c0"
