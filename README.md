@@ -37,6 +37,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [General Environment Variables](#general-environment-variables)
   - [Choosing a Vector Database](#choosing-a-vector-database)
     - [Pinecone](#pinecone)
+    - [Elasticsearch](#elasticsearch)
     - [Weaviate](#weaviate)
     - [Zilliz](#zilliz)
     - [Milvus](#milvus)
@@ -176,6 +177,18 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export CASSANDRA_HOST=<cassandra_contact_point>            # contact point not required for Astra DB
    export ASTRA_BUNDLE=<path_to_astra_secure_connect_bundle>  # required for Astra DB only, not required for self-hosted Cassandra
 
+
+   # Elasticsearch
+   export ELASTICSEARCH_URL=<elasticsearch_host_and_port> (either specify host or cloud_id)
+   export ELASTICSEARCH_CLOUD_ID=<elasticsearch_cloud_id>
+
+   export ELASTICSEARCH_USERNAME=<elasticsearch_username>
+   export ELASTICSEARCH_PASSWORD=<elasticsearch_password>
+   export ELASTICSEARCH_API_KEY=<elasticsearch_api_key>
+
+   export ELASTICSEARCH_INDEX=<elasticsearch_index_name>
+   export ELASTICSEARCH_REPLICAS=<elasticsearch_replicas>
+   export ELASTICSEARCH_SHARDS=<elasticsearch_shards>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -287,11 +300,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                                  |
-| ---------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                  |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                   |
+| Name             | Required | Description                                                                                                                                                                                                                                                   |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                    |
 
 ### Using the plugin with Azure OpenAI
 
@@ -366,6 +379,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 [Apache Cassandra](https://cassandra.apache.org) Apache Cassandra® is an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability without compromising performance. Linear scalability and proven fault-tolerance on commodity hardware or cloud infrastructure make it the perfect platform for mission-critical data. For a hosted service check out [DataStax Astra DB](https://www.datastax.com/astra). For detailed setup instructions, refer to [`/docs/providers/cassandra/setup.md`](/docs/providers/cassandra/setup.md).
 
+
+#### Elasticsearch
+
+[Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets. For detailed setup instructions, refer to [`/docs/providers/elasticsearch/setup.md`](/docs/providers/elasticsearch/setup.md).
 
 ### Running the API locally
 
@@ -504,6 +521,7 @@ The scripts are:
 - [`process_zip`](scripts/process_zip/): This script processes a file dump of documents in a zip file and stores them in the vector database with some metadata. The format of the zip file should be a flat zip file folder of docx, pdf, txt, md, pptx or csv files. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
 
 ## Pull Request (PR) Checklist
+
 If you'd like to contribute, please follow the checklist below when submitting a PR. This will help us review and merge your changes faster! Thank you for contributing!
 
 1. **Type of PR**: Indicate the type of PR by adding a label in square brackets at the beginning of the title, such as `[Bugfix]`, `[Feature]`, `[Enhancement]`, `[Refactor]`, or `[Documentation]`.
@@ -548,7 +566,7 @@ feature/advanced-chunking-strategy-123
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
 - **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.
@@ -602,3 +620,5 @@ We would like to extend our gratitude to the following contributors for their co
   - [mmmaia](https://github.com/mmmaia)
 - [Cassandra](https://cassandra.apache.org/_/index.html)
   - [phact](https://github.com/phact)
+- [Elasticsearch](https://www.elastic.co/)
+  - [joemcelroy](https://github.com/joemcelroy)

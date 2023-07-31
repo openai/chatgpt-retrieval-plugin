@@ -60,8 +60,13 @@ async def get_datastore() -> DataStore:
             from datastore.providers.cassandra_datastore import CassandraDataStore
 
             return CassandraDataStore()
+        case "elasticsearch":
+            from datastore.providers.elasticsearch_datastore import (
+                ElasticsearchDataStore,
+            )
+
+            return ElasticsearchDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
                 f"Try one of the following: llama, pinecone, weaviate, milvus, zilliz, redis, qdrant, azuresearch, supabase, postgres, or cassandra"
-            )
