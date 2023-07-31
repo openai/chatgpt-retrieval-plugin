@@ -49,6 +49,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
+    - [Cassandra](#cassandra)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -167,6 +168,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
    export PG_DATABASE=<postgres_database>
+   
+   # Cassandra
+   export CASSANDRA_KEYSPACE=<cassandra_keyspace>
+   export CASSANDRA_USER=<cassandra_user>                     # or Astra DB clientid
+   export CASSANDRA_PASSWORD=<cassandra_password>             # or Astra DB clientsecret
+   export CASSANDRA_PORT=<cassandra_port>                     # if using non standard port (9042)
+   export CASSANDRA_HOST=<cassandra_contact_point>            # contact point not required for Astra DB
+   export ASTRA_BUNDLE=<path_to_astra_secure_connect_bundle>  # required for Astra DB only, not required for self-hosted Cassandra
+
 
    # Elasticsearch
    export ELASTICSEARCH_URL=<elasticsearch_host_and_port> (either specify host or cloud_id)
@@ -364,6 +374,11 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### AnalyticDB
 
 [AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
+
+#### Apache Cassandra
+
+[Apache Cassandra](https://cassandra.apache.org) Apache Cassandra® is an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability without compromising performance. Linear scalability and proven fault-tolerance on commodity hardware or cloud infrastructure make it the perfect platform for mission-critical data. For a hosted service check out [DataStax Astra DB](https://www.datastax.com/astra). For detailed setup instructions, refer to [`/docs/providers/cassandra/setup.md`](/docs/providers/cassandra/setup.md).
+
 
 #### Elasticsearch
 
@@ -603,5 +618,7 @@ We would like to extend our gratitude to the following contributors for their co
 - [Postgres](https://www.postgresql.org/)
   - [egor-romanov](https://github.com/egor-romanov)
   - [mmmaia](https://github.com/mmmaia)
+- [Cassandra](https://cassandra.apache.org/_/index.html)
+  - [phact](https://github.com/phact)
 - [Elasticsearch](https://www.elastic.co/)
   - [joemcelroy](https://github.com/joemcelroy)
