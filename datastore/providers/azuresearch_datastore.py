@@ -139,6 +139,7 @@ class AzureSearchDataStore(DataStore):
             vector_top_k = query.top_k if filter is None else query.top_k * 2
             if not AZURESEARCH_DISABLE_HYBRID: vector_top_k *= 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
+            vector_q = Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING)
             if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
                 # Ensure we're feeding a good number of candidates to the L2 reranker
                 vector_top_k = max(50, vector_top_k)
@@ -146,9 +147,7 @@ class AzureSearchDataStore(DataStore):
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=query.embedding,
-                        top_k=vector_top_k, 
-                        vector_fields=FIELDS_EMBEDDING,
+                        vectors=[vector_q],
                         query_type=QueryType.SEMANTIC,
                         query_language=AZURESEARCH_LANGUAGE,
                         semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
@@ -157,9 +156,7 @@ class AzureSearchDataStore(DataStore):
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=query.embedding,
-                        top_k=vector_top_k,
-                        vector_fields=FIELDS_EMBEDDING)
+                        vectors=[vector_q])
             results: List[DocumentChunkWithScore] = []
             async for hit in r:
                 f = lambda field: hit.get(field) if field != "-" else None
@@ -247,7 +244,7 @@ class AzureSearchDataStore(DataStore):
                 ),
                 vector_search=VectorSearch(
                     algorithm_configurations=[
-                        VectorSearchAlgorithmConfiguration(
+                        HnswVectorSearchAlgorithmConfiguration(
                             name="default",
                             kind="hnsw",
                             # Could change to dotproduct for OpenAI's embeddings since they normalize vectors to unit length
