@@ -115,6 +115,7 @@ ENV/
 env.bak/
 venv.bak/
 myvenv/
+secrets.py
 
 # Spyder project settings
 .spyderproject
