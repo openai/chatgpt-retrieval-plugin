@@ -1,0 +1,25 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "retrieval",
+  "name_for_human": "Retrieval Plugin",
+  "description_for_model": "Plugin for searching through the user's documents (such as files, emails, and more) to find answers to questions and retrieve relevant information. Use it whenever a user asks something that might be found in their personal information.",
+  "description_for_human": "Search through your documents.",
+  "auth" : {
+    "type":"oauth",
+    "client_url":"e.g. https://<your domain>/oauth/v2/authorize",
+    "authorization_url":"e.g. https://<your domain>/api/oauth.v2.access",
+    "scope":"search:read",
+    "authorization_content_type":"application/x-www-form-urlencoded",
+    "verification_tokens":{
+			"openai":"<token from add plugin flow from the ChatGPT UI>"
+    }
+  },
+	"api":{
+    "url": "https://your-app-url.com/.well-known/openapi.yaml",
+		"has_user_authentication":true,
+		"type":"openapi"
+	},
+  "logo_url": "https://your-app-url.com/.well-known/logo.png",
+  "contact_email": "hello@contact.com", 
+  "legal_info_url": "hello@legal.com"
+}

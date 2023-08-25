@@ -1,0 +1,6 @@
+{"id": "4", "text": "This document only has an ID and text. The other fields are missing."}
+{"text": "This document has no ID, but it has text and a source.", "source": "email"}
+{"id": "6", "text": "This document has an ID, text, and author, but no source information.", "author": "John Doe"}
+{"text": "This document has text, a source, and a URL, but no ID or author.", "source": "file", "url": "https://example.com/file/2"}
+{"id": "8", "text": "This document has an ID, text, source, and created_at timestamp, but no author or URL.", "source": "chat", "created_at": "2022-01-04T00:00:00"}
+{"id": "9", "text": "This document contains PII. John Smith's email address is john.smith@example.com and his phone number is +1 (555) 123-4567.", "source": "email", "source_id": "email_2", "url": "https://example.com/email/2", "created_at": "2022-01-05T00:00:00", "author": "John Smith"}

@@ -1,0 +1,23 @@
+{
+  "documents": [
+    {
+      "id": "openai",
+      "text": "OpenAI is an AI research and deployment company. Our mission is to ensure that artificial general intelligence benefits all of humanity.",
+      "metadata": {
+        "created_at": "2023-03-14"
+      }
+    },
+    {
+      "id": "chatgpt",
+      "text": "ChatGPT is a sibling model to InstructGPT, which is trained to follow an instruction in a prompt and provide a detailed response. The dialogue format makes it possible for ChatGPT to answer followup questions, admit its mistakes, challenge incorrect premises, and reject inappropriate requests."
+    },
+    {
+      "id": "qdrant",
+      "text": "Qdrant is a vector similarity engine & vector database. It deploys as an API service providing search for the nearest high-dimensional vectors. With Qdrant, embeddings or neural network encoders can be turned into full-fledged applications for matching, searching, recommending, and much more!",
+      "metadata": {
+        "created_at": "2023-03-14",
+        "author": "Kacper Łukawski"
+      }
+    }
+  ]
+}
