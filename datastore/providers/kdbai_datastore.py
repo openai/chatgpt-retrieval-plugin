@@ -45,49 +45,6 @@ except ImportError:
     )
 
 
-SCHEMA = {
-    {
-        "name": "chunk_id",
-        "dataType": ["string"],
-        "description": "The chunk id",
-    },
-    {
-        "name": "document_id",
-        "dataType": ["string"],
-        "description": "The document id",
-    },
-    {
-        "name": "text",
-        "dataType": ["text"],
-        "description": "The chunk's text",
-    },
-    {
-        "name": "source",
-        "dataType": ["string"],
-        "description": "The source of the data",
-    },
-    {
-        "name": "source_id",
-        "dataType": ["string"],
-        "description": "The source id",
-    },
-    {
-        "name": "url",
-        "dataType": ["string"],
-        "description": "The source url",
-    },
-    {
-        "name": "created_at",
-        "dataType": ["date"],
-        "description": "Creation date of document",
-    },
-    {
-        "name": "author",
-        "dataType": ["string"],
-        "description": "Document author",
-    },
-}
-
 
 # DEFAULT_EMBEDDING_MODEL = 'text-embedding-ada-002'
 
@@ -157,25 +114,42 @@ class KDBAIDataStore(DataStore):
             print("Tables in current session:")
             print(session.list())
             
-            # load the table configuration for the kdbai vector database (see schema from milvus)
-            # schema = json.loads("""
-            #             {"type":"splayed",
-            #             "columns":[
-            #                 {"name": "time", "type": "timespan"},
-            #                 {"name": "sym", "type": "symbol"},
-            #                 {"name": "id", "type": "symbol"},
-            #                 {"name": "tag", "type": "symbol", "attrMem": "grouped"},
-            #                 {"name": "text", "type": "string"},
-            #                 {"name": "embeddings", "type": "reals", 
-            #                     "vectorIndex": {"type": "flat", "metric": "L2", "dims": 1536}}]
-            #             }""")
-            
-            ## ^^ USE SCHEMA INSTEAD 
+            #schema = {"type":"splayed","columns":[{"name":"time","type":"timespan"},{"name":"sym","type":"symbol","attrMem":"grouped"},{"name":"chunk_id","type":"symbol"},{"name":"document_id","type":"symbol"},{"name":"text","type":"string"},{"name":"source","type":"string"},{"name":"source_id","type":"symbol"},{"name":"url","type":"string"},{"name":"created_at","type":"timespan"},{"name":"author","type":"string"},{"name":"embeddings","type":"reals", "vectorIndex": {"type": "flat", "metric": "L2", "dims": 1536}}]}
+
+            schema = dict(
+                columns=[
+                    dict(name='chunk_id', pytype='str'),
+                    dict(name='document_id', pytype='str'),
+                    dict(name='text', pytype='bytes'),
+                    dict(name='source', pytype='bytes'),
+                    dict(name='source_id', pytype='str'),
+                    dict(name='url', pytype='bytes'),
+                    dict(name='created_at', pytype='datetime64[ns]'),
+                    dict(name='author', pytype='bytes'),
+                    dict(name='embeddings', 
+                         vectorIndex=dict(type='flat', metric='L2', dims=8))]
+            )
 
             # create a vector database table using the schema
-            print('Accessing \'documents\' table:')
-            self._table = session.table('documents')
+            print('Creating table:')
+            self._table = session.create_table('testingqueryfunc', schema)
+            
+            print('Session tables:')
+            print(session.list())
+            
+            print('Table schema:')
+            print(self._table.schema())
+            
+            print('Table query:')
             print(self._table.query())
+            
+            print('Inserting data:')
+            df = kx.q('{([] chunk_id:x?`8; document_id:x?`8; text:{rand[256]?" "} each til x; source:{rand[30]?" "} each til x; source_id:x?`8; url:{rand[100]?" "} each til x; created_at:x?1D; author:{rand[30]?" "} each til x; embeddings:(x;1536)#(x*1536)?1e)}', 10).pd()
+            self._table.insert(df)
+            
+            print('Table query:')
+            print(self._table.query())
+            
         
         except Exception as e:
             logger.error(f"Error in creating table: {e}")
