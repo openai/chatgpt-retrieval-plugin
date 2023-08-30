@@ -238,8 +238,7 @@ class KDBAIDataStore(DataStore):
                 
                 print("DataFrame columns: ", new_meta_df.columns)
                 
-                for col in new_meta_df.columns:
-                    df[col] = new_meta_df[col]
+                df = pd.concat([df, new_meta_df], axis=1)
 
                 try:
                     logger.info(f"Upserting batch of size {len(batch[0])}")
