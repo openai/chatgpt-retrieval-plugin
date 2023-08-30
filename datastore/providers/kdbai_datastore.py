@@ -23,6 +23,16 @@ from models.models import (
 )
 
 try:
+    import pykx as kx
+    print('PyKX version: ' + kx.__version__)
+
+except ImportError:
+    raise ValueError(
+        "Could not import pykx python package. "
+        "Please add it to the dependencies."
+    )
+
+try:
     ## New for kdbai_client
     import kdbai_client as kdbai
     print('KDBAI-CLIENT version: ' + kdbai.__version__)
@@ -34,15 +44,6 @@ except ImportError:
         "Please add it to the dependencies."
     )
 
-try:
-    import pykx as kx
-    print('PyKX version: ' + kx.__version__)
-
-except ImportError:
-    raise ValueError(
-        "Could not import pykx python package. "
-        "Please add it to the dependencies."
-    )
 
 
 
@@ -72,15 +73,51 @@ UPSERT_BATCH_SIZE = 100
 KDBAI_VECTOR_COL_NAME = "vecs"
 
 
-table = pd.DataFrame({'text': pd.Series(dtype='str'),
-                   'document_id': pd.Series(dtype='str'),
-                   'source_id': pd.Series(dtype='str'),
-                   'id': pd.Series(dtype='str'),
-                   'source': pd.Series(dtype='str'),
-                   'url': pd.Series(dtype='str'),
-                   'created_at': pd.Series(dtype='str'),
-                   'body': pd.Series(dtype='str'),
-                   'vecs': pd.Series(dtype='float32')})
+schema = dict(
+    columns=[
+        dict(
+            name='vecs', 
+            vectorIndex=
+                dict(
+                    type='flat', 
+                    metric='L2', 
+                    dims=DEFAULT_DIM
+                    )
+            ),
+        dict(
+            name='source', 
+            pytype='bytes'
+            ),
+        dict(
+            name='source_id', 
+            pytype='str'
+            ),
+        dict(
+            name='url', 
+            pytype='bytes'
+            ),
+        dict(
+            name='created_at', 
+            pytype='datetime64[ns]'
+            ),
+        dict(
+            name='author', 
+            pytype='bytes'
+            ),
+        dict(
+            name='document_id', 
+            pytype='str'
+            ),
+        dict(
+            name='text', 
+            pytype='bytes'
+            ),
+        dict(
+            name='chunk_id', 
+            pytype='str'
+            )
+        ]
+    ) 
 
 
 class KDBAIDataStore(DataStore):
@@ -112,44 +149,23 @@ class KDBAIDataStore(DataStore):
             print('Creating kdbai Session...')
             session = kdbai.Session(host='localhost', port=8082, protocol='http')
             print("Tables in current session:")
-            print(session.list())
-            
-            #schema = {"type":"splayed","columns":[{"name":"time","type":"timespan"},{"name":"sym","type":"symbol","attrMem":"grouped"},{"name":"chunk_id","type":"symbol"},{"name":"document_id","type":"symbol"},{"name":"text","type":"string"},{"name":"source","type":"string"},{"name":"source_id","type":"symbol"},{"name":"url","type":"string"},{"name":"created_at","type":"timespan"},{"name":"author","type":"string"},{"name":"embeddings","type":"reals", "vectorIndex": {"type": "flat", "metric": "L2", "dims": 1536}}]}
-
-            schema = dict(
-                columns=[
-                    dict(name='chunk_id', pytype='str'),
-                    dict(name='document_id', pytype='str'),
-                    dict(name='text', pytype='bytes'),
-                    dict(name='source', pytype='bytes'),
-                    dict(name='source_id', pytype='str'),
-                    dict(name='url', pytype='bytes'),
-                    dict(name='created_at', pytype='datetime64[ns]'),
-                    dict(name='author', pytype='bytes'),
-                    dict(name='embeddings', 
-                         vectorIndex=dict(type='flat', metric='L2', dims=8))]
-            )
+            print(session.list())  
 
             # create a vector database table using the schema
-            print('Creating table:')
-            self._table = session.create_table('testingqueryfunc', schema)
+            print('Getting table:')
+            name = 'testingupsert1'
+            
+            try:
+                self._table = session.create_table(name, schema)
+            except:
+                self._table = session.table(name)
+            
             
             print('Session tables:')
             print(session.list())
             
             print('Table schema:')
             print(self._table.schema())
-            
-            print('Table query:')
-            print(self._table.query())
-            
-            print('Inserting data:')
-            df = kx.q('{([] chunk_id:x?`8; document_id:x?`8; text:{rand[256]?" "} each til x; source:{rand[30]?" "} each til x; source_id:x?`8; url:{rand[100]?" "} each til x; created_at:x?1D; author:{rand[30]?" "} each til x; embeddings:(x;1536)#(x*1536)?1e)}', 10).pd()
-            self._table.insert(df)
-            
-            print('Table query:')
-            print(self._table.query())
-            
         
         except Exception as e:
             logger.error(f"Error in creating table: {e}")
@@ -173,9 +189,8 @@ class KDBAIDataStore(DataStore):
 
         # Initialize a list of ids to return
         try: 
-            global table
             doc_ids: List[str] = []
-
+            
             # Initialize a list of vectors to upsert
             vecs = []
             # Loop through the dict items
@@ -212,42 +227,35 @@ class KDBAIDataStore(DataStore):
 
             for batch in batches:
                 
-                # generates an embedding vector of length batch
-                embeddings = np.array([t[0] for t in batch])
+                # generates an embedding vector for each item in batch
+                embeddings = np.array([t[0] for t in batch]) # vec[0]   
+                print("Shape of embeddings vector: ", embeddings.shape)
 
                 df = pd.DataFrame(dict(vecs=list(embeddings)))
-                new_meta_df = pd.DataFrame([t[1] for t in batch])
+                
+                # extracts each metadata item in batch to DataFrame
+                new_meta_df = pd.DataFrame([t[1] for t in batch]) # vec[1]
+                
+                print("DataFrame columns: ", new_meta_df.columns)
                 
                 for col in new_meta_df.columns:
-                    df[col]=new_meta_df[col]
+                    df[col] = new_meta_df[col]
 
                 try:
                     logger.info(f"Upserting batch of size {len(batch[0])}")
-                    
-                    # call insert() function from kdbai.Index() instance
-                    #self._index.insert(embeddings)
-                    
-                    # NEW KDBAI-CLIENT requires pd.DataFrame input
-                    # INSERT EMBEDDINGS + METADATA AT SAME TIME
+
+                    print("Inserting DataFrame:")
+                    print(df)  
                         
-                    # make dataframe with schema 
-                        
-                        
-                    self._table.insert(pd.DataFrame(embeddings).T)
+                    self._table.insert(df)
                     
                     logger.info(f"Upserted batch successfully")
-                    table = table.append(df)
 
                 except Exception as e:
                     logger.error(f"Failed to insert batch records, error: {e}")
                     raise e
                     
             return doc_ids
-        # try:
-        #     df = kx.q('{([] time:0Nn; sym:`; id: `$string x?0Ng; tag: x?`3; text: {rand[256]?" "} each til x; embeddings: (x;1536)#(x*1536)?1e)}', 10).pd()
-        #     self._table.insert(df)
-        #     print("inserted to the table!")
-        #     self._table.query()
         
         except Exception as e:
             logger.error("Insert to collection failed, error: {}".format(e))
@@ -371,15 +379,12 @@ class KDBAIDataStore(DataStore):
         
         # If deleting all, drop collection
         try:
-            global table
             if delete_all:
-                
-                #self._index.drop() 
                 
                 # NEW KDBAI-CLIENT  
                 self._table.drop()  
                          
-                table = table.head(0)
+                # table = table.head(0)
             else:
                 logger.error("Functionality is not implemented yet")
             
