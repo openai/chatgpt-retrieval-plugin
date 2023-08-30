@@ -6,7 +6,6 @@ authors = ["isafulf <isabella@openai.com>"]
 readme = "README.md"
 packages = [
 	{include = "server"},
-	{include = "kdbai_client", from="/home/cposner/.local/lib/python3.10/site-packages/"},
 ]
 
 [[tool.poetry.source]]
@@ -45,6 +44,7 @@ psycopg2cffi = {version = "^2.9.0", optional = true}
 loguru = "^0.7.0"
 elasticsearch = "8.8.2"
 pykx="^1.6.3"
+kdbai_client = { path = "../kdbai-python-client" } 
 
 [tool.poetry.scripts]
 start = "server.main:start"
