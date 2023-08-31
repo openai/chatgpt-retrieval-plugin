@@ -39,6 +39,9 @@ except ImportError:
 HOST = os.environ.get('KDBAI_HOST', 'localhost')
 PORT = int(os.environ.get('KDBAI_PORT', '443'))
 PROTOCOL = os.environ.get('KDBAI_PROTOCOL', 'https')
+KDBAI_API_KEY = os.environ.get('KDBAI_API_KEY', '')
+if KDBAI_API_KEY == '':
+    KDBAI_API_KEY = None
 
 DEFAULT_DIMS = 1536
 DEFAULT_SCHEMA = dict(columns=[
@@ -57,7 +60,7 @@ class KDBAIDataStore(DataStore):
     def __init__(self) -> None: 
         try:
             logger.info('Creating KDBAI data store...')
-            self._session = kdbai.Session(host=HOST, port=PORT, protocol=PROTOCOL)
+            self._session = kdbai.Session(host=HOST, port=PORT, protocol=PROTOCOL, api_key=KDBAI_API_KEY)
 
             if TABLE in self._session.list():
                 self._table = self._session.table(TABLE)
