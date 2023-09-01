@@ -94,11 +94,11 @@ async def extract_text_from_form_file(file: UploadFile):
     mimetype = file.content_type
     logger.info(f"mimetype: {mimetype}")
     logger.info(f"file.file: {file.file}")
-    logger.info("file: ", file)
+    logger.info(f"file: {file}")
 
     file_stream = await file.read()
 
-    temp_file_path = "/tmp/temp_file"
+    temp_file_path = "temp_file"
 
     # write the file to a temporary location
     with open(temp_file_path, "wb") as f:
@@ -113,5 +113,4 @@ async def extract_text_from_form_file(file: UploadFile):
 
     # remove file from temp location
     os.remove(temp_file_path)
-
     return extracted_text

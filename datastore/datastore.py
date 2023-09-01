@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 import asyncio
+from loguru import logger
+
 
 from models.models import (
     Document,
@@ -36,9 +38,7 @@ class DataStore(ABC):
                 if document.id
             ]
         )
-
         chunks = get_document_chunks(documents, chunk_token_size)
-
         return await self._upsert(chunks)
 
     @abstractmethod

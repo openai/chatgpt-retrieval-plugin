@@ -115,7 +115,7 @@ ENV/
 env.bak/
 venv.bak/
 myvenv/
-secrets.py
+setenv.py
 
 # Spyder project settings
 .spyderproject
@@ -137,3 +137,9 @@ dmypy.json
 
 # macOS .DS_Store files
 .DS_Store
+
+# openai indexes
+openai/
+
+# data folder
+data/

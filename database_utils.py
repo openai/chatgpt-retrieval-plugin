@@ -9,7 +9,7 @@ def upsert_file(directory: str):
     """
     Upload all files under a directory to the vector database.
     """
-    url = "http://0.0.0.0:8000/upsert-file"
+    url = "http://localhost:8000/upsert-file"
     headers = {"Authorization": "Bearer " + DATABASE_INTERFACE_BEARER_TOKEN}
     files = []
     for filename in os.listdir(directory):
@@ -34,7 +34,7 @@ def upsert(id: str, content: str):
     """
     Upload one piece of text to the database.
     """
-    url = "http://0.0.0.0:8000/upsert"
+    url = "http://localhost:8000/upsert"
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -59,7 +59,7 @@ def query_database(query_prompt: str) -> Dict[str, Any]:
     """
     Query vector database to retrieve chunk with user's input question.
     """
-    url = "http://0.0.0.0:8000/query"
+    url = "http://localhost:8000/query"
     headers = {
         "Content-Type": "application/json",
         "accept": "application/json",
