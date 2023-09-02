@@ -3,8 +3,11 @@ import openai
 import requests
 import logging
 import os
+from dotenv import load_dotenv
 
-DATABASE_INTERFACE_BEAR_TOKEN = os.environ.get("BEARER_TOKEN")
+load_dotenv()
+
+DATABASE_INTERFACE_BEAR_TOKEN = os.getenv("BEARER_TOKEN")
 
 def query_database(query_prompt: str) -> Dict[str, Any]:
     """
@@ -73,7 +76,6 @@ def ask(user_question: str) -> Dict[str, Any]:
     
     logging.info("User's questions: %s", user_question)
     logging.info("Retrieved chunks: %s", chunks)
-    print("Retrieved chunks: ", chunks)
     
     response = call_chatgpt_api(user_question, chunks)
     logging.info("Response: %s", response)

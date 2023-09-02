@@ -1,9 +1,12 @@
 from typing import Any, Dict
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SEARCH_TOP_K = 3
-DATABASE_INTERFACE_BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
+DATABASE_INTERFACE_BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 
 def upsert_file(directory: str):
     """
