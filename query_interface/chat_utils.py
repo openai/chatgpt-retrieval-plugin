@@ -37,14 +37,16 @@ def apply_prompt_template(question: str) -> str:
         Prompt engineering could be done here to improve the result. Here I will just use a minimal example.
     """
     prompt = f"""
+        You are an Vietnamese agricultural expert, trying to explain things in simple terms to Vietnamese farmers.
+        By only considering the above input from me, answer the question: {question}. If you cannot answer the question based on the input, please say "Tôi không biết".
+    """
+    
+    """
         Bạn là một chuyên gia nông nghiệp Việt Nam, có nhiệm vụ giải thích bằng ngôn từ dễ hiểu cho các nông dân Việt Nam.
         Chỉ từ những dữ liệu được cung cấp bởi tôi ở phía trên, hãy trả lời câu hỏi sau: {question}. Nếu bạn không thể trả lời dựa trên dữ liệu được cung cấp, hãy trả lời "Tôi không biết".
     """
 
-    """
-        You are an Vietnamese agricultural expert, trying to explain things in simple terms to Vietnamese farmers.
-        By only considering the above input from me, answer the question: {question}. If you cannot answer the question based on the input, please say "Tôi không biết".
-    """
+    
     return prompt
 
 def call_chatgpt_api(user_question: str, chunks: List[str]) -> Dict[str, Any]:
@@ -60,10 +62,10 @@ def call_chatgpt_api(user_question: str, chunks: List[str]) -> Dict[str, Any]:
     question = apply_prompt_template(user_question)
     messages.append({"role": "user", "content": question})
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-16k",
         messages=messages,
         max_tokens=1024,
-        temperature=0.7,  # High temperature leads to a more creative response.
+        temperature=0.1,  # High temperature leads to a more creative response.
     )
     return response
 
