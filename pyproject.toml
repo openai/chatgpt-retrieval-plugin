@@ -4,9 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["isafulf <isabella@openai.com>"]
 readme = "README.md"
-packages = [
-	{include = "server"},
-]
+packages = [{include = "server"}]
 
 [[tool.poetry.source]]
 name = "azure-sdk-dev"
@@ -31,7 +29,6 @@ arrow = "^1.2.3"
 chromadb = "^0.3.25"
 pinecone-client = "^2.1.0"
 weaviate-client = "^3.12.0"
-#pymilvus = "^2.2.2"
 qdrant-client = {version = "^1.0.4", python = "<3.12"}
 redis = "4.5.4"
 supabase = "^1.0.2"

@@ -65,6 +65,8 @@ async def get_datastore() -> DataStore:
             from datastore.providers.kdbai_datastore import KDBAIDataStore
 
             return KDBAIDataStore()
+            )
+
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
