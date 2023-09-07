@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import chromadb
+from chromadb.utils import embedding_functions
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -65,9 +66,13 @@ class ChromaDataStore(DataStore):
                         chroma_server_http_port=port,
                     )
                 )
+        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            model_name="text-embedding-ada-002"
+        )
         self._collection = self._client.get_or_create_collection(
             name=collection_name,
-            embedding_function=None,
+            embedding_function=openai_ef,
         )
 
     async def upsert(
