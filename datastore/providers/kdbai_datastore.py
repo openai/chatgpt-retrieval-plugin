@@ -151,4 +151,33 @@ class KDBAIDataStore(DataStore):
         filter: Optional[DocumentMetadataFilter] = None,
         delete_all: Optional[bool] = None,
     ) -> bool:
-        raise NotImplementedError
+        
+        """
+        Removes vectors by ids, filter, or everything from the index.
+        """
+        # Delete all vectors from the index if delete_all is True
+        if delete_all:
+            try:
+                logger.info(f"Deleting all vectors from index")
+                for id in self._session.list():
+                    self._session.table(id).drop()
+                    logger.info(f"Dropped {id}")
+                logger.info(f"Deleted all vectors successfully")
+                return True
+            
+            except Exception as e:
+                logger.error(f"Error deleting all vectors: {e}")
+                raise e
+
+        if ids is not None and len(ids) > 0:
+            try:
+                logger.info(f"Deleting vectors with ids {ids}")
+                for id in ids:
+                    self._session.table(id).drop()
+                    logger.info(f"Dropped {id}")
+                logger.info(f"Deleted vectors with ids successfully")
+            except Exception as e:
+                logger.error(f"Error deleting vectors with ids: {e}")
+                raise e
+
+        return True
