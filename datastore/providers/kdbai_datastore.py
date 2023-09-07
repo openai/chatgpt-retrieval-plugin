@@ -36,40 +36,42 @@ except ImportError:
     )
 
 
-HOST = os.environ.get('KDBAI_HOST', 'localhost')
-PORT = int(os.environ.get('KDBAI_PORT', '443'))
-PROTOCOL = os.environ.get('KDBAI_PROTOCOL', 'https')
+KDBAI_ENDPOINT = os.environ.get('KDBAI_ENDPOINT', 'http://localhost:8082')
 KDBAI_API_KEY = os.environ.get('KDBAI_API_KEY', '')
+
 if KDBAI_API_KEY == '':
     KDBAI_API_KEY = None
 
 DEFAULT_DIMS = 1536
-DEFAULT_SCHEMA = dict(columns=[
-    dict(name='document_id', pytype='str'),
-    dict(name='text', pytype='bytes'),
-    dict(name='vecs', vectorIndex=dict(type='flat', metric='L2', dims=DEFAULT_DIMS)),
+BATCH_SIZE = 100
+
+DEFAULT_SCHEMA = dict(
+    columns=[
+        dict(name='document_id', pytype='str'),
+        dict(name='text', pytype='bytes'),
+        dict(name='vecs', vectorIndex=dict(type='flat', metric='L2', dims=DEFAULT_DIMS)),
     ])
+
 SCHEMA = os.environ.get('KDBAI_SCHEMA', DEFAULT_SCHEMA)
 TABLE = os.environ.get('KDBAI_TABLE', 'documents')
-
-BATCH_SIZE = 100
 
 
 class KDBAIDataStore(DataStore):
 
     def __init__(self) -> None: 
         try:
-            logger.info('Creating KDBAI data store...')
-            self._session = kdbai.Session(host=HOST, port=PORT, protocol=PROTOCOL, api_key=KDBAI_API_KEY)
-
+            logger.info('Creating KDBAI datastore...')
+            self._session = kdbai.Session(endpoint=KDBAI_ENDPOINT, api_key=KDBAI_API_KEY)
+            
             if TABLE in self._session.list():
                 self._table = self._session.table(TABLE)
             else:
                 self._table = self._session.create_table(TABLE, SCHEMA)
                     
         except Exception as e:
-            logger.error(f'Error while initializing KDBAI data store: {e}.')
+            logger.error(f'Error while initializing KDBAI datastore: {e}.')
             raise e
+        
         
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """Upsert chunks into the datastore.
