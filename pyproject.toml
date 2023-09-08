@@ -40,8 +40,8 @@ pgvector = "^0.1.7"
 psycopg2cffi = {version = "^2.9.0", optional = true}
 loguru = "^0.7.0"
 elasticsearch = "8.8.2"
-pykx="^1.6.3"
-kdbai_client = { path = "/Users/alexg/vector/kdbai-python-client" } 
+pykx = "^1.6.3"
+kdbai-client = "^0.0.0.dev5"
 
 [tool.poetry.scripts]
 start = "server.main:start"
