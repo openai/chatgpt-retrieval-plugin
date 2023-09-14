@@ -13,3 +13,4 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.WARNING,
                             format="%(asctime)s %(levelname)s %(message)s")
         print(ask(user_query))
+

@@ -4,12 +4,15 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 from loguru import logger
+from query_interface.chat_utils import ask
 
 from models.api import (
     DeleteRequest,
     DeleteResponse,
     QueryRequest,
+    QueryGPTRequest,
     QueryResponse,
+    QueryGPTResponse,
     UpsertRequest,
     UpsertResponse,
 )
@@ -137,6 +140,19 @@ async def delete(
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
+@app.post(
+    "/querygpt",
+    response_model=QueryGPTResponse,
+)
+async def querygpt_main(
+    request: QueryGPTRequest = Body(...),
+):
+    try:
+        result = await ask(request.query.pop().query)
+        return QueryGPTResponse(result=result)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
 
 @app.on_event("startup")
 async def startup():

@@ -10,7 +10,9 @@ from models.api import (
     DeleteRequest,
     DeleteResponse,
     QueryRequest,
+    QueryGPTRequest,
     QueryResponse,
+    QueryGPTResponse,
     UpsertRequest,
     UpsertResponse,
 )
@@ -38,7 +40,7 @@ sub_app = FastAPI(
     title="Retrieval Plugin API",
     description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
     version="1.0.0",
-    servers=[{"url": "https://your-app-url.com"}],
+    servers=[{"url": "https://mekong-gpt.fly.dev"}],
     dependencies=[Depends(validate_token)],
 )
 app.mount("/sub", sub_app)
@@ -144,6 +146,21 @@ async def delete(
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
+    
+@app.post(
+    "/querygpt",
+    response_model=QueryGPTResponse,
+)
+async def querygpt_main(
+    request: QueryGPTRequest = Body(...),
+):
+    try:
+        result = await ask(request.query.pop().query)
+        return QueryGPTResponse(result=result)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
 
 
 @app.on_event("startup")

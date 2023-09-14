@@ -13,7 +13,7 @@ def query_database(query_prompt: str) -> Dict[str, Any]:
     """
     Query vector database to retrieve chunk with user's input questions.
     """
-    url = "http://localhost:8000/query"
+    url = "mekong-gpt.fly.dev/query"
     headers = {
         "Content-Type": "application/json",
         "accept": "application/json",
