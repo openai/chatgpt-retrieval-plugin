@@ -28,7 +28,7 @@ class QueryResponse(BaseModel):
     results: List[QueryResult]
 
 class QueryGPTResponse(BaseModel):
-    result: List[QueryGPTResult]
+    result: str
 
 class DeleteRequest(BaseModel):
     ids: Optional[List[str]] = None

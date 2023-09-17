@@ -24,6 +24,8 @@ from starlette.responses import FileResponse
 from models.models import DocumentMetadata, Source
 from fastapi.middleware.cors import CORSMiddleware
 
+from query_interface.chat_utils import call_chatgpt_api
+
 
 app = FastAPI()
 
@@ -148,12 +150,19 @@ async def querygpt_main(
     request: QueryGPTRequest = Body(...),
 ):
     try:
-        result = await ask(request.query.pop().query)
-        return QueryGPTResponse(result=result)
+        results = await datastore.query(
+            request.queries,
+        )
+        chunks = []
+        for result in results:
+            for inner_result in result.results:
+                chunks.append(inner_result.text)
+        response = call_chatgpt_api(request.queries.pop().query, chunks)
+        return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
-
+    
 @app.on_event("startup")
 async def startup():
     global datastore

@@ -5,6 +5,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFil
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
+from query_interface.chat_utils import ask
 
 from models.api import (
     DeleteRequest,
@@ -20,6 +21,8 @@ from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
 from models.models import DocumentMetadata, Source
+
+from query_interface.chat_utils import call_chatgpt_api
 
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
@@ -155,13 +158,18 @@ async def querygpt_main(
     request: QueryGPTRequest = Body(...),
 ):
     try:
-        result = await ask(request.query.pop().query)
-        return QueryGPTResponse(result=result)
+        results = await datastore.query(
+            request.queries,
+        )
+        chunks = []
+        for result in results:
+            for inner_result in result.results:
+                chunks.append(inner_result.text)
+        response = call_chatgpt_api(request.queries.pop().query, chunks)
+        return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
-
-
 
 @app.on_event("startup")
 async def startup():
