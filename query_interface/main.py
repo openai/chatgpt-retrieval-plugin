@@ -12,4 +12,11 @@ if __name__ == "__main__":
         openai.api_key = os.getenv("OPENAI_API_KEY")
         logging.basicConfig(level=logging.WARNING,
                             format="%(asctime)s %(levelname)s %(message)s")
-        print(ask(user_query))
+
+        first_query = ask(user_query).split("!MoreQuestion!")
+        answer = first_query[0].strip()
+        if len(first_query) > 1:
+            follow_up = first_query[-1].strip()
+            second_query = ask(follow_up).split("!MoreQuestion!")
+            answer = f"{answer}\n\nMore question: {follow_up}\n{second_query[0]}".strip()
+        print(answer)
