@@ -6,6 +6,11 @@ authors = ["isafulf <isabella@openai.com>"]
 readme = "README.md"
 packages = [{include = "server"}]
 
+[[tool.poetry.source]]
+name = "azure-sdk-dev"
+url = "https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple/"
+secondary = true
+
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.92.0"
@@ -21,16 +26,28 @@ PyPDF2 = "^3.0.1"
 python-pptx = "^0.6.21"
 python-multipart = "^0.0.6"
 arrow = "^1.2.3"
+chromadb = "^0.3.25"
 pinecone-client = "^2.1.0"
 weaviate-client = "^3.12.0"
 pymilvus = "^2.2.2"
 qdrant-client = {version = "^1.0.4", python = "<3.12"}
-redis = "4.5.1"
+redis = "4.5.4"
+supabase = "^1.0.2"
+psycopg2 = "^2.9.5"
 llama-index = "0.5.4"
+azure-identity = "^1.12.0"
+azure-search-documents = {version = "11.4.0a20230509004", source = "azure-sdk-dev"}
+pgvector = "^0.1.7"
+psycopg2cffi = {version = "^2.9.0", optional = true}
+loguru = "^0.7.0"
+elasticsearch = "8.8.2"
 
 [tool.poetry.scripts]
 start = "server.main:start"
-dev = "local-server.main:start"
+dev = "local_server.main:start"
+
+[tool.poetry.extras]
+postgresql = ["psycopg2cffi"]
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"

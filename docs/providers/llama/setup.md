@@ -16,20 +16,20 @@ with ChatGPT and your external data.
 
 **Retrieval App Environment Variables**
 
-| Name             | Required | Description                            |
-| ---------------- | -------- | -------------------------------------- |
+| Name             | Required | Description                         |
+|------------------|----------|-------------------------------------|
 | `DATASTORE`      | Yes      | Datastore name. Set this to `llama` |
-| `BEARER_TOKEN`   | Yes      | Your secret token                      |
-| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                    |
+| `BEARER_TOKEN`   | Yes      | Your secret token                   |
+| `OPENAI_API_KEY` | Yes      | Your OpenAI API key                 |
 
 **Llama Datastore Environment Variables**
 
-| Name                            | Required | Description                                                        | Default            |
-| ------------------------------- | -------- | ------------------------------------------------------------------ | ------------------ |
-| `LLAMA_INDEX_TYPE`              | Optional | Index type (see below for details)                                 | `simple_dict`      |
-| `LLAMA_INDEX_JSON_PATH`         | Optional | Path to saved Index json file                                      | None               |
-| `LLAMA_QUERY_KWARGS_JSON_PATH`         | Optional | Path to saved query kwargs json file                                      | None               |
-| `LLAMA_RESPONSE_MODE`           | Optional | Response mode for query                                            | `no_text`          | 
+| Name                           | Required | Description                          | Default       |
+|--------------------------------|----------|--------------------------------------|---------------|
+| `LLAMA_INDEX_TYPE`             | Optional | Index type (see below for details)   | `simple_dict` |
+| `LLAMA_INDEX_JSON_PATH`        | Optional | Path to saved Index json file        | None          |
+| `LLAMA_QUERY_KWARGS_JSON_PATH` | Optional | Path to saved query kwargs json file | None          |
+| `LLAMA_RESPONSE_MODE`          | Optional | Response mode for query              | `no_text`     | 
 
 
 **Different Index Types**

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import re
 import json
@@ -14,6 +13,7 @@ from redis.commands.search.field import (
     NumericField,
     VectorField,
 )
+from loguru import logger
 from typing import Dict, List, Optional
 from datastore.datastore import DataStore
 from models.models import (
@@ -44,7 +44,8 @@ REDIS_REQUIRED_MODULES = [
     {"name": "search", "ver": 20600},
     {"name": "ReJSON", "ver": 20404}
 ]
-REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&*()\-+=~\/ ]")
+
+REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
 
 # Helper functions
 def unpack_schema(d: dict):
@@ -55,25 +56,23 @@ def unpack_schema(d: dict):
             yield v
 
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
-
     installed_modules = (await client.info()).get("modules", [])
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
         if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
-            error_message =  "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+            error_message = "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
-            logging.error(error_message)
+            logger.error(error_message)
             raise AttributeError(error_message)
 
 
-
 class RedisDataStore(DataStore):
-    def __init__(self, client: redis.Redis, redisearch_schema):
+    def __init__(self, client: redis.Redis, redisearch_schema: dict):
         self.client = client
         self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
-            field: "_null_" for field in redisearch_schema["metadata"]
+            field: (0 if field == "created_at" else "_null_") for field in redisearch_schema["metadata"]
         }
 
     ### Redis Helper Methods ###
@@ -85,20 +84,20 @@ class RedisDataStore(DataStore):
         """
         try:
             # Connect to the Redis Client
-            logging.info("Connecting to Redis")
+            logger.info("Connecting to Redis")
             client = redis.Redis(
                 host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD
             )
         except Exception as e:
-            logging.error(f"Error setting up Redis: {e}")
+            logger.error(f"Error setting up Redis: {e}")
             raise e
 
         await _check_redis_module_exist(client, modules=REDIS_REQUIRED_MODULES)
-       
+
         dim = kwargs.get("dim", VECTOR_DIMENSION)
         redisearch_schema = {
-            "document_id": TagField("$.document_id", as_name="document_id"),
             "metadata": {
+                "document_id": TagField("$.metadata.document_id", as_name="document_id"),
                 "source_id": TagField("$.metadata.source_id", as_name="source_id"),
                 "source": TagField("$.metadata.source", as_name="source"),
                 "author": TextField("$.metadata.author", as_name="author"),
@@ -118,15 +117,15 @@ class RedisDataStore(DataStore):
         try:
             # Check for existence of RediSearch Index
             await client.ft(REDIS_INDEX_NAME).info()
-            logging.info(f"RediSearch index {REDIS_INDEX_NAME} already exists")
+            logger.info(f"RediSearch index {REDIS_INDEX_NAME} already exists")
         except:
             # Create the RediSearch Index
-            logging.info(f"Creating new RediSearch index {REDIS_INDEX_NAME}")
+            logger.info(f"Creating new RediSearch index {REDIS_INDEX_NAME}")
             definition = IndexDefinition(
                 prefix=[REDIS_DOC_PREFIX], index_type=IndexType.JSON
             )
             fields = list(unpack_schema(redisearch_schema))
-            logging.info(f"Creating index with fields: {fields}")
+            logger.info(f"Creating index with fields: {fields}")
             await client.ft(REDIS_INDEX_NAME).create_index(
                 fields=fields, definition=definition
             )
@@ -209,7 +208,7 @@ class RedisDataStore(DataStore):
             if isinstance(typ, TagField):
                 return f"@{field}:{{{self._escape(value)}}} "
             elif isinstance(typ, TextField):
-                return f"@{field}:{self._escape(value)} "
+                return f"@{field}:{value} "
             elif isinstance(typ, NumericField):
                 num = to_unix_timestamp(value)
                 match field:
@@ -300,10 +299,10 @@ class RedisDataStore(DataStore):
         results: List[QueryResult] = []
 
         # Gather query results in a pipeline
-        logging.info(f"Gathering {len(queries)} query results", flush=True)
+        logger.info(f"Gathering {len(queries)} query results")
         for query in queries:
 
-            logging.info(f"Query: {query.query}")
+            logger.debug(f"Query: {query.query}")
             query_results: List[DocumentChunkWithScore] = []
 
             # Extract Redis query
@@ -349,12 +348,12 @@ class RedisDataStore(DataStore):
         # Delete all vectors from the index if delete_all is True
         if delete_all:
             try:
-                logging.info(f"Deleting all documents from index")
+                logger.info(f"Deleting all documents from index")
                 await self.client.ft(REDIS_INDEX_NAME).dropindex(True)
-                logging.info(f"Deleted all documents successfully")
+                logger.info(f"Deleted all documents successfully")
                 return True
             except Exception as e:
-                logging.info(f"Error deleting all documents: {e}")
+                logger.error(f"Error deleting all documents: {e}")
                 raise e
 
         # Delete by filter
@@ -366,15 +365,15 @@ class RedisDataStore(DataStore):
                         f"{REDIS_DOC_PREFIX}:{filter.document_id}:*"
                     )
                     await self._redis_delete(keys)
-                    logging.info(f"Deleted document {filter.document_id} successfully")
+                    logger.info(f"Deleted document {filter.document_id} successfully")
                 except Exception as e:
-                    logging.info(f"Error deleting document {filter.document_id}: {e}")
+                    logger.error(f"Error deleting document {filter.document_id}: {e}")
                     raise e
 
         # Delete by explicit ids (Redis keys)
         if ids:
             try:
-                logging.info(f"Deleting document ids {ids}")
+                logger.info(f"Deleting document ids {ids}")
                 keys = []
                 # find all keys associated with the document ids
                 for document_id in ids:
@@ -383,10 +382,10 @@ class RedisDataStore(DataStore):
                     )
                     keys.extend(doc_keys)
                 # delete all keys
-                logging.info(f"Deleting {len(keys)} keys from Redis")
+                logger.info(f"Deleting {len(keys)} keys from Redis")
                 await self._redis_delete(keys)
             except Exception as e:
-                logging.info(f"Error deleting ids: {e}")
+                logger.error(f"Error deleting ids: {e}")
                 raise e
 
         return True

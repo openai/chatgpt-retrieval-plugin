@@ -8,17 +8,18 @@ Find an example video of a Retrieval Plugin that has access to the UN Annual Rep
 
 The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. The repository is organized into several directories:
 
-| Directory                     | Description                                                                                                                |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [`datastore`](/datastore)     | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
-| [`docs`](/docs)               | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
-| [`examples`](/examples)       | Provides example configurations, authentication methods, and provider-specific examples.                                   |
-| [`models`](/models)           | Contains the data models used by the plugin, such as document and metadata models.                                         |
-| [`scripts`](/scripts)         | Offers scripts for processing and uploading documents from different data sources.                                         |
-| [`server`](/server)           | Houses the main FastAPI server implementation.                                                                             |
-| [`services`](/services)       | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                                 |
-| [`tests`](/tests)             | Includes integration tests for various vector database providers.                                                          |
-| [`.well-known`](/.well-known) | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
+| Directory                       | Description                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [`datastore`](/datastore)       | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
+| [`docs`](/docs)                 | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
+| [`examples`](/examples)         | Provides example configurations, authentication methods, and provider-specific examples.                                   |
+| [`local_server`](/local_server) | Contains an implementation of the retrieval plugin configured for localhost testing.                                       |
+| [`models`](/models)             | Contains the data models used by the plugin, such as document and metadata models.                                         |
+| [`scripts`](/scripts)           | Offers scripts for processing and uploading documents from different data sources.                                         |
+| [`server`](/server)             | Houses the main FastAPI server implementation.                                                                             |
+| [`services`](/services)         | Contains utility services for tasks like chunking, metadata extraction, and PII detection.                                 |
+| [`tests`](/tests)               | Includes integration tests for various vector database providers.                                                          |
+| [`.well-known`](/.well-known)   | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
 
 This README provides detailed information on how to set up, develop, and deploy the ChatGPT Retrieval Plugin.
 
@@ -36,11 +37,18 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [General Environment Variables](#general-environment-variables)
   - [Choosing a Vector Database](#choosing-a-vector-database)
     - [Pinecone](#pinecone)
+    - [Elasticsearch](#elasticsearch)
     - [Weaviate](#weaviate)
     - [Zilliz](#zilliz)
     - [Milvus](#milvus)
     - [Qdrant](#qdrant)
     - [Redis](#redis)
+    - [Llama Index](#llamaindex)
+    - [Chroma](#chroma)
+    - [Azure Cognitive Search](#azure-cognitive-search)
+    - [Supabase](#supabase)
+    - [Postgres](#postgres)
+    - [AnalyticDB](#analyticdb)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -73,11 +81,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export OPENAI_API_KEY=<your_openai_api_key>
 
    # Optional environment variables used when running Azure OpenAI
-   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/ 
+   export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/
    export OPENAI_API_TYPE=azure
    export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
    export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
    export OPENAI_COMPLETIONMODEL_DEPLOYMENTID=<Name of general model deployment used for completion>
+   export OPENAI_EMBEDDING_BATCH_SIZE=<Batch size of embedding, for AzureOAI, this value need to be set as 1>
 
    # Add the environment variables for your chosen vector DB.
    # Some of these are optional; read the provider's setup docs in /docs/providers for more information.
@@ -112,6 +121,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export QDRANT_API_KEY=<your_qdrant_api_key>
    export QDRANT_COLLECTION=<your_qdrant_collection>
 
+   # AnalyticDB
+   export PG_HOST=<your_analyticdb_host>
+   export PG_PORT=<your_analyticdb_port>
+   export PG_USER=<your_analyticdb_username>
+   export PG_PASSWORD=<your_analyticdb_password>
+   export PG_DATABASE=<your_analyticdb_database>
+   export PG_COLLECTION=<your_analyticdb_collection>
+
+
    # Redis
    export REDIS_HOST=<your_redis_host>
    export REDIS_PORT=<your_redis_port>
@@ -120,6 +138,47 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DOC_PREFIX=<your_redis_doc_prefix>
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
+
+   # Llama
+   export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
+   export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
+   export LLAMA_QUERY_KWARGS_JSON_PATH=<path_to_saved_query_kwargs_json_file>
+   export LLAMA_RESPONSE_MODE=<response_mode_for_query>
+
+   # Chroma
+   export CHROMA_COLLECTION=<your_chroma_collection>
+   export CHROMA_IN_MEMORY=<true_or_false>
+   export CHROMA_PERSISTENCE_DIR=<your_chroma_persistence_directory>
+   export CHROMA_HOST=<your_chroma_host>
+   export CHROMA_PORT=<your_chroma_port>
+
+   # Azure Cognitive Search
+   export AZURESEARCH_SERVICE=<your_search_service_name>
+   export AZURESEARCH_INDEX=<your_search_index_name>
+   export AZURESEARCH_API_KEY=<your_api_key> (optional, uses key-free managed identity if not set)
+
+   # Supabase
+   export SUPABASE_URL=<supabase_project_url>
+   export SUPABASE_ANON_KEY=<supabase_project_api_anon_key>
+
+   # Postgres
+   export PG_HOST=<postgres_host>
+   export PG_PORT=<postgres_port>
+   export PG_USER=<postgres_user>
+   export PG_PASSWORD=<postgres_password>
+   export PG_DATABASE=<postgres_database>
+
+   # Elasticsearch
+   export ELASTICSEARCH_URL=<elasticsearch_host_and_port> (either specify host or cloud_id)
+   export ELASTICSEARCH_CLOUD_ID=<elasticsearch_cloud_id>
+
+   export ELASTICSEARCH_USERNAME=<elasticsearch_username>
+   export ELASTICSEARCH_PASSWORD=<elasticsearch_password>
+   export ELASTICSEARCH_API_KEY=<elasticsearch_api_key>
+
+   export ELASTICSEARCH_INDEX=<elasticsearch_index_name>
+   export ELASTICSEARCH_REPLICAS=<elasticsearch_replicas>
+   export ELASTICSEARCH_SHARDS=<elasticsearch_shards>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -156,7 +215,7 @@ This is a plugin for ChatGPT that enables semantic search and retrieval of perso
 
 The plugin uses OpenAI's `text-embedding-ada-002` embeddings model to generate embeddings of document chunks, and then stores and queries them using a vector database on the backend. As an open-source and self-hosted solution, developers can deploy their own Retrieval Plugin and register it with ChatGPT. The Retrieval Plugin supports several vector database providers, allowing developers to choose their preferred one from a list.
 
-A FastAPI server exposes the plugin's endpoints for upserting, querying, and deleting documents. Users can refine their search results by using metadata filters by source, date, author, or other criteria. The plugin can be hosted on any cloud platform that supports Docker containers, such as Fly.io, Heroku or Azure Container Apps. To keep the vector database updated with the latest documents, the plugin can process and store documents from various data sources continuously, using incoming webhooks to the upsert and delete endpoints. Tools like [Zapier](https://zapier.com) or [Make](https://www.make.com) can help configure the webhooks based on events or schedules.
+A FastAPI server exposes the plugin's endpoints for upserting, querying, and deleting documents. Users can refine their search results by using metadata filters by source, date, author, or other criteria. The plugin can be hosted on any cloud platform that supports Docker containers, such as Fly.io, Heroku, Render, or Azure Container Apps. To keep the vector database updated with the latest documents, the plugin can process and store documents from various data sources continuously, using incoming webhooks to the upsert and delete endpoints. Tools like [Zapier](https://zapier.com) or [Make](https://www.make.com) can help configure the webhooks based on events or schedules.
 
 ### Memory Feature
 
@@ -231,22 +290,20 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, or `redis`.           |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/). |
-
+| Name             | Required | Description                                                                                                                                                                                                                                                   |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                    |
 
 ### Using the plugin with Azure OpenAI
 
 The Azure Open AI uses URLs that are specific to your resource and references models not by model name but by the deployment id. As a result, you need to set additional environment variables for this case.
 
-In addition to the OPENAI_API_BASE (your specific URL) and OPENAI_API_TYPE (azure), you should also set OPENAI_EMBEDDINGMODEL_DEPLOYMENTID which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying text-embedding-ada-002 model and using the deployment name here. 
+In addition to the `OPENAI_API_BASE` (your specific URL) and `OPENAI_API_TYPE` (azure), you should also set `OPENAI_EMBEDDINGMODEL_DEPLOYMENTID` which specifies the model to use for getting embeddings on upsert and query. For this, we recommend deploying `text-embedding-ada-002` model and using the deployment name here.
 
-If you wish to use the data preparation scripts, you will also need to set  OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID, used for metadata extraction and 
-OPENAI_COMPLETIONMODEL_DEPLOYMENTID, used for PII handling.
-
+If you wish to use the data preparation scripts, you will also need to set `OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID`, used for metadata extraction and
+`OPENAI_COMPLETIONMODEL_DEPLOYMENTID`, used for PII handling.
 
 ### Choosing a Vector Database
 
@@ -288,6 +345,30 @@ All you need to do is specifying a few environment variables (optionally point t
 Note that metadata filters in queries are not yet supported.
 For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/docs/providers/llama/setup.md).
 
+#### Chroma
+
+[Chroma](https://trychroma.com) is an AI-native open-source embedding database designed to make getting started as easy as possible. Chroma runs in-memory, or in a client-server setup. It supports metadata and keyword filtering out of the box. For detailed instructions, refer to [`/docs/providers/chroma/setup.md`](/docs/providers/chroma/setup.md).
+
+#### Azure Cognitive Search
+
+[Azure Cognitive Search](https://azure.microsoft.com/products/search/) is a complete retrieval cloud service that supports vector search, text search, and hybrid (vectors + text combined to yield the best of the two approaches). It also offers an [optional L2 re-ranking step](https://learn.microsoft.com/azure/search/semantic-search-overview) to further improve results quality. For detailed setup instructions, refer to [`/docs/providers/azuresearch/setup.md`](/docs/providers/azuresearch/setup.md)
+
+#### Supabase
+
+[Supabase](https://supabase.com/blog/openai-embeddings-postgres-vector) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension for Postgres Database. [You can use Supabase CLI](https://github.com/supabase/cli) to set up a whole Supabase stack locally or in the cloud or you can also use docker-compose, k8s and other options available. For a hosted/managed solution, try [Supabase.com](https://supabase.com/) and unlock the full power of Postgres with built-in authentication, storage, auto APIs, and Realtime features. For detailed setup instructions, refer to [`/docs/providers/supabase/setup.md`](/docs/providers/supabase/setup.md).
+
+#### Postgres
+
+[Postgres](https://www.postgresql.org) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension. To use pgvector, you will need to set up a PostgreSQL database with the pgvector extension enabled. For example, you can [use docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/) to run locally. For a hosted/managed solution, you can use any of the cloud vendors which support [pgvector](https://github.com/pgvector/pgvector#hosted-postgres). For detailed setup instructions, refer to [`/docs/providers/postgres/setup.md`](/docs/providers/postgres/setup.md).
+
+#### AnalyticDB
+
+[AnalyticDB](https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/product-introduction-overview) is a distributed cloud-native vector database designed for storing documents and vector embeddings. It is fully compatible with PostgreSQL syntax and managed by Alibaba Cloud. AnalyticDB offers a powerful vector compute engine, processing billions of data vectors and providing features such as indexing algorithms, structured and unstructured data capabilities, real-time updates, distance metrics, scalar filtering, and time travel searches. For detailed setup instructions, refer to [`/docs/providers/analyticdb/setup.md`](/docs/providers/analyticdb/setup.md).
+
+#### Elasticsearch
+
+[Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets. For detailed setup instructions, refer to [`/docs/providers/elasticsearch/setup.md`](/docs/providers/elasticsearch/setup.md).
+
 ### Running the API locally
 
 To run the API locally, you first need to set the requisite environment variables with the `export` command:
@@ -311,7 +392,7 @@ Append `docs` to the URL shown in the terminal and open it in a browser to acces
 
 ### Testing a Localhost Plugin in ChatGPT
 
-To test a localhost plugin in ChatGPT, use the provided [`local-server/main.py`](/local-server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
+To test a localhost plugin in ChatGPT, use the provided [`local_server/main.py`](/local_server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
 
 Follow these steps to test your localhost plugin:
 
@@ -357,17 +438,20 @@ Consider the benefits and drawbacks of each authentication method before choosin
 
 You can deploy your app to different cloud providers, depending on your preferences and requirements. However, regardless of the provider you choose, you will need to update two files in your app: [openapi.yaml](/.well-known/openapi.yaml) and [ai-plugin.json](/.well-known/ai-plugin.json). As outlined above, these files define the API specification and the AI plugin configuration for your app, respectively. You need to change the url field in both files to match the address of your deployed app.
 
+Render has a 1-click deploy option that automatically updates the url field in both files:
+
+[<img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" />](https://render.com/deploy?repo=https://github.com/render-examples/chatgpt-retrieval-plugin/tree/main)
+
 Before deploying your app, you might want to remove unused dependencies from your [pyproject.toml](/pyproject.toml) file to reduce the size of your app and improve its performance. Depending on the vector database provider you choose, you can remove the packages that are not needed for your specific provider. Refer to the respective documentation in the [`/docs/deployment/removing-unused-dependencies.md`](/docs/deployment/removing-unused-dependencies.md) file for information on removing unused dependencies for each provider.
 
-Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
-
-Here are detailed deployment instructions for various platforms:
+Instructions:
 
 - [Deploying to Fly.io](/docs/deployment/flyio.md)
 - [Deploying to Heroku](/docs/deployment/heroku.md)
+- [Deploying to Render](/docs/deployment/render.md)
 - [Other Deployment Options](/docs/deployment/other-options.md) (Azure Container Apps, Google Cloud Run, AWS Elastic Container Service, etc.)
 
-After you create your app, make sure to change the plugin url in your plugin manifest file [here](/.well-known/ai-plugin.json), and in your OpenAPI schema [here](/.well-known/openapi.yaml), and redeploy.
+Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
 ## Installing a Developer Plugin
 
@@ -421,11 +505,53 @@ The scripts are:
 - [`process_jsonl`](scripts/process_jsonl/): This script processes a file dump of documents in a JSONL format and stores them in the vector database with some metadata. The format of the JSONL file should be a newline-delimited JSON file, where each line is a valid JSON object representing a document. The JSON object should have a `text` field and optionally other fields to populate the metadata. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
 - [`process_zip`](scripts/process_zip/): This script processes a file dump of documents in a zip file and stores them in the vector database with some metadata. The format of the zip file should be a flat zip file folder of docx, pdf, txt, md, pptx or csv files. You can provide custom metadata as a JSON string and flags to screen for PII and extract metadata.
 
+## Pull Request (PR) Checklist
+
+If you'd like to contribute, please follow the checklist below when submitting a PR. This will help us review and merge your changes faster! Thank you for contributing!
+
+1. **Type of PR**: Indicate the type of PR by adding a label in square brackets at the beginning of the title, such as `[Bugfix]`, `[Feature]`, `[Enhancement]`, `[Refactor]`, or `[Documentation]`.
+
+2. **Short Description**: Provide a brief, informative description of the PR that explains the changes made.
+
+3. **Issue(s) Linked**: Mention any related issue(s) by using the keyword `Fixes` or `Closes` followed by the respective issue number(s) (e.g., Fixes #123, Closes #456).
+
+4. **Branch**: Ensure that you have created a new branch for the changes, and it is based on the latest version of the `main` branch.
+
+5. **Code Changes**: Make sure the code changes are minimal, focused, and relevant to the issue or feature being addressed.
+
+6. **Commit Messages**: Write clear and concise commit messages that explain the purpose of each commit.
+
+7. **Tests**: Include unit tests and/or integration tests for any new code or changes to existing code. Make sure all tests pass before submitting the PR.
+
+8. **Documentation**: Update relevant documentation (e.g., README, inline comments, or external documentation) to reflect any changes made.
+
+9. **Review Requested**: Request a review from at least one other contributor or maintainer of the repository.
+
+10. **Video Submission** (For Complex/Large PRs): If your PR introduces significant changes, complexities, or a large number of lines of code, submit a brief video walkthrough along with the PR. The video should explain the purpose of the changes, the logic behind them, and how they address the issue or add the proposed feature. This will help reviewers to better understand your contribution and expedite the review process.
+
+## Pull Request Naming Convention
+
+Use the following naming convention for your PR branches:
+
+```
+<type>/<short-description>-<issue-number>
+```
+
+- `<type>`: The type of PR, such as `bugfix`, `feature`, `enhancement`, `refactor`, or `docs`. Multiple types are ok and should appear as <type>, <type2>
+- `<short-description>`: A brief description of the changes made, using hyphens to separate words.
+- `<issue-number>`: The issue number associated with the changes made (if applicable).
+
+Example:
+
+```
+feature/advanced-chunking-strategy-123
+```
+
 ## Limitations
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Pinecone and Weaviate, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
 - **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.
@@ -469,3 +595,13 @@ We would like to extend our gratitude to the following contributors for their co
 - [Redis](https://redis.io/)
   - [spartee](https://github.com/spartee)
   - [tylerhutcherson](https://github.com/tylerhutcherson)
+- [LlamaIndex](https://github.com/jerryjliu/llama_index)
+  - [jerryjliu](https://github.com/jerryjliu)
+  - [Disiok](https://github.com/Disiok)
+- [Supabase](https://supabase.com/)
+  - [egor-romanov](https://github.com/egor-romanov)
+- [Postgres](https://www.postgresql.org/)
+  - [egor-romanov](https://github.com/egor-romanov)
+  - [mmmaia](https://github.com/mmmaia)
+- [Elasticsearch](https://www.elastic.co/)
+  - [joemcelroy](https://github.com/joemcelroy)

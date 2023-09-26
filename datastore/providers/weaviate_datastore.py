@@ -97,7 +97,7 @@ class WeaviateDataStore(DataStore):
                 continue
             for message in result["result"]["errors"]["error"]:
                 error_messages.append(message["message"])
-                logger.exception(message["message"])
+                logger.error(message["message"])
 
         return error_messages
 
@@ -245,11 +245,11 @@ class WeaviateDataStore(DataStore):
                 result = DocumentChunkWithScore(
                     id=resp["chunk_id"],
                     text=resp["text"],
-                    embedding=resp["_additional"]["vector"],
+                    # embedding=resp["_additional"]["vector"],
                     score=resp["_additional"]["score"],
                     metadata=DocumentChunkMetadata(
                         document_id=resp["document_id"] if resp["document_id"] else "",
-                        source=Source(resp["source"]),
+                        source=Source(resp["source"]) if resp["source"] else None,
                         source_id=resp["source_id"],
                         url=resp["url"],
                         created_at=resp["created_at"],
