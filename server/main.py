@@ -5,7 +5,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFil
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-from query_interface.chat_utils import ask
+from dotenv import load_dotenv
 
 from models.api import (
     DeleteRequest,
@@ -24,8 +24,10 @@ from models.models import DocumentMetadata, Source
 
 from query_interface.chat_utils import call_chatgpt_api
 
+load_dotenv()
+
 bearer_scheme = HTTPBearer()
-BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
+BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 assert BEARER_TOKEN is not None
 
 
