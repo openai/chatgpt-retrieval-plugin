@@ -91,3 +91,4 @@ def ask(user_question: str) -> Dict[str, Any]:
     logging.info("Response: %s", response)
     
     return response["choices"][0]["message"]["content"]
+

@@ -10,7 +10,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://your-app-url.com/.well-known/openapi.yaml",
+    "url": "https://mekong-gpt.fly.dev",
     "has_user_authentication": false
   },
   "logo_url": "https://your-app-url.com/.well-known/logo.png",

@@ -6,12 +6,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from dotenv import load_dotenv
+from query_interface.chat_utils import call_chatgpt_api
 
 from models.api import (
     DeleteRequest,
     DeleteResponse,
     QueryRequest,
+    QueryGPTRequest,
     QueryResponse,
+    QueryGPTResponse,
     UpsertRequest,
     UpsertResponse,
 )
@@ -41,7 +44,7 @@ sub_app = FastAPI(
     title="Retrieval Plugin API",
     description="A retrieval API for querying and filtering documents based on natural language queries and metadata",
     version="1.0.0",
-    servers=[{"url": "https://your-app-url.com"}],
+    servers=[{"url": "https://mekong-gpt.fly.dev"}],
     dependencies=[Depends(validate_token)],
 )
 app.mount("/sub", sub_app)
@@ -147,7 +150,27 @@ async def delete(
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
-
+    
+@app.post(
+    "/querygpt",
+    response_model=QueryGPTResponse,
+)
+async def querygpt_main(
+    request: QueryGPTRequest = Body(...),
+):
+    try:
+        results = await datastore.query(
+            request.queries,
+        )
+        chunks = []
+        for result in results:
+            for inner_result in result.results:
+                chunks.append(inner_result.text)
+        response = call_chatgpt_api(request.queries.pop().query, chunks)
+        return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
 
 @app.on_event("startup")
 async def startup():

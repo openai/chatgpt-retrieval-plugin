@@ -56,6 +56,9 @@ class Query(BaseModel):
     filter: Optional[DocumentMetadataFilter] = None
     top_k: Optional[int] = 3
 
+class QueryGPT(BaseModel):
+    query: str
+
 
 class QueryWithEmbedding(Query):
     embedding: List[float]
@@ -64,3 +67,7 @@ class QueryWithEmbedding(Query):
 class QueryResult(BaseModel):
     query: str
     results: List[DocumentChunkWithScore]
+
+class QueryGPTResult(BaseModel):
+    query: str
+    result: str

@@ -4,12 +4,15 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 from loguru import logger
+from query_interface.chat_utils import ask
 
 from models.api import (
     DeleteRequest,
     DeleteResponse,
     QueryRequest,
+    QueryGPTRequest,
     QueryResponse,
+    QueryGPTResponse,
     UpsertRequest,
     UpsertResponse,
 )
@@ -20,6 +23,8 @@ from starlette.responses import FileResponse
 
 from models.models import DocumentMetadata, Source
 from fastapi.middleware.cors import CORSMiddleware
+
+from query_interface.chat_utils import call_chatgpt_api
 
 
 app = FastAPI()
@@ -137,7 +142,27 @@ async def delete(
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
-
+@app.post(
+    "/querygpt",
+    response_model=QueryGPTResponse,
+)
+async def querygpt_main(
+    request: QueryGPTRequest = Body(...),
+):
+    try:
+        results = await datastore.query(
+            request.queries,
+        )
+        chunks = []
+        for result in results:
+            for inner_result in result.results:
+                chunks.append(inner_result.text)
+        response = call_chatgpt_api(request.queries.pop().query, chunks)
+        return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+    
 @app.on_event("startup")
 async def startup():
     global datastore
