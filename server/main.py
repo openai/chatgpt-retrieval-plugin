@@ -6,6 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from dotenv import load_dotenv
+from query_interface.chat_utils import call_chatgpt_api, get_queries
 
 from models.api import (
     DeleteRequest,
@@ -160,14 +161,18 @@ async def querygpt_main(
     request: QueryGPTRequest = Body(...),
 ):
     try:
+        userqn = request.queries.pop().query
+        queries = get_queries(userqn)
         results = await datastore.query(
-            request.queries,
+            queries
         )
         chunks = []
         for result in results:
             for inner_result in result.results:
-                chunks.append(inner_result.text)
-        response = call_chatgpt_api(request.queries.pop().query, chunks)
+                if inner_result.score > 0.3:
+                    chunks.append(inner_result.text)
+        print(chunks)
+        response = call_chatgpt_api(userqn, chunks)
         return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
     except Exception as e:
         logger.error(e)
