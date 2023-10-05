@@ -1,3 +1,7 @@
+# MekongGPT
+MekongGPT aims to help farmers in the Mekong Delta region of Vietnam to export their produce by answering queries and providing guidance relating to agriculture and export. Instead of fine-tuning the LLM model directly and risk running into the problem of hallucination, MekongGPT aims to provide reliable and up-to-date answers by querying a verified agricultural database before having the LLM parse and return an answer.
+
+This project is a fork of the [ChatGPT Retrieval Plugin](https://github.com/openai/chatgpt-retrieval-plugin).
 # ChatGPT Retrieval Plugin
 
 > **Join the [ChatGPT plugins waitlist here](https://openai.com/waitlist/plugins)!**
