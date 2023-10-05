@@ -40,7 +40,6 @@ def apply_prompt_template(question: str) -> str:
     prompt = f"""
         You are an Vietnamese agricultural expert, trying to explain things in simple terms to Vietnamese farmers.
         By only considering the above input from me, answer the question: {question}.
-        If you cannot answer the question based on the input, please say "Tôi không biết".
     """
     
     """
