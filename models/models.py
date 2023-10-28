@@ -56,6 +56,12 @@ class Query(BaseModel):
     filter: Optional[DocumentMetadataFilter] = None
     top_k: Optional[int] = 3
 
+class Sender(BaseModel):
+    id: str
+
+class Message(BaseModel):
+    text: str
+
 class QueryGPT(BaseModel):
     query: str
 
