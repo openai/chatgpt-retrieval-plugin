@@ -5,6 +5,8 @@ from models.models import (
     QueryGPT,
     QueryResult,
     QueryGPTResult,
+    Sender,
+    Message,
 )
 from pydantic import BaseModel
 from typing import List, Optional
@@ -20,6 +22,10 @@ class UpsertResponse(BaseModel):
 
 class QueryRequest(BaseModel):
     queries: List[Query]
+
+class ZaloQueryRequest(BaseModel):
+    sender: Sender
+    message: Message
 
 class QueryGPTRequest(BaseModel):
     queries: List[QueryGPT]

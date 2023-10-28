@@ -1,4 +1,5 @@
 import os
+import httpx
 from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
@@ -17,6 +18,7 @@ from models.api import (
     QueryGPTResponse,
     UpsertRequest,
     UpsertResponse,
+    ZaloQueryRequest,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -125,6 +127,21 @@ async def query(
             request.queries,
         )
         return QueryResponse(results=results)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+    
+@app.post(
+        "/zaloquery",
+        # NOTE: We are describing the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in the future.
+)
+async def zaloquery(
+        request: ZaloQueryRequest = Body(...),
+):
+    try:
+        userid = request.sender.id
+        userqn = request.message.text
+        return 200
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
