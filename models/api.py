@@ -29,6 +29,7 @@ class ZaloQueryRequest(BaseModel):
 
 class QueryGPTRequest(BaseModel):
     queries: List[QueryGPT]
+    senderId: str
 
 class QueryResponse(BaseModel):
     results: List[QueryResult]

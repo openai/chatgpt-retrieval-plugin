@@ -23,7 +23,7 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
-from models.models import DocumentMetadata, Source
+from models.models import DocumentMetadata, QueryGPT, Source
 
 load_dotenv()
 
@@ -139,7 +139,8 @@ async def zaloquery(
     try:
         userid = request.sender.id
         userqn = request.message.text
-        return 200
+        await querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid))
+        return
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
@@ -186,8 +187,23 @@ async def querygpt_main(
             for inner_result in result.results:
                 if inner_result.score < 0.35:
                     chunks.append(inner_result.text)
-        print(chunks)
         response = call_chatgpt_api(userqn, chunks)
+
+        if(request.senderId): # Send reply to Zalo user
+            url = "https://openapi.zalo.me/v2.0/oa/message" # Send POST request to Zalo API
+            headers = {
+                "access_token": os.getenv("ZALO_ACCESS_TOKEN"),
+                "Content-Type": "application/json",
+            }
+
+            data = {
+                "recipient": {"user_id": request.senderId},
+                "message": {"text": response["choices"][0]["message"]["content"]},
+            }
+
+            async with httpx.AsyncClient() as client:
+                await client.post(url, headers=headers, json=data)
+
         return QueryGPTResponse(result=response["choices"][0]["message"]["content"])
     except Exception as e:
         logger.error(e)
