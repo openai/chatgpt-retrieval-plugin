@@ -11,6 +11,11 @@ async def get_datastore() -> DataStore:
             from datastore.providers.chroma_datastore import ChromaDataStore
 
             return ChromaDataStore()
+        case "hippo":
+            from datastore.providers.hippo_datastore import HippoDataStore
+
+            return HippoDataStore()
+
         case "llama":
             from datastore.providers.llama_datastore import LlamaDataStore
 
