@@ -41,7 +41,7 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
 app = FastAPI(dependencies=[Depends(validate_token)])
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
-app.state.refresh_token = os.getenv("REFRESH_TOKEN")
+app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
 
 # Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
 sub_app = FastAPI(
@@ -200,14 +200,17 @@ async def querygpt_main(
                 r = await client.post("https://oauth.zaloapp.com/v4/oa/access_token", 
                                              headers = {
                                                  "Content-Type": "application/x-www-form-urlencoded",
-                                                 "secret_key": "7VtvCDpg2pVVOkfzqUZG"},
+                                                 "secret_key": os.getenv("ZALO_SECRET_KEY")},
                                              data = {
-                                                 "refresh_token": app.state.refresh_token,
+                                                 "refresh_token": app.state.zalo_refresh_token,
                                                  "app_id": "2857621919047997337",
                                                  "grant_type": "refresh_token"
                                              })
                 response_json = r.json()
-                app.state.refresh_token = response_json["refresh_token"]
+                if not "access_token" in response_json:
+                    raise Exception("Cannot get the access token")
+
+                app.state.zalo_refresh_token = response_json["refresh_token"]
                 access_token = response_json["access_token"]
 
             headers = {
