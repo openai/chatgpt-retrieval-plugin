@@ -43,6 +43,8 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
 app = FastAPI(dependencies=[Depends(validate_token)])
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
+app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
+
 # Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
 sub_app = FastAPI(
     title="Retrieval Plugin API",
@@ -192,7 +194,27 @@ async def querygpt_main(
         response = call_chatgpt_api(userqn, chunks)
 
         if(request.senderId): # Send reply to Zalo user
-            url = "https://openapi.zalo.me/v2.0/oa/message" # Send POST request to Zalo API
+            url = "https://openapi.zalo.me/v3.0/oa/message/cs" # Send POST request to Zalo API
+
+            # Get the access token
+            access_token = None
+            async with httpx.AsyncClient() as client:
+                r = await client.post("https://oauth.zaloapp.com/v4/oa/access_token", 
+                                             headers = {
+                                                 "Content-Type": "application/x-www-form-urlencoded",
+                                                 "secret_key": os.getenv("ZALO_SECRET_KEY")},
+                                             data = {
+                                                 "refresh_token": app.state.zalo_refresh_token,
+                                                 "app_id": "2857621919047997337",
+                                                 "grant_type": "refresh_token"
+                                             })
+                response_json = r.json()
+                if not "access_token" in response_json:
+                    raise Exception("Cannot get the access token")
+
+                app.state.zalo_refresh_token = response_json["refresh_token"]
+                access_token = response_json["access_token"]
+
             headers = {
                 "access_token": os.getenv("ZALO_ACCESS_TOKEN"),
                 "Content-Type": "application/json",
