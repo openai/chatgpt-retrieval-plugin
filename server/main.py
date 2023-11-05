@@ -191,7 +191,6 @@ async def querygpt_main(
                                                  "grant_type": "refresh_token"
                                              })
                 response_json = r.json()
-                logger.info(response_json)
                 if not "access_token" in response_json:
                     raise Exception("Cannot get the access token")
 
