@@ -30,6 +30,7 @@ chromadb = "^0.3.25"
 loguru = "^0.7.0"
 elasticsearch = "8.8.2"
 poetry-dotenv-plugin = "^0.2.0"
+httpx = "^0.25.1"
 
 [tool.poetry.scripts]
 start = "server.main:start"
