@@ -214,7 +214,7 @@ async def querygpt_main(
                 access_token = response_json["access_token"]
 
             headers = {
-                "access_token": os.getenv("ZALO_ACCESS_TOKEN"),
+                "access_token": access_token,
                 "Content-Type": "application/json",
             }
 
