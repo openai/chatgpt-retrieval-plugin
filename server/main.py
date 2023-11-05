@@ -191,6 +191,7 @@ async def querygpt_main(
                                                  "grant_type": "refresh_token"
                                              })
                 response_json = r.json()
+                logger.info(response_json)
                 if not "access_token" in response_json:
                     raise Exception("Cannot get the access token")
 
@@ -198,7 +199,7 @@ async def querygpt_main(
                 access_token = response_json["access_token"]
 
             headers = {
-                "access_token": os.getenv("ZALO_ACCESS_TOKEN"),
+                "access_token": access_token,
                 "Content-Type": "application/json",
             }
 

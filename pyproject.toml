@@ -39,7 +39,7 @@ dev = "local_server.main:start"
 postgresql = ["psycopg2cffi"]
 
 [tool.poetry.group.dev.dependencies]
-httpx = "^0.23.3"
+httpx = "^0.25.1"
 pytest = "^7.2.1"
 pytest-cov = "^4.0.0"
 pytest-asyncio = "^0.20.3"
