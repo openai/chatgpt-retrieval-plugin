@@ -1,14 +1,11 @@
 import os
 import httpx
-import httpx
 from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-from dotenv import load_dotenv
-from query_interface.chat_utils import call_chatgpt_api, get_queries
 from dotenv import load_dotenv
 from query_interface.chat_utils import call_chatgpt_api, get_queries
 
@@ -26,7 +23,6 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
-from models.models import DocumentMetadata, QueryGPT, Source
 from models.models import DocumentMetadata, QueryGPT, Source
 
 from query_interface.chat_utils import call_chatgpt_api
@@ -46,8 +42,6 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
 
 app = FastAPI(dependencies=[Depends(validate_token)])
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
-
-app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
 
 app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
 
@@ -102,24 +96,6 @@ async def upsert(
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
-
-
-@app.post(
-    "/query",
-    response_model=QueryResponse,
-)
-async def query_main(
-    request: QueryRequest = Body(...),
-):
-    try:
-        results = await datastore.query(
-            request.queries,
-        )
-        return QueryResponse(results=results)
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(status_code=500, detail="Internal Service Error")
-
 
 @sub_app.post(
     "/query",
