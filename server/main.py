@@ -4,6 +4,7 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from dotenv import load_dotenv
@@ -53,6 +54,15 @@ sub_app = FastAPI(
     servers=[{"url": "https://mekong-gpt.fly.dev"}],
     dependencies=[Depends(validate_token)],
 )
+
+verifier = FastAPI()
+app.mount("/zalo_verifierUVs76AF3D11cigGAieOg2KQPhn6gvtfCDpW", verifier)
+
+@verifier.get("/")
+async def zalo_verifier():
+    file_path = "zalo_verifierUVs76AF3D11cigGAieOg2KQPhn6gvtfCDpW.html"
+    return FileResponse(file_path)
+
 app.mount("/sub", sub_app)
 
 

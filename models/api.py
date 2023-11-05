@@ -4,7 +4,6 @@ from models.models import (
     Query,
     QueryGPT,
     QueryResult,
-    QueryGPTResult,
     Sender,
     Message,
 )
