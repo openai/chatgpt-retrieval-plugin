@@ -134,7 +134,10 @@ async def zaloquery(
 ):
     # Inner function that helps with BackgroundTasks
     async def call_querygpt(userid: str, userqn: str):
-        await querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid))
+        try:
+            querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid))
+        except Exception as e:
+            logger.error(e)
     
     try:
         background_tasks.add_task(call_querygpt, request.sender.id, request.message.text)
