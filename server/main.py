@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from dotenv import load_dotenv
 from query_interface.chat_utils import call_chatgpt_api, get_queries
+import asyncio
 
 from models.api import (
     DeleteRequest,
@@ -133,9 +134,9 @@ async def zaloquery(
         request: ZaloQueryRequest = Body(...),
 ):
     # Inner function that helps with BackgroundTasks
-    async def call_querygpt(userid: str, userqn: str):
+    def call_querygpt(userid: str, userqn: str):
         try:
-            querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid))
+            asyncio.run(querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid)))
         except Exception as e:
             logger.error(e)
     
