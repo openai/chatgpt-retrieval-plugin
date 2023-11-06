@@ -2,7 +2,7 @@ import os
 import httpx
 from typing import Optional
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -125,17 +125,19 @@ async def query(
         raise HTTPException(status_code=500, detail="Internal Service Error")
     
 @app.post(
-        "/zaloquery",
-        dependencies=[Depends(validate_token)]
+        "/zaloquery"
         # NOTE: We are describing the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in the future.
 )
 async def zaloquery(
+        background_tasks: BackgroundTasks,
         request: ZaloQueryRequest = Body(...),
 ):
-    try:
-        userid = request.sender.id
-        userqn = request.message.text
+    # Inner function that helps with BackgroundTasks
+    async def call_querygpt(userid: str, userqn: str):
         await querygpt_main(QueryGPTRequest(queries=[QueryGPT(query=userqn)], senderId=userid))
+    
+    try:
+        background_tasks.add_task(call_querygpt, request.sender.id, request.message.text)
         return
     except Exception as e:
         logger.error(e)
