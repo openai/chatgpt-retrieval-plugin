@@ -41,7 +41,7 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
     return credentials
 
 
-app = FastAPI(dependencies=[Depends(validate_token)])
+app = FastAPI()
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
 app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
@@ -55,10 +55,7 @@ sub_app = FastAPI(
     dependencies=[Depends(validate_token)],
 )
 
-verifier = FastAPI()
-app.mount("/", verifier)
-
-@verifier.get("/")
+@app.get("/")
 async def zalo_verifier():
     file_path = "index.html"
     return FileResponse(file_path)
@@ -69,6 +66,7 @@ app.mount("/sub", sub_app)
 @app.post(
     "/upsert-file",
     response_model=UpsertResponse,
+    dependencies=[Depends(validate_token)]
 )
 async def upsert_file(
     file: UploadFile = File(...),
@@ -96,6 +94,7 @@ async def upsert_file(
 @app.post(
     "/upsert",
     response_model=UpsertResponse,
+    dependencies=[Depends(validate_token)]
 )
 async def upsert(
     request: UpsertRequest = Body(...),
@@ -127,6 +126,7 @@ async def query(
     
 @app.post(
         "/zaloquery",
+        dependencies=[Depends(validate_token)]
         # NOTE: We are describing the shape of the API endpoint input due to a current limitation in parsing arrays of objects from OpenAPI schemas. This will not be necessary in the future.
 )
 async def zaloquery(
@@ -145,6 +145,7 @@ async def zaloquery(
 @app.delete(
     "/delete",
     response_model=DeleteResponse,
+    dependencies=[Depends(validate_token)]
 )
 async def delete(
     request: DeleteRequest = Body(...),
@@ -168,6 +169,7 @@ async def delete(
 @app.post(
     "/querygpt",
     response_model=QueryGPTResponse,
+    dependencies=[Depends(validate_token)]
 )
 async def querygpt_main(
     request: QueryGPTRequest = Body(...),
