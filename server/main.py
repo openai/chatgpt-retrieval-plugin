@@ -56,11 +56,11 @@ sub_app = FastAPI(
 )
 
 verifier = FastAPI()
-app.mount("/zalo_verifierUVs76AF3D11cigGAieOg2KQPhn6gvtfCDpW.html", verifier)
+app.mount("/", verifier)
 
 @verifier.get("/")
 async def zalo_verifier():
-    file_path = "zalo_verifierUVs76AF3D11cigGAieOg2KQPhn6gvtfCDpW.html"
+    file_path = "index.html"
     return FileResponse(file_path)
 
 app.mount("/sub", sub_app)
