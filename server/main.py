@@ -182,16 +182,22 @@ async def querygpt_main(
 ):
     try:
         userqn = request.queries.pop().query
+        logger.info("Getting queries")
         queries = get_queries(userqn)
+        logger.info("Getting queries done")
+        logger.info("Querying database")
         results = await datastore.query(
             queries
         )
+        logger.info("Querying database done")
         chunks = []
         for result in results:
             for inner_result in result.results:
                 if inner_result.score < 0.35:
                     chunks.append(inner_result.text)
+        logger.info("Querying GPT-3")
         response = call_chatgpt_api(userqn, chunks)
+        logger.info("Querying GPT-3 done")
 
         if(request.senderId): # Send reply to Zalo user
             url = "https://openapi.zalo.me/v3.0/oa/message/cs" # Send POST request to Zalo API
