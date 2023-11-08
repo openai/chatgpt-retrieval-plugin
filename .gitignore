@@ -143,3 +143,6 @@ openai/
 
 # data folder
 data/
+
+# secret key
+mekonggpt-firebase-adminsdk-tl6je-751134b214.json

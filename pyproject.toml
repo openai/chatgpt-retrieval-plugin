@@ -31,6 +31,7 @@ loguru = "^0.7.0"
 elasticsearch = "8.8.2"
 poetry-dotenv-plugin = "^0.2.0"
 httpx = "^0.25.1"
+firebase-admin = "^6.2.0"
 
 [tool.poetry.scripts]
 start = "server.main:start"

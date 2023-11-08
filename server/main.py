@@ -29,6 +29,8 @@ from models.models import DocumentMetadata, QueryGPT, Source
 
 from query_interface.chat_utils import call_chatgpt_api
 
+from services import db
+
 load_dotenv()
 
 bearer_scheme = HTTPBearer()
@@ -44,8 +46,6 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
 
 app = FastAPI()
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
-
-app.state.zalo_refresh_token = os.getenv("ZALO_REFRESH_TOKEN")
 
 # Create a sub-application, in order to access just the query endpoint in an OpenAPI schema, found at http://0.0.0.0:8000/sub/openapi.json when the app is running locally
 sub_app = FastAPI(
@@ -198,13 +198,15 @@ async def querygpt_main(
 
             # Get the access token
             access_token = None
+            refresh_token = db.get_refresh_token()
+            logger.info(refresh_token)
             async with httpx.AsyncClient() as client:
                 r = await client.post("https://oauth.zaloapp.com/v4/oa/access_token", 
                                              headers = {
                                                  "Content-Type": "application/x-www-form-urlencoded",
                                                  "secret_key": os.getenv("ZALO_SECRET_KEY")},
                                              data = {
-                                                 "refresh_token": app.state.zalo_refresh_token,
+                                                 "refresh_token": refresh_token,
                                                  "app_id": "2857621919047997337",
                                                  "grant_type": "refresh_token"
                                              })
@@ -213,7 +215,7 @@ async def querygpt_main(
                 if not "access_token" in response_json:
                     raise Exception("Cannot get the access token")
 
-                app.state.zalo_refresh_token = response_json["refresh_token"]
+                db.set_refresh_token(response_json["refresh_token"])
                 access_token = response_json["access_token"]
 
             headers = {
