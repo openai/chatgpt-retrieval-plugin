@@ -33,7 +33,7 @@ with ChatGPT and your external data.
 
 
 **Different Index Types**
-By default, we use a `GPTSimpleVectorIndex` to store document chunks in memory, 
+By default, we use a `GPTVectorStoreIndex` to store document chunks in memory, 
 and retrieve top-k nodes by embedding similarity.
 Different index types are optimized for different data and query use-cases.
 See this guide on [How Each Index Works](https://gpt-index.readthedocs.io/en/latest/guides/primer/index_guide.html) to learn more.

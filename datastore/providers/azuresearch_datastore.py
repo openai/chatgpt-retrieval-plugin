@@ -1,19 +1,23 @@
 import asyncio
+import base64
 import os
 import re
 import time
-import base64
 from typing import Dict, List, Optional, Union
-from datastore.datastore import DataStore
-from models.models import DocumentChunk, DocumentChunkMetadata, DocumentChunkWithScore, DocumentMetadataFilter, Query, QueryResult, QueryWithEmbedding
-from loguru import logger
-from azure.search.documents.aio import SearchClient
-from azure.search.documents.models import Vector, QueryType
-from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import *
+
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential as DefaultAzureCredentialSync
 from azure.identity.aio import DefaultAzureCredential
+from azure.search.documents.aio import SearchClient
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import *
+from azure.search.documents.models import QueryType, Vector
+from loguru import logger
+
+from datastore.datastore import DataStore
+from models.models import (DocumentChunk, DocumentChunkMetadata,
+                           DocumentChunkWithScore, DocumentMetadataFilter,
+                           Query, QueryResult, QueryWithEmbedding)
 
 AZURESEARCH_SERVICE = os.environ.get("AZURESEARCH_SERVICE")
 AZURESEARCH_INDEX = os.environ.get("AZURESEARCH_INDEX")
@@ -133,7 +137,9 @@ class AzureSearchDataStore(DataStore):
         filter = self._translate_filter(query.filter) if query.filter is not None else None
         try:
             vector_top_k = query.top_k if filter is None else query.top_k * 2
+            if not AZURESEARCH_DISABLE_HYBRID: vector_top_k *= 2
             q = query.query if not AZURESEARCH_DISABLE_HYBRID else None
+            vector_q = Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING)
             if AZURESEARCH_SEMANTIC_CONFIG != None and not AZURESEARCH_DISABLE_HYBRID:
                 # Ensure we're feeding a good number of candidates to the L2 reranker
                 vector_top_k = max(50, vector_top_k)
@@ -141,7 +147,7 @@ class AzureSearchDataStore(DataStore):
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING),
+                        vectors=[vector_q],
                         query_type=QueryType.SEMANTIC,
                         query_language=AZURESEARCH_LANGUAGE,
                         semantic_configuration_name=AZURESEARCH_SEMANTIC_CONFIG)
@@ -150,7 +156,7 @@ class AzureSearchDataStore(DataStore):
                         q, 
                         filter=filter, 
                         top=query.top_k, 
-                        vector=Vector(value=query.embedding, k=vector_top_k, fields=FIELDS_EMBEDDING))
+                        vectors=[vector_q])
             results: List[DocumentChunkWithScore] = []
             async for hit in r:
                 f = lambda field: hit.get(field) if field != "-" else None
@@ -159,7 +165,7 @@ class AzureSearchDataStore(DataStore):
                     text=hit[FIELDS_TEXT],
                     metadata=DocumentChunkMetadata(
                         document_id=f(FIELDS_DOCUMENT_ID),
-                        source=f(FIELDS_SOURCE),
+                        source=f(FIELDS_SOURCE) or "file",
                         source_id=f(FIELDS_SOURCE_ID),
                         url=f(FIELDS_URL),
                         created_at=f(FIELDS_CREATED_AT),
@@ -220,7 +226,7 @@ class AzureSearchDataStore(DataStore):
                     SearchableField(name=FIELDS_TEXT, type=SearchFieldDataType.String, analyzer_name="standard.lucene"),
                     SearchField(name=FIELDS_EMBEDDING, type=SearchFieldDataType.Collection(SearchFieldDataType.Single), 
                                 hidden=False, searchable=True, filterable=False, sortable=False, facetable=False,
-                                dimensions=AZURESEARCH_DIMENSIONS, vector_search_configuration="default"),
+                                vector_search_dimensions=AZURESEARCH_DIMENSIONS, vector_search_configuration="default"),
                     SimpleField(name=FIELDS_DOCUMENT_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE, type=SearchFieldDataType.String, filterable=True, sortable=True),
                     SimpleField(name=FIELDS_SOURCE_ID, type=SearchFieldDataType.String, filterable=True, sortable=True),
@@ -238,7 +244,7 @@ class AzureSearchDataStore(DataStore):
                 ),
                 vector_search=VectorSearch(
                     algorithm_configurations=[
-                        VectorSearchAlgorithmConfiguration(
+                        HnswVectorSearchAlgorithmConfiguration(
                             name="default",
                             kind="hnsw",
                             # Could change to dotproduct for OpenAI's embeddings since they normalize vectors to unit length

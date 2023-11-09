@@ -1,7 +1,5 @@
 # ChatGPT Retrieval Plugin
 
-> **Join the [ChatGPT plugins waitlist here](https://openai.com/waitlist/plugins)!**
-
 Find an example video of a Retrieval Plugin that has access to the UN Annual Reports from 2018 to 2022 [here](https://cdn.openai.com/chat-plugins/retrieval-gh-repo-readme/Retrieval-Final.mp4).
 
 ## Introduction
@@ -166,7 +164,7 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export PG_PORT=<postgres_port>
    export PG_USER=<postgres_user>
    export PG_PASSWORD=<postgres_password>
-   export PG_DATABASE=<postgres_database>
+   export PG_DB=<postgres_database>
 
    # Elasticsearch
    export ELASTICSEARCH_URL=<elasticsearch_host_and_port> (either specify host or cloud_id)
