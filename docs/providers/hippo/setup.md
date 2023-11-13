@@ -2,7 +2,7 @@
 
 ## Deploying the Database
 
-You can deploy and manage Hippo using Docker Compose, K8's Operator Follow the instructions [here](https://www.transwarp.cn/starwarp) to get started.
+You can deploy and manage Hippo using hippo cloud Follow the instructions [here](http://hippo.transwarp.io/) to get started.
 
 **Environment Variables:**
 
