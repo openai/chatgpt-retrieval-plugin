@@ -36,6 +36,7 @@ pgvector = "^0.1.7"
 psycopg2cffi = {version = "^2.9.0", optional = true}
 loguru = "^0.7.0"
 elasticsearch = "8.8.2"
+pymongo = "^4.3.3"
 
 [tool.poetry.scripts]
 start = "server.main:start"
