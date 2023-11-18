@@ -180,6 +180,44 @@ async def querygpt_main(
     request: QueryGPTRequest = Body(...),
 ):
     try:
+        if(request.senderId): # Send intermediate message to Zalo user
+            url = "https://openapi.zalo.me/v3.0/oa/message/cs" # Send POST request to Zalo API
+
+            # Get the access token
+            access_token = None
+            refresh_token = db.get_refresh_token()
+            logger.info(refresh_token)
+            async with httpx.AsyncClient() as client:
+                r = await client.post("https://oauth.zaloapp.com/v4/oa/access_token", 
+                                            headers = {
+                                                "Content-Type": "application/x-www-form-urlencoded",
+                                                "secret_key": os.getenv("ZALO_SECRET_KEY")},
+                                            data = {
+                                                "refresh_token": refresh_token,
+                                                "app_id": "2857621919047997337",
+                                                "grant_type": "refresh_token"
+                                            })
+                response_json = r.json()
+                logger.info(response_json)
+                if not "access_token" in response_json:
+                    raise Exception("Cannot get the access token")
+
+                db.set_refresh_token(response_json["refresh_token"])
+                access_token = response_json["access_token"]
+
+            headers = {
+                "access_token": access_token,
+                "Content-Type": "application/json",
+            }
+
+            data = {
+                "recipient": {"user_id": request.senderId},
+                "message": {"text": "Vui lòng đợi, tôi thường mất khoảng 2 phút để đưa ra câu trả lời."},
+            }
+
+            async with httpx.AsyncClient() as client:
+                await client.post(url, headers=headers, json=data)
+
         userqn = request.queries.pop().query
         logger.info("Getting queries")
         queries = get_queries(userqn)

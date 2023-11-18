@@ -126,6 +126,9 @@ def ask(user_question: str) -> Dict[str, Any]:
     for result in chunks_response["results"]:
         for inner_result in result["results"]:
             chunks.append(inner_result["text"])
+
+    if len(chunks) == 0:
+        return "Có thể đã xảy ra lỗi. Vui lòng thử lại."
     
     logging.info("User's questions: %s", user_question)
     logging.info("Retrieved chunks: %s", chunks)
