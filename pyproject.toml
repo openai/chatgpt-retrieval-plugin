@@ -9,7 +9,7 @@ packages = [{include = "server"}]
 [[tool.poetry.source]]
 name = "azure-sdk-dev"
 url = "https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple/"
-secondary = true
+priority = 'default'
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -32,6 +32,7 @@ elasticsearch = "8.8.2"
 poetry-dotenv-plugin = "^0.2.0"
 httpx = "^0.25.1"
 firebase-admin = "^6.2.0"
+pinecone-client = "^2.2.4"
 
 [tool.poetry.scripts]
 start = "server.main:start"

@@ -63,7 +63,6 @@ async def zalo_verifier():
 
 app.mount("/sub", sub_app)
 
-
 @app.post(
     "/upsert-file",
     response_model=UpsertResponse,
