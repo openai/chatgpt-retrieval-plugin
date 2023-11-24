@@ -212,7 +212,6 @@ class HippoDataStore(DataStore):
                 query_results: List[DocumentChunkWithScore] = []
                 score_col = "text" + "%scores"
                 count = 0
-
                 print(fields)
                 print(EMBEDDING_FIELD)
                 fields.remove(EMBEDDING_FIELD)
