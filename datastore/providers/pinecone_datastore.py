@@ -159,7 +159,7 @@ class PineconeDataStore(DataStore):
                 result = DocumentChunkWithScore(
                     id=result.id,
                     score=score,
-                    text=metadata["text"] if metadata and "text" in metadata else None,
+                    text=str(metadata["text"]) if metadata and "text" in metadata else "",
                     metadata=metadata_without_text,
                 )
                 query_results.append(result)
