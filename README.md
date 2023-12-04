@@ -332,6 +332,9 @@ For more detailed instructions on setting up and using each vector database prov
 
 [Milvus](https://milvus.io/) is an open-source, cloud-native vector database that scales to billions of vectors. It is the open-source version of Zilliz and shares many of its features, such as various indexing algorithms, distance metrics, scalar filtering, time travel searches, rollback with snapshots, multi-language SDKs, storage and compute separation, and cloud scalability. For detailed setup instructions, refer to [`/docs/providers/milvus/setup.md`](/docs/providers/milvus/setup.md).
 
+#### Hippo
+[Hippo](http://hippo.transwarp.io/) is a proprietary enterprise cloud native distributed vector database, supporting storing, indexing and managing massive vector data, delivering accelerated solutions for many areas, such as vector similarity search and clustering of dense vectors. Hippo ensures high availability, high performance and easy scale-out/in, supports vector search index, and delivers a set of functionality including data sharding, partitioning, data persistence, incremental data ingestion, vector/scalar filtering in hybrid search, enabling enterprises to perform real-time query, search, and candidate generation against massive vector data.
+
 #### Qdrant
 
 [Qdrant](https://qdrant.tech/) is a vector database capable of storing documents and vector embeddings. It offers both self-hosted and managed [Qdrant Cloud](https://cloud.qdrant.io/) deployment options, providing flexibility for users with different requirements. For detailed setup instructions, refer to [`/docs/providers/qdrant/setup.md`](/docs/providers/qdrant/setup.md).
