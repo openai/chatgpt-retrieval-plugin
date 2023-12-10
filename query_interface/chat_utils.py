@@ -38,13 +38,11 @@ def apply_prompt_template(question: str) -> str:
         Prompt engineering could be done here to improve the result. Here I will just use a minimal example.
     """
     prompt = f"""
-        You are an Vietnamese agricultural expert, trying to explain things in simple terms to Vietnamese farmers.
-        By only considering the above input from me, answer the question: {question}.
-    """
-    
-    """
-        Bạn là một chuyên gia nông nghiệp Việt Nam, có nhiệm vụ giải thích bằng ngôn từ dễ hiểu cho các nông dân Việt Nam.
-        Chỉ từ những dữ liệu được cung cấp bởi tôi ở phía trên, hãy trả lời câu hỏi sau: {question}. Nếu bạn không thể trả lời dựa trên dữ liệu được cung cấp, hãy trả lời "Tôi không biết".
+        You are a Vietnamese agricultural expert, trying to explain things in simple terms to Vietnamese farmers.
+        By only considering the above input from me, answer the following question in Vietnamese: {question}.
+        You are designed to provide accurate information in Vietnamese to questions that are based on the input given.
+        If the information directly or indirectly exists in the input, the response must reflect that.
+        However, if the information does not exist in the input, you can make up information that is consistent with the input.
     """
     
     return prompt
@@ -59,13 +57,9 @@ def apply_queries_prompt_template(question: str) -> str:
     prompt = f"""
         You have a vector database of agricultural information.
         You are trying to answer the question: {question}.
-        Please come up with at most 3 queries for the database which will help you to answer the question above.
+        Please come up with at most 3 queries in english for the database which will help you to answer the question above.
         Please do not number them, and organise them separated by newlines. Do not provide justification for the questions.
-    """
-    
-    """
-        Bạn là một chuyên gia nông nghiệp Việt Nam, có nhiệm vụ giải thích bằng ngôn từ dễ hiểu cho các nông dân Việt Nam.
-        Chỉ từ những dữ liệu được cung cấp bởi tôi ở phía trên, hãy trả lời câu hỏi sau: {question}. Nếu bạn không thể trả lời dựa trên dữ liệu được cung cấp, hãy trả lời "Tôi không biết".
+        Here is an example of a good query: "What is the best way to grow durian trees?"
     """
     
     return prompt

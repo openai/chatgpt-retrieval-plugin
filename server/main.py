@@ -230,7 +230,7 @@ async def querygpt_main(
         chunks = []
         for result in results:
             for inner_result in result.results:
-                if inner_result.score < 0.35:
+                if inner_result.score > 0.75:
                     chunks.append(inner_result.text)
         logger.info("Querying GPT-3")
         response = call_chatgpt_api(userqn, chunks)
