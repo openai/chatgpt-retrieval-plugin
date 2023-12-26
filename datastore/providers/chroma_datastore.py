@@ -26,7 +26,7 @@ from models.models import (
 )
 from services.chunks import get_document_chunks
 
-CHROMA_IN_MEMORY = os.environ.get("CHROMA_IN_MEMORY", "True")
+CHROMA_IN_MEMORY = True if os.environ.get("CHROMA_IN_MEMORY", "True").lower() == "true" else False
 CHROMA_PERSISTENCE_DIR = os.environ.get("CHROMA_PERSISTENCE_DIR", "openai")
 CHROMA_HOST = os.environ.get("CHROMA_HOST", "http://127.0.0.1")
 CHROMA_PORT = os.environ.get("CHROMA_PORT", "8000")
