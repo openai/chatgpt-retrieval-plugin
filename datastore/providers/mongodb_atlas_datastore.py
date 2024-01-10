@@ -23,29 +23,39 @@ MONGODB_USER = os.environ.get("MONGODB_USER")
 MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD")
 MONGODB_HOST = os.environ.get("MONGODB_HOST")
 MONGODB_PORT = os.environ.get("MONGODB_PORT")
-MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE")
+MONGODB_AUTHSOURCE = os.environ.get("MONGODB_AUTHSOURCE")
+MONGODB_AUTHMECHANISM = os.environ.get("MONGODB_AUTHMECHANISM", "default")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX")
 
+OVERSAMPLING_FACTOR = 1.2
 VECTOR_SIZE = 1536
 UPSERT_BATCH_SIZE = 100
 
 
 class MongoDBAtlasDataStore(DataStore):
+    DEFAULT_COLLECTION = "default"
+
     def __init__(
         self,
         index_name: Optional[str] = MONGODB_INDEX,
-        database_name: Optional[str] = MONGODB_DATABASE,
+        database_name: Optional[str] = MONGODB_AUTHSOURCE,
         collection_name: Optional[str] = MONGODB_COLLECTION,
-        vector_size: int = VECTOR_SIZE,  # Look
-        recreate_collection: bool = True,  # Look
+        vector_size: int = VECTOR_SIZE,
+        oversampling_factor: float = OVERSAMPLING_FACTOR,
+        **kwargs
     ):
+        self._oversampling_factor = oversampling_factor
+        self.vector_size = vector_size
+
         assert index_name != "", "Please provide an index name."
         self.index_name = index_name
-        assert database_name != "", "Please provide a database"
-        self.database_name = database_name
-        assert collection_name != "", "Please provide a collection."
-        self.collection_name = collection_name
+
+        self._database_name = database_name
+        self._collection_name = collection_name or self.DEFAULT_COLLECTION
+
+        # TODO: create index when pymongo supports it.
+        # self._set_up_index(vector_size, similarity, recreate_index)
 
     @cached_property
     def client(self):
@@ -56,7 +66,14 @@ class MongoDBAtlasDataStore(DataStore):
             username=MONGODB_HOST,
             password=MONGODB_PORT,
             database=self.database_name,
-            )
+            auth_mechanism=MONGODB_AUTHMECHANISM,
+        )
+
+    @property
+    def database_name(self):
+        if not self._database_name:
+            self._database_name = self.client.get_default_database()
+        return self._database_name
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
@@ -103,7 +120,7 @@ class MongoDBAtlasDataStore(DataStore):
                     'index': self.index_name,
                     'path': 'embedding',
                     'queryVector': query.embedding,
-                    'numCandidates': ceil(query.top_k*1.2),
+                    'numCandidates': ceil(query.top_k * self.oversampling_factor),
                     'limit': query.top_k
                  }
             }, {
@@ -239,13 +256,15 @@ class MongoDBAtlasDataStore(DataStore):
 
         return mongo_filters
 
+    @staticmethod
     def _connect_to_mongodb_atlas(
             atlas_connection_uri: Optional[str] = None,
             host: Optional[str] = None,
             port: Optional[str] = None,
             username: Optional[str] = None,
             password: Optional[str] = None,
-            database: Optional[str] = None,
+            auth_source: Optional[str] = None,
+            auth_mechanism: Optional[str] = None,
             ):
         """
         Establish a connection to MongoDB Atlas.
@@ -258,7 +277,8 @@ class MongoDBAtlasDataStore(DataStore):
                 port=port,
                 username=username,
                 password=password,
-                authSource=database
+                authSource=auth_source,
+                authMechanism=auth_mechanism
             )
         else:
             raise ValueError("Please provide either atlas_connection_uri or mongo credentials.")
