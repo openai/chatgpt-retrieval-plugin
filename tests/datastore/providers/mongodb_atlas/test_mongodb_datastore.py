@@ -1,5 +1,4 @@
 import pytest
-from bson import ObjectId
 from models.models import (
     DocumentChunkMetadata,
     DocumentMetadataFilter,
