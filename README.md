@@ -48,6 +48,7 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
+    - [DashVector](#dashvector)
   - [Running the API Locally](#running-the-api-locally)
   - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
@@ -184,6 +185,10 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export ELASTICSEARCH_INDEX=<elasticsearch_index_name>
    export ELASTICSEARCH_REPLICAS=<elasticsearch_replicas>
    export ELASTICSEARCH_SHARDS=<elasticsearch_shards>
+   
+   # DashVector
+   export DASHVECTOR_API_KEY=<your_dashvector_api_key>
+   export DASHVECTOR_COLLECTION=<your_dashvector_collection>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -295,11 +300,11 @@ poetry install
 
 The API requires the following environment variables to work:
 
-| Name             | Required | Description                                                                                                                                                                                                                                                   |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
-| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                    |
+| Name             | Required | Description                                                                                                                                                                                                                                                                 |
+| ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `dashvector`. |
+| `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                                 |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                                  |
 
 ### Using the plugin with Azure OpenAI
 
@@ -376,6 +381,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Elasticsearch
 
 [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets. For detailed setup instructions, refer to [`/docs/providers/elasticsearch/setup.md`](/docs/providers/elasticsearch/setup.md).
+
+#### DashVector
+
+[DashVector](https://help.aliyun.com/document_detail/2510225.html) is a fully-managed vectorDB service that supports high-dimension dense and sparse vectors , real-time insertion, and filtered search. It is built to scale automatically and can adapt to different application requirements. For detailed setup instructions, refer to [`/docs/providers/dashvector/setup.md`](/docs/providers/dashvector/setup.md).
 
 ### Running the API locally
 
@@ -559,7 +568,7 @@ feature/advanced-chunking-strategy-123
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like DashVector, Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
 - **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.
@@ -613,3 +622,7 @@ We would like to extend our gratitude to the following contributors for their co
   - [mmmaia](https://github.com/mmmaia)
 - [Elasticsearch](https://www.elastic.co/)
   - [joemcelroy](https://github.com/joemcelroy)
+- [DashVector](https://help.aliyun.com/document_detail/2510225.html)
+  - [yingdachen](http://github.com/yingdachen)
+  - [yurnom](https://github.com/yurnom)
+  - [xiaoyuxee](https://github.com/xiaoyuxee)

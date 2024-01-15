@@ -66,8 +66,12 @@ async def get_datastore() -> DataStore:
             )
 
             return ElasticsearchDataStore()
+        case "dashvector":
+            from datastore.providers.dashvector_datastore import DashVectorDataStore
+
+            return DashVectorDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, azuresearch, or qdrant"
+                f"Try one of the following: llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, azuresearch, qdrant, or dashvector"
             )
