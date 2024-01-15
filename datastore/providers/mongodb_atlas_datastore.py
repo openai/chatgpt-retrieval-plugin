@@ -47,7 +47,8 @@ class MongoDBAtlasDataStore(DataStore):
         self._oversampling_factor = oversampling_factor
         self.vector_size = vector_size
 
-        assert index_name != "", "Please provide an index name."
+        if not (index_name and isinstance(index_name, str)):
+            raise ValueError("Provide a valid index name")
         self.index_name = index_name
 
         self._database_name = database_name
@@ -132,7 +133,7 @@ class MongoDBAtlasDataStore(DataStore):
                 }
             }
         ]
-        # run pipeline
+
         results = self.client[self.database_name][self._collection_name].aggregate(pipeline)
         
         return QueryResult(
@@ -164,8 +165,6 @@ class MongoDBAtlasDataStore(DataStore):
                 logger.error(f"Error deleting all documents: {e}")
                 raise e
 
-        # Implement your MongoDB delete logic based on ids and filter
-        # Example: Delete documents with specific ids or that match a filter
         elif ids:
             ids = [ObjectId(id_) for id_ in ids]  # TODO: check if it is necessary.
             try:
@@ -180,7 +179,6 @@ class MongoDBAtlasDataStore(DataStore):
 
         else:
             mg_filter = self._build_mongo_filter(filter)
-            # Implement delete logic based on filter
             if mg_filter:
                 try:
                     logger.info(f"Deleting documents with filter: {mg_filter}")
