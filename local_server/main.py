@@ -4,6 +4,10 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 from loguru import logger
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from models.api import (
     DeleteRequest,
