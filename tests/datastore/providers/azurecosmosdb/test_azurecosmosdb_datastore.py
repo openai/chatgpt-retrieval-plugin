@@ -79,6 +79,10 @@ def queries() -> List[QueryWithEmbedding]:
 async def azurecosmosdb_datastore() -> DataStore:
     return await AzureCosmosDBDataStore.create(num_lists=num_lists, similarity=similarity)
 
+@pytest.mark.asyncio
+async def test_invalid_similarity() -> None:
+    with pytest.raises(ValueError):
+        await AzureCosmosDBDataStore.create(num_lists=num_lists, similarity="INVALID")
 
 @pytest.mark.asyncio
 async def test_upsert(
