@@ -51,7 +51,7 @@ class MongoDBAtlasDataStore(DataStore):
         self.index_name = index_name
 
         self._database_name = database_name
-        self.collection_name = collection_name or self.DEFAULT_COLLECTION
+        self.collection_name = collection_name
 
         # TODO: create index when pymongo supports it.
         # self._set_up_index(vector_size, similarity, recreate_index)
