@@ -25,7 +25,7 @@ MONGODB_HOST = os.environ.get("MONGODB_HOST")
 MONGODB_PORT = os.environ.get("MONGODB_PORT")
 MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE")
 MONGODB_AUTHMECHANISM = os.environ.get("MONGODB_AUTHMECHANISM")
-MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION")
+MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX")
 OVERSAMPLING_FACTOR = 1.2
 VECTOR_SIZE = 1536
@@ -33,7 +33,6 @@ UPSERT_BATCH_SIZE = 100
 
 
 class MongoDBAtlasDataStore(DataStore):
-    DEFAULT_COLLECTION = "default"
 
     def __init__(
         self,
@@ -52,7 +51,7 @@ class MongoDBAtlasDataStore(DataStore):
         self.index_name = index_name
 
         self._database_name = database_name
-        self._collection_name = collection_name or self.DEFAULT_COLLECTION
+        self.collection_name = collection_name or self.DEFAULT_COLLECTION
 
         # TODO: create index when pymongo supports it.
         # self._set_up_index(vector_size, similarity, recreate_index)
@@ -87,8 +86,8 @@ class MongoDBAtlasDataStore(DataStore):
                     self._convert_document_chunk_to_mongodb_document(chunk)
                 )
         # Upsert documents into the MongoDB collection
-        logger.info(f"{self.database_name}: {self._collection_name}")
-        self.client[self.database_name][self._collection_name].insert_many(
+        logger.info(f"{self.database_name}: {self.collection_name}")
+        self.client[self.database_name][self.collection_name].insert_many(
             documents_to_upsert
         )
         
@@ -134,7 +133,7 @@ class MongoDBAtlasDataStore(DataStore):
             }
         ]
 
-        results = self.client[self.database_name][self._collection_name].aggregate(pipeline)
+        results = self.client[self.database_name][self.collection_name].aggregate(pipeline)
         
         return QueryResult(
             query=query.query,
@@ -159,7 +158,7 @@ class MongoDBAtlasDataStore(DataStore):
         if delete_all:
             try:
                 logger.info("Deleting all documents from collection")
-                self.client[self.database_name][self._collection_name].delete_many({})
+                self.client[self.database_name][self.collection_name].delete_many({})
                 logger.info("Deleted all documents successfully")
             except Exception as e:
                 logger.error(f"Error deleting all documents: {e}")
@@ -169,7 +168,7 @@ class MongoDBAtlasDataStore(DataStore):
             ids = [ObjectId(id_) for id_ in ids]  # TODO: check if it is necessary.
             try:
                 logger.info(f"Deleting documents with ids: {ids}")
-                self.client[self.database_name][self._collection_name].delete_many({
+                self.client[self.database_name][self.collection_name].delete_many({
                     "_id": {"$in": ids}
                 })
                 logger.info("Deleted documents with ids successfully")
@@ -182,7 +181,7 @@ class MongoDBAtlasDataStore(DataStore):
             if mg_filter:
                 try:
                     logger.info(f"Deleting documents with filter: {mg_filter}")
-                    self.client[self.database_name][self._collection_name].delete_many(mg_filter)
+                    self.client[self.database_name][self.collection_name].delete_many(mg_filter)
                     logger.info("Deleted documents with filter successfully")
                 except Exception as e:
                     logger.info(type(mg_filter))
