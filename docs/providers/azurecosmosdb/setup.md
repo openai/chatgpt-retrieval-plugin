@@ -15,6 +15,8 @@ Learn more about Azure Cosmos DB for MongoDB vCore [here](https://learn.microsof
 | `AZCOSMOS_CONNSTR`           | Yes      | The connection string to your account.                                  |                     |
 | `AZCOSMOS_DATABASE_NAME`     | Yes      | The database where the data is stored/queried                           |                     |
 | `AZCOSMOS_CONTAINER_NAME`    | Yes      | The container where the data is stored/queried                          |                     |
+| `AZCOSMOS_SIMILARITY`        | No       | The similarity metric used by the vector database (allowed values are `COS`, `IP`, `L2`). Default value is `COS`.
+| `AZCOSMOS_NUM_LISTS`         | No       | "This integer is the number of clusters that the inverted file (IVF) index uses to group the vector data.". Default value is `100`. See [vector-search](https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/vcore/vector-search) for more information.
 
 ## Indexing
 On first insert, the datastore will create the collection and index if necessary on the field `embedding`. Currently hybrid search is not yet supported.
