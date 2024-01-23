@@ -90,7 +90,9 @@ class MongoDBAtlasDataStore(DataStore):
         self.client[self.database_name][self.collection_name].insert_many(
             documents_to_upsert
         )
-        
+
+        logger.info("Upsert document successfully")
+
         return list(chunks.keys())
 
     async def _query(
@@ -153,40 +155,34 @@ class MongoDBAtlasDataStore(DataStore):
         Removes documents by ids, filter, or everything in the datastore.
         Returns whether the operation was successful.
         """
-
         # Delete all documents from the collection if delete_all is True
         if delete_all:
-            try:
-                logger.info("Deleting all documents from collection")
-                self.client[self.database_name][self.collection_name].delete_many({})
-                logger.info("Deleted all documents successfully")
-            except Exception as e:
-                logger.error(f"Error deleting all documents: {e}")
-                raise e
+            logger.info("Deleting all documents from collection")
+            mg_filter = {}
 
+        # Delete by ids
         elif ids:
             ids = [ObjectId(id_) for id_ in ids]
-            try:
-                logger.info(f"Deleting documents with ids: {ids}")
-                self.client[self.database_name][self.collection_name].delete_many({
-                    "_id": {"$in": ids}
-                })
-                logger.info("Deleted documents with ids successfully")
-            except Exception as e:
-                logger.error(f"Error deleting documents with ids: {e}")
-                raise e
+            logger.info(f"Deleting documents with ids: {ids}")
+            mg_filter = {
+                "_id": {"$in": ids}
+            }
 
-        else:
+        # Delete by filters
+        elif filter:
             mg_filter = self._build_mongo_filter(filter)
-            if mg_filter:
-                try:
-                    logger.info(f"Deleting documents with filter: {mg_filter}")
-                    self.client[self.database_name][self.collection_name].delete_many(mg_filter)
-                    logger.info("Deleted documents with filter successfully")
-                except Exception as e:
-                    logger.info(type(mg_filter))
-                    logger.error(f"Error deleting documents with filter: {e}")
-                    raise e
+            logger.info(f"Deleting documents with filter: {mg_filter}")
+        # Do nothing
+        else:
+            mg_filter = None
+
+        if mg_filter is not None:
+            try:
+                self.client[self.database_name][self.collection_name].delete_many(mg_filter)
+                logger.info("Deleted documents successfully")
+            except Exception as e:
+                logger.error(f"Error deleting documents with filter: {mg_filter}")
+                raise e
 
         return True
 
