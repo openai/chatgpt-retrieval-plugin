@@ -165,7 +165,7 @@ class MongoDBAtlasDataStore(DataStore):
                 raise e
 
         elif ids:
-            ids = [ObjectId(id_) for id_ in ids]  # TODO: check if it is necessary.
+            ids = [ObjectId(id_) for id_ in ids]
             try:
                 logger.info(f"Deleting documents with ids: {ids}")
                 self.client[self.database_name][self.collection_name].delete_many({
