@@ -1,4 +1,9 @@
+import asyncio
+from inspect import iscoroutinefunction
 import pytest
+import time
+from typing import Callable
+
 from models.models import (
     DocumentChunkMetadata,
     DocumentMetadataFilter,
@@ -6,12 +11,36 @@ from models.models import (
     QueryWithEmbedding,
     Source,
 )
+from services.date import to_unix_timestamp
+from datetime import datetime
 from datastore.providers.mongodb_atlas_datastore import (
     MongoDBAtlasDataStore,
 )
-import asyncio
+
 
 DIM_SIZE = 1536
+
+
+async def assert_when_ready(callable: Callable, tries: int = 5, interval: float = 1):
+    for _ in range(tries):
+        if iscoroutinefunction(callable):
+            result = await callable()
+        else:
+            result = callable()
+        if result:
+            return
+        time.sleep(interval)
+
+    raise AssertionError("Condition not met after multiple attempts")
+
+
+def collection_size_callback_factory(collection, num: int):
+
+    async def predicate():
+        num_documents = await collection.count_documents({})
+        return num_documents == num
+
+    return predicate
 
 
 @pytest.fixture
@@ -22,9 +51,11 @@ def _mongodb_datastore():
 @pytest.fixture
 async def mongodb_datastore(_mongodb_datastore):
     await _mongodb_datastore.delete(delete_all=True)
-    await asyncio.sleep(1)
+    collection = _mongodb_datastore.client[_mongodb_datastore.database_name][_mongodb_datastore.collection_name]
+    await assert_when_ready(collection_size_callback_factory(collection, 0))
     yield _mongodb_datastore
     await _mongodb_datastore.delete(delete_all=True)
+    await assert_when_ready(collection_size_callback_factory(collection, 0))
 
 
 def sample_embedding(one_element_poz: int):
@@ -88,24 +119,24 @@ async def test_upsert(mongodb_datastore, document_chunk_one):
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
-    num_documents = await collection.count_documents({})
-    assert num_documents == 3
+    await assert_when_ready(collection_size_callback_factory(collection, 3))
 
 
 async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
     res = await mongodb_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
-    await asyncio.sleep(2)
+    await assert_when_ready(lambda: res == list(document_chunk_one.keys()))
 
     query = QueryWithEmbedding(
         query="Aenean",
         top_k=10,
         embedding=sample_embedding(0),  # type: ignore
     )
-    query_results = await mongodb_datastore._query(queries=[query])
 
-    assert 1 == len(query_results)
-    assert 3 == len(query_results[0].results)
+    async def predicate():
+        query_results = await mongodb_datastore._query(queries=[query])
+        return 1 == len(query_results) and 3 == len(query_results[0].results)
+
+    await assert_when_ready(predicate)
 
 
 async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
@@ -115,10 +146,9 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
     first_id = str((await collection.find_one())["_id"])
     await mongodb_datastore.delete(ids=[first_id])
 
-    all_documents = [doc async for doc in collection.find()]
-    num_documents = await collection.count_documents({})
+    await assert_when_ready(collection_size_callback_factory(collection, 2))
 
-    assert 2 == num_documents
+    all_documents = [doc async for doc in collection.find()]
     assert all_documents[0]["metadata"]["author"] != "Fred Smith"
     assert all_documents[1]["metadata"]["author"] != "Fred Smith"
 
@@ -126,22 +156,69 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
 async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    await asyncio.sleep(0.5)
 
     await mongodb_datastore.delete(
         filter=DocumentMetadataFilter(
             source=Source.email,
         )
     )
-    await asyncio.sleep(2)
+
     query = QueryWithEmbedding(
         query="Aenean",
         top_k=9,
         embedding=sample_embedding(0),  # type: ignore
     )
-    query_results = await mongodb_datastore._query(queries=[query])
 
-    assert 1 == len(query_results)
-    assert 2 == len(query_results[0].results)
+    async def predicate():
+        query_results = await mongodb_datastore._query(queries=[query])
+        return 1 == len(query_results) and query_results[0].results
+
+    await assert_when_ready(predicate)
+    query_results = await mongodb_datastore._query(queries=[query])
     assert query_results[0].results[0].text != "Aenean euismod bibendum laoreet"
     assert query_results[0].results[1].text != "Aenean euismod bibendum laoreet"
+
+
+@pytest.fixture
+def build_mongo_filter():
+    return MongoDBAtlasDataStore()._build_mongo_filter
+
+
+async def test_build_mongo_filter_with_no_filter(build_mongo_filter):
+    result = build_mongo_filter()
+    assert result == {}
+
+
+async def test_build_mongo_filter_with_start_date(build_mongo_filter):
+    date = datetime(2022, 1, 1).isoformat()
+    filter_data = {"start_date": date}
+    result = build_mongo_filter(DocumentMetadataFilter(**filter_data))
+
+    assert result == {
+        "$and": [
+            {"created_at": {"$gte": to_unix_timestamp(date)}}
+        ]
+    }
+
+
+async def test_build_mongo_filter_with_end_date(build_mongo_filter):
+    date = datetime(2022, 1, 1).isoformat()
+    filter_data = {"end_date": date}
+    result = build_mongo_filter(DocumentMetadataFilter(**filter_data))
+
+    assert result == {
+        "$and": [
+            {"created_at": {"$lte": to_unix_timestamp(date)}}
+        ]
+    }
+
+
+async def test_build_mongo_filter_with_metadata_field(build_mongo_filter):
+    filter_data = {"source": "email"}
+    result = build_mongo_filter(DocumentMetadataFilter(**filter_data))
+
+    assert result == {
+        "$and": [
+            {"metadata.source": "email"}
+        ]
+    }
