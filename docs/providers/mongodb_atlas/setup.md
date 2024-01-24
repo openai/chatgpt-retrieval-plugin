@@ -25,10 +25,10 @@ To establish a connection to the MongoDB database and collection, you must defin
 
 ## Running MongoDB Integration Tests
 
-A suite of integration tests is available to verify the Elasticsearch integration. To run the tests, run the docker compose found in the `examples/docker/elasticsearch` folder with `docker-compose up`. This will start Elasticsearch in single node, security off mode, listening on `http://localhost:9200`.
+A suite of integration tests is available to verify the Mongodb integration. The test suite needs the enviroment variables descripted above.
 
 Then, launch the test suite with this command:
 
 ```bash
-pytest ./tests/datastore/providers/elasticsearch/test_elasticsearch_datastore.py
+pytest ./tests/datastore/providers/mongodb_atlas/test_mongodb_datastore.py
 ```

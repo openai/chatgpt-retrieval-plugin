@@ -194,12 +194,6 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 
    # MongoDB Atlas
    export MONGODB_URI=<mongodb_uri>
-   or
-   export MONGODB_USER=<mongodb_user>
-   export MONGODB_PASSWORD=<mongodb_password>
-   export MONGODB_HOST=<mongodb_host>
-   export MONGODB_PORT=<mongodb_port>
-
    export MONGODB_DATABASE=<mongodb_database>
    export MONGODB_COLLECTION=<mongodb_collection>
    export MONGODB_INDEX=<mongodb_index>
