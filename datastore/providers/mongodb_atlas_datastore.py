@@ -105,12 +105,12 @@ class MongoDBAtlasDataStore(DataStore):
         """
         results = []
         for query in queries:
-            query_result = self.execute_embedding_query(query)
+            query_result = self._execute_embedding_query(query)
             results.append(query_result)
 
         return results
 
-    def execute_embedding_query(self, query: QueryWithEmbedding) -> QueryResult:
+    def _execute_embedding_query(self, query: QueryWithEmbedding) -> QueryResult:
         """
         Execute a MongoDB query using vector search on the specified collection and
         return the result of the query, including matched documents and their scores.
