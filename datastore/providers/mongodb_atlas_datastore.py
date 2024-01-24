@@ -174,6 +174,7 @@ class MongoDBAtlasDataStore(DataStore):
             logger.info(f"Deleting documents with filter: {mg_filter}")
         # Do nothing
         else:
+            logger.warning("Deleting with no specific criteria.")
             mg_filter = None
 
         if mg_filter is not None:
