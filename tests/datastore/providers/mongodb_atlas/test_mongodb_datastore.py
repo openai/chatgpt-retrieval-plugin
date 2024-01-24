@@ -15,8 +15,16 @@ DIM_SIZE = 1536
 
 
 @pytest.fixture
-def mongodb_datastore():
+def _mongodb_datastore():
     return MongoDBAtlasDataStore()
+
+
+@pytest.fixture
+async def mongodb_datastore(_mongodb_datastore):
+    await _mongodb_datastore.delete(delete_all=True)
+    await asyncio.sleep(1)
+    yield _mongodb_datastore
+    await _mongodb_datastore.delete(delete_all=True)
 
 
 def sample_embedding(one_element_poz: int):
@@ -77,21 +85,17 @@ def document_chunk_one():
 
 
 async def test_upsert(mongodb_datastore, document_chunk_one):
-    await mongodb_datastore.delete(delete_all=True)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
     num_documents = await collection.count_documents({})
     assert num_documents == 3
-    await mongodb_datastore.delete(delete_all=True)
 
 
 async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
-    await mongodb_datastore.delete(delete_all=True)
-    await asyncio.sleep(0.5)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(2)
 
     query = QueryWithEmbedding(
         query="Aenean",
@@ -102,12 +106,9 @@ async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
 
     assert 1 == len(query_results)
     assert 3 == len(query_results[0].results)
-    await mongodb_datastore.delete(delete_all=True)
 
 
 async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
-    await mongodb_datastore.delete(delete_all=True)
-    await asyncio.sleep(1)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
@@ -121,11 +122,8 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
     assert all_documents[0]["metadata"]["author"] != "Fred Smith"
     assert all_documents[1]["metadata"]["author"] != "Fred Smith"
 
-    await mongodb_datastore.delete(delete_all=True)
-
 
 async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
-    await mongodb_datastore.delete(delete_all=True)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
     await asyncio.sleep(0.5)
@@ -135,7 +133,7 @@ async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
             source=Source.email,
         )
     )
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(2)
     query = QueryWithEmbedding(
         query="Aenean",
         top_k=9,
@@ -147,4 +145,3 @@ async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
     assert 2 == len(query_results[0].results)
     assert query_results[0].results[0].text != "Aenean euismod bibendum laoreet"
     assert query_results[0].results[1].text != "Aenean euismod bibendum laoreet"
-    await mongodb_datastore.delete(delete_all=True)

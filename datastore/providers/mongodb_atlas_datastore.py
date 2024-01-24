@@ -19,9 +19,9 @@ from services.date import to_unix_timestamp
 
 
 MONGODB_CONNECTION_URI = os.environ.get("MONGODB_URI")
-MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE")
+MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE", "database_name")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
-MONGODB_INDEX = os.environ.get("MONGODB_INDEX")
+MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "index_name")
 OVERSAMPLING_FACTOR = 1.2
 VECTOR_SIZE = 1536
 UPSERT_BATCH_SIZE = 100
@@ -31,13 +31,15 @@ class MongoDBAtlasDataStore(DataStore):
 
     def __init__(
         self,
-        index_name: Optional[str] = MONGODB_INDEX,
-        database_name: Optional[str] = MONGODB_DATABASE,
-        collection_name: Optional[str] = MONGODB_COLLECTION,
+        index_name: Optional[str] = None,
+        database_name: Optional[str] = None,
+        collection_name: Optional[str] = None,
         vector_size: int = VECTOR_SIZE,
         oversampling_factor: float = OVERSAMPLING_FACTOR,
         **kwargs
     ):
+        index_name = index_name or MONGODB_INDEX
+
         self._oversampling_factor = oversampling_factor
         self.vector_size = vector_size
 
@@ -45,8 +47,8 @@ class MongoDBAtlasDataStore(DataStore):
             raise ValueError("Provide a valid index name")
         self.index_name = index_name
 
-        self._database_name = database_name
-        self.collection_name = collection_name
+        self._database_name = database_name or MONGODB_DATABASE
+        self.collection_name = collection_name or MONGODB_COLLECTION
 
         # TODO: create index when pymongo supports it.
         # self._set_up_index(vector_size, similarity, recreate_index)
