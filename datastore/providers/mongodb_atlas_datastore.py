@@ -1,10 +1,10 @@
+import arrow
 import os
 from typing import Dict, List, Any, Optional
-from pymongo import MongoClient
 from loguru import logger
 from math import ceil
 from bson.objectid import ObjectId
-import arrow
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from datastore.datastore import DataStore
 from functools import cached_property
@@ -19,12 +19,7 @@ from services.date import to_unix_timestamp
 
 
 MONGODB_CONNECTION_URI = os.environ.get("MONGODB_URI")
-MONGODB_USER = os.environ.get("MONGODB_USER")
-MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD")
-MONGODB_HOST = os.environ.get("MONGODB_HOST")
-MONGODB_PORT = os.environ.get("MONGODB_PORT")
 MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE")
-MONGODB_AUTHMECHANISM = os.environ.get("MONGODB_AUTHMECHANISM")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX")
 OVERSAMPLING_FACTOR = 1.2
@@ -59,13 +54,7 @@ class MongoDBAtlasDataStore(DataStore):
     @cached_property
     def client(self):
         return self._connect_to_mongodb_atlas(
-            atlas_connection_uri=MONGODB_CONNECTION_URI,
-            host=MONGODB_USER,
-            port=MONGODB_PASSWORD,
-            username=MONGODB_HOST,
-            password=MONGODB_PORT,
-            auth_source=self._database_name,
-            auth_mechanism=MONGODB_AUTHMECHANISM,
+            atlas_connection_uri=MONGODB_CONNECTION_URI
         )
 
     @property
@@ -87,7 +76,7 @@ class MongoDBAtlasDataStore(DataStore):
                 )
         # Upsert documents into the MongoDB collection
         logger.info(f"{self.database_name}: {self.collection_name}")
-        self.client[self.database_name][self.collection_name].insert_many(
+        await self.client[self.database_name][self.collection_name].insert_many(
             documents_to_upsert
         )
 
@@ -105,12 +94,12 @@ class MongoDBAtlasDataStore(DataStore):
         """
         results = []
         for query in queries:
-            query_result = self._execute_embedding_query(query)
+            query_result = await self._execute_embedding_query(query)
             results.append(query_result)
 
         return results
 
-    def _execute_embedding_query(self, query: QueryWithEmbedding) -> QueryResult:
+    async def _execute_embedding_query(self, query: QueryWithEmbedding) -> QueryResult:
         """
         Execute a MongoDB query using vector search on the specified collection and
         return the result of the query, including matched documents and their scores.
@@ -135,14 +124,15 @@ class MongoDBAtlasDataStore(DataStore):
             }
         ]
 
-        results = self.client[self.database_name][self.collection_name].aggregate(pipeline)
-        
+        cursor = self.client[self.database_name][self.collection_name].aggregate(pipeline)
+        results = [
+            self._convert_mongodb_document_to_document_chunk_with_score(doc)
+            async for doc in cursor
+        ]
+
         return QueryResult(
             query=query.query,
-            results=[
-                self._convert_mongodb_document_to_document_chunk_with_score(result)
-                for result in results
-            ],
+            results=results,
         )
 
     async def delete(
@@ -179,7 +169,7 @@ class MongoDBAtlasDataStore(DataStore):
 
         if mg_filter is not None:
             try:
-                self.client[self.database_name][self.collection_name].delete_many(mg_filter)
+                await self.client[self.database_name][self.collection_name].delete_many(mg_filter)
                 logger.info("Deleted documents successfully")
             except Exception as e:
                 logger.error(f"Error deleting documents with filter: {mg_filter}")
@@ -210,6 +200,7 @@ class MongoDBAtlasDataStore(DataStore):
         )
         
         mongodb_document = {
+            "id": document_chunk.id,
             "text": document_chunk.text,
             "created_at": created_at,
             "metadata": document_chunk.metadata.dict(),
@@ -251,29 +242,9 @@ class MongoDBAtlasDataStore(DataStore):
         return mongo_filters
 
     @staticmethod
-    def _connect_to_mongodb_atlas(
-            atlas_connection_uri: Optional[str] = None,
-            host: Optional[str] = None,
-            port: Optional[str] = None,
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-            auth_source: Optional[str] = None,
-            auth_mechanism: Optional[str] = None,
-            ):
+    def _connect_to_mongodb_atlas(atlas_connection_uri: str):
         """
         Establish a connection to MongoDB Atlas.
         """
-        if atlas_connection_uri is not None:
-            client = MongoClient(atlas_connection_uri)
-        elif host:
-            client = MongoClient(
-                host=host,
-                port=port,
-                username=username,
-                password=password,
-                authSource=auth_source,
-                authMechanism=auth_mechanism
-            )
-        else:
-            raise ValueError("Please provide either atlas_connection_uri or mongo credentials.")
+        client = AsyncIOMotorClient(atlas_connection_uri)
         return client

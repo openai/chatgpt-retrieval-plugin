@@ -80,8 +80,9 @@ async def test_upsert(mongodb_datastore, document_chunk_one):
     await mongodb_datastore.delete(delete_all=True)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore._collection_name]
-    assert collection.count_documents({}) == 3
+    collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
+    num_documents = await collection.count_documents({})
+    assert num_documents == 3
     await mongodb_datastore.delete(delete_all=True)
 
 
@@ -109,13 +110,14 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
     await asyncio.sleep(1)
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
-    collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore._collection_name]
-    first_id = str(collection.find_one()["_id"])
+    collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
+    first_id = str((await collection.find_one())["_id"])
     await mongodb_datastore.delete(ids=[first_id])
 
-    all_documents = collection.find()
+    all_documents = [doc async for doc in collection.find()]
+    num_documents = await collection.count_documents({})
 
-    assert 2 == collection.count_documents({})
+    assert 2 == num_documents
     assert all_documents[0]["metadata"]["author"] != "Fred Smith"
     assert all_documents[1]["metadata"]["author"] != "Fred Smith"
 
