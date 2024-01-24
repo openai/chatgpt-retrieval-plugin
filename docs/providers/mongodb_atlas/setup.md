@@ -11,7 +11,7 @@ Begin by manually creating a [Atlas Search Index](https://www.mongodb.com/docs/a
 | `DATASTORE`           | Yes      | Datastore name, set this to `mongodb`                                                              |
 | `BEARER_TOKEN`        | Yes      | Your secret token for authenticating requests to the API                                                             |
 | `OPENAI_API_KEY`      | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                |
-| `MONGODB_INDEX` | Yes      | Your chosen MongoDB index name.|
+| `MONGODB_INDEX` | No      | Your chosen MongoDB index name. Default is `default`. |
 
 **Connection Evironment Variables:**
 
