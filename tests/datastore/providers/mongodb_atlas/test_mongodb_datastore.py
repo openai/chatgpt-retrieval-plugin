@@ -65,12 +65,7 @@ def sample_embedding(one_element_poz: int):
 
 
 def sample_embeddings(num: int, one_element_start: int = 0):
-    embeddings = []
-    for x in range(num):
-        embedding = [0] * DIM_SIZE
-        embedding[(x + one_element_start) % DIM_SIZE] = 1
-        embeddings.append(embedding)
-    return embeddings
+    return [sample_embedding(x + one_element_start) for x in range(num)]
 
 
 @pytest.fixture
