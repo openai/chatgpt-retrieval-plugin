@@ -188,16 +188,16 @@ class MongoDBAtlasDataStore(DataStore):
             logger.info(f"Deleting documents with filter: {mg_filter}")
         # Do nothing
         else:
-            logger.warning("Deleting with no specific criteria.")
-            mg_filter = None
+            logger.warning("No criteria set; nothing to delete args: ids: %s, filter: %s delete_all: %s", ids, filter, delete_all)
+            return True
 
         if mg_filter is not None:
             try:
                 await self.client[self.database_name][self.collection_name].delete_many(mg_filter)
                 logger.info("Deleted documents successfully")
             except Exception as e:
-                logger.error(f"Error deleting documents with filter: {mg_filter}")
-                raise e
+                logger.error("Error deleting documents with filter: %s -- error: %s", mg_filter, e)
+                return False
 
         return True
 

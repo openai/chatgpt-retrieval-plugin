@@ -20,8 +20,8 @@ To establish a connection to the MongoDB database and collection, you must defin
 | Name                     | Required | Description                                                                                      |
 | ------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
 | `MONGODB_URI`      | Yes      | Your MongoDB URL.        |
-| `MONGODB_DATABASE` | Yes      | Your MongoDB Database.      |
-| `MONGODB_COLLECTION` | Yes      | Your MongoDB Collection     |
+| `MONGODB_DATABASE` | No      | Your MongoDB Database. Defaults to 'default'.     |
+| `MONGODB_COLLECTION` | No      | Your MongoDB Collection. Defaults to 'default'     |
 
 ## Running MongoDB Integration Tests
 
