@@ -37,8 +37,29 @@ class MongoDBAtlasDataStore(DataStore):
         collection_name: Optional[str] = None,
         vector_size: int = VECTOR_SIZE,
         oversampling_factor: float = OVERSAMPLING_FACTOR,
-        **kwargs
     ):
+        """
+        Initialize a MongoDBAtlasDataStore instance.
+
+        Parameters:
+        - index_name (str, optional): Vector search index. If not provided, default index name is used.
+        - database_name (str, optional): Database. If not provided, default database name is used.
+        - collection_name (str, optional): Collection. If not provided, default collection name is used.
+        - vector_size (int, optional): Size of the vectors. Default is VECTOR_SIZE.
+        - oversampling_factor (float, optional): Oversampling factor for data augmentation.
+                                                 Default is OVERSAMPLING_FACTOR.
+
+        Raises:
+        - ValueError: If index_name is not a valid string.
+
+        Attributes:
+        - index_name (str): Name of the index.
+        - database_name (str): Name of the database.
+        - collection_name (str): Name of the collection.
+        - vector_size (int): Size of the vectors.
+        - _oversampling_factor (float): Oversampling factor for data augmentation.
+        """
+
         index_name = index_name or MONGODB_INDEX
 
         self._oversampling_factor = oversampling_factor
