@@ -2,9 +2,10 @@ import arrow
 import os
 from typing import Dict, List, Any, Optional
 from loguru import logger
-from math import ceil
 from bson.objectid import ObjectId
+from importlib.metadata import version
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.driver_info import DriverInfo
 
 from datastore.datastore import DataStore
 from functools import cached_property
@@ -269,5 +270,8 @@ class MongoDBAtlasDataStore(DataStore):
         """
         Establish a connection to MongoDB Atlas.
         """
-        client = AsyncIOMotorClient(atlas_connection_uri)
+
+        client = AsyncIOMotorClient(
+            atlas_connection_uri,
+            driver=DriverInfo(name="Chatgpt Retrieval Plugin", version=version("chatgpt_retrieval_plugin")))
         return client
