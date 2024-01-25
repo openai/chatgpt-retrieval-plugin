@@ -32,9 +32,9 @@ class MongoDBAtlasDataStore(DataStore):
 
     def __init__(
         self,
-        index_name: Optional[str] = None,
-        database_name: Optional[str] = None,
-        collection_name: Optional[str] = None,
+        index_name: str = MONGODB_INDEX,
+        database_name: str = MONGODB_DATABASE,
+        collection_name: str = MONGODB_COLLECTION,
         vector_size: int = VECTOR_SIZE,
         oversampling_factor: float = OVERSAMPLING_FACTOR,
     ):
