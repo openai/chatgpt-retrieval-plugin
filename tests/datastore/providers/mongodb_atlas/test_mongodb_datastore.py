@@ -175,8 +175,8 @@ async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
 
     await assert_when_ready(predicate)
     query_results = await mongodb_datastore._query(queries=[query])
-    assert query_results[0].results[0].text != "Aenean euismod bibendum laoreet"
-    assert query_results[0].results[1].text != "Aenean euismod bibendum laoreet"
+    for result in query_results[0].results:
+        assert results.text != "Aenean euismod bibendum laoreet"
 
 
 @pytest.fixture
