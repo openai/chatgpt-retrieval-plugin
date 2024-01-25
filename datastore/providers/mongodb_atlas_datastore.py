@@ -21,7 +21,7 @@ from services.date import to_unix_timestamp
 MONGODB_CONNECTION_URI = os.environ.get("MONGODB_URI")
 MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE", "default")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
-MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "index_name")
+MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "default")
 OVERSAMPLING_FACTOR = 10
 MAX_CANDIDATES = 10_000
 VECTOR_SIZE = 1536
