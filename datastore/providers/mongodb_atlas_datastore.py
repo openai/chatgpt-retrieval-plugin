@@ -93,7 +93,7 @@ class MongoDBAtlasDataStore(DataStore):
         Return a list of document ids.
         """
         documents_to_upsert = []
-        for _, chunk_list in chunks.items():
+        for chunk_list in chunks.values():
             for chunk in chunk_list:
                 documents_to_upsert.append(
                     self._convert_document_chunk_to_mongodb_document(chunk)
