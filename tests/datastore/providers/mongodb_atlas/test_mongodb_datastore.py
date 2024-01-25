@@ -149,8 +149,8 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
     await assert_when_ready(collection_size_callback_factory(collection, 2))
 
     all_documents = [doc async for doc in collection.find()]
-    assert all_documents[0]["metadata"]["author"] != "Fred Smith"
-    assert all_documents[1]["metadata"]["author"] != "Fred Smith"
+    for document in all_documents:
+        assert document["metadata"]["author"] != "Fred Smith"
 
 
 async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
