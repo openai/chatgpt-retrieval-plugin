@@ -22,7 +22,8 @@ MONGODB_CONNECTION_URI = os.environ.get("MONGODB_URI")
 MONGODB_DATABASE = os.environ.get("MONGODB_DATABASE", "default")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "index_name")
-OVERSAMPLING_FACTOR = 1.2
+OVERSAMPLING_FACTOR = 10
+MAX_CANDIDATES = 10_000
 VECTOR_SIZE = 1536
 UPSERT_BATCH_SIZE = 100
 
@@ -112,7 +113,7 @@ class MongoDBAtlasDataStore(DataStore):
                     'index': self.index_name,
                     'path': 'embedding',
                     'queryVector': query.embedding,
-                    'numCandidates': ceil(query.top_k * self._oversampling_factor),
+                    'numCandidates': min(query.top_k * self._oversampling_factor, MAX_CANDIDATES),
                     'limit': query.top_k
                  }
             }, {
