@@ -73,7 +73,7 @@ class MongoDBAtlasDataStore(DataStore):
         self._database_name = database_name or MONGODB_DATABASE
         self.collection_name = collection_name or MONGODB_COLLECTION
 
-        # TODO: create index when pymongo supports it.
+        # TODO: Create index via driver https://jira.mongodb.org/browse/PYTHON-4175
         # self._set_up_index(vector_size, similarity, recreate_index)
 
     @cached_property
