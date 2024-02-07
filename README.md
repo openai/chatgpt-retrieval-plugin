@@ -299,6 +299,13 @@ When choosing a model, consider:
 
 For example, if your vector database supports up to 1024 dimensions, you can use `text-embedding-3-large` and set the dimensions API parameter to 1024. This shortens the embedding from 3072 dimensions, trading off some accuracy for lower storage and query costs.
 
+To change your chosen embeddings model and size, edit the following environment variables:
+
+```
+EMBEDDING_DIMENSION=256 # edit this value based on the dimension of the embeddings you want to use
+EMBEDDING_MODEL="text-embedding-3-large" # edit this value based on the model you want to use e.g. text-embedding-3-small, text-embedding-ada-002
+```
+
 ## Development
 
 ### Setup
