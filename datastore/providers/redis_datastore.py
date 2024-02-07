@@ -36,16 +36,18 @@ REDIS_DISTANCE_METRIC = os.environ.get("REDIS_DISTANCE_METRIC", "COSINE")
 REDIS_INDEX_TYPE = os.environ.get("REDIS_INDEX_TYPE", "FLAT")
 assert REDIS_INDEX_TYPE in ("FLAT", "HNSW")
 
-# OpenAI Ada Embeddings Dimension
-VECTOR_DIMENSION = 1536
+# OpenAI Embeddings Dimension
+VECTOR_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
+
 
 # RediSearch constants
 REDIS_REQUIRED_MODULES = [
     {"name": "search", "ver": 20600},
-    {"name": "ReJSON", "ver": 20404}
+    {"name": "ReJSON", "ver": 20404},
 ]
 
 REDIS_DEFAULT_ESCAPED_CHARS = re.compile(r"[,.<>{}\[\]\\\"\':;!@#$%^&()\-+=~\/ ]")
+
 
 # Helper functions
 def unpack_schema(d: dict):
@@ -55,13 +57,18 @@ def unpack_schema(d: dict):
         else:
             yield v
 
+
 async def _check_redis_module_exist(client: redis.Redis, modules: List[dict]):
     installed_modules = (await client.info()).get("modules", [])
     installed_modules = {module["name"]: module for module in installed_modules}
     for module in modules:
-        if module["name"] not in installed_modules or int(installed_modules[module["name"]]["ver"]) < int(module["ver"]):
-            error_message = "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. " \
+        if module["name"] not in installed_modules or int(
+            installed_modules[module["name"]]["ver"]
+        ) < int(module["ver"]):
+            error_message = (
+                "You must add the RediSearch (>= 2.6) and ReJSON (>= 2.4) modules from Redis Stack. "
                 "Please refer to Redis Stack docs: https://redis.io/docs/stack/"
+            )
             logger.error(error_message)
             raise AttributeError(error_message)
 
@@ -72,7 +79,8 @@ class RedisDataStore(DataStore):
         self._schema = redisearch_schema
         # Init default metadata with sentinel values in case the document written has no metadata
         self._default_metadata = {
-            field: (0 if field == "created_at" else "_null_") for field in redisearch_schema["metadata"]
+            field: (0 if field == "created_at" else "_null_")
+            for field in redisearch_schema["metadata"]
         }
 
     ### Redis Helper Methods ###
@@ -97,11 +105,15 @@ class RedisDataStore(DataStore):
         dim = kwargs.get("dim", VECTOR_DIMENSION)
         redisearch_schema = {
             "metadata": {
-                "document_id": TagField("$.metadata.document_id", as_name="document_id"),
+                "document_id": TagField(
+                    "$.metadata.document_id", as_name="document_id"
+                ),
                 "source_id": TagField("$.metadata.source_id", as_name="source_id"),
                 "source": TagField("$.metadata.source", as_name="source"),
                 "author": TextField("$.metadata.author", as_name="author"),
-                "created_at": NumericField("$.metadata.created_at", as_name="created_at"),
+                "created_at": NumericField(
+                    "$.metadata.created_at", as_name="created_at"
+                ),
             },
             "embedding": VectorField(
                 "$.embedding",
@@ -273,7 +285,6 @@ class RedisDataStore(DataStore):
 
         # Loop through the dict items
         for doc_id, chunk_list in chunks.items():
-
             # Append the id to the ids list
             doc_ids.append(doc_id)
 
@@ -301,7 +312,6 @@ class RedisDataStore(DataStore):
         # Gather query results in a pipeline
         logger.info(f"Gathering {len(queries)} query results")
         for query in queries:
-
             logger.debug(f"Query: {query.query}")
             query_results: List[DocumentChunkWithScore] = []
 
@@ -323,7 +333,7 @@ class RedisDataStore(DataStore):
                     id=doc_json["metadata"]["document_id"],
                     score=doc.score,
                     text=doc_json["text"],
-                    metadata=doc_json["metadata"]
+                    metadata=doc_json["metadata"],
                 )
                 query_results.append(result)
 

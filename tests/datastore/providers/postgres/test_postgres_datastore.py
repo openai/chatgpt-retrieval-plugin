@@ -7,11 +7,14 @@ from models.models import (
     DocumentMetadataFilter,
     QueryWithEmbedding,
 )
+import os
+
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 
 
 def create_embedding(non_zero_pos: int) -> List[float]:
     # create a vector with a single non-zero value of dimension 1535
-    vector = [0.0] * 1536
+    vector = [0.0] * EMBEDDING_DIMENSION
     vector[non_zero_pos - 1] = 1.0
     return vector
 
@@ -107,7 +110,7 @@ async def test_upsert_new_chunk(postgres_datastore):
     chunk = DocumentChunk(
         id="chunk1",
         text="Sample text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     ids = await postgres_datastore._upsert({"doc1": [chunk]})
@@ -120,7 +123,7 @@ async def test_upsert_existing_chunk(postgres_datastore):
     chunk = DocumentChunk(
         id="chunk1",
         text="Sample text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     ids = await postgres_datastore._upsert({"doc1": [chunk]})
@@ -128,12 +131,12 @@ async def test_upsert_existing_chunk(postgres_datastore):
     chunk = DocumentChunk(
         id="chunk1",
         text="New text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     ids = await postgres_datastore._upsert({"doc1": [chunk]})
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query",
         embedding=query_embedding,
@@ -153,18 +156,18 @@ async def test_query_score(postgres_datastore):
     chunk1 = DocumentChunk(
         id="chunk1",
         text="Sample text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     chunk2 = DocumentChunk(
         id="chunk2",
         text="Another text",
-        embedding=[-1 if i % 2 == 0 else 1 for i in range(1536)],
+        embedding=[-1 if i % 2 == 0 else 1 for i in range(EMBEDDING_DIMENSION)],
         metadata=DocumentChunkMetadata(),
     )
     await postgres_datastore._upsert({"doc1": [chunk1], "doc2": [chunk2]})
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query",
         embedding=query_embedding,
@@ -172,7 +175,7 @@ async def test_query_score(postgres_datastore):
     results = await postgres_datastore._query([query])
 
     assert results[0].results[0].id == "chunk1"
-    assert int(results[0].results[0].score) == 1536
+    assert int(results[0].results[0].score) == EMBEDDING_DIMENSION
 
 
 @pytest.mark.asyncio
@@ -181,7 +184,7 @@ async def test_query_filter(postgres_datastore):
     chunk1 = DocumentChunk(
         id="chunk1",
         text="Sample text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(
             source="email", created_at="2021-01-01", author="John"
         ),
@@ -189,7 +192,7 @@ async def test_query_filter(postgres_datastore):
     chunk2 = DocumentChunk(
         id="chunk2",
         text="Another text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(
             source="chat", created_at="2022-02-02", author="Mike"
         ),
@@ -197,7 +200,7 @@ async def test_query_filter(postgres_datastore):
     await postgres_datastore._upsert({"doc1": [chunk1], "doc2": [chunk2]})
 
     # Test author filter -- string
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query",
         embedding=query_embedding,
@@ -207,7 +210,7 @@ async def test_query_filter(postgres_datastore):
     assert results[0].results[0].id == "chunk1"
 
     # Test source filter -- enum
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query",
         embedding=query_embedding,
@@ -217,7 +220,7 @@ async def test_query_filter(postgres_datastore):
     assert results[0].results[0].id == "chunk2"
 
     # Test created_at filter -- date
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query",
         embedding=query_embedding,
@@ -233,18 +236,18 @@ async def test_delete(postgres_datastore):
     chunk1 = DocumentChunk(
         id="chunk1",
         text="Sample text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     chunk2 = DocumentChunk(
         id="chunk2",
         text="Another text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     await postgres_datastore._upsert({"doc1": [chunk1], "doc2": [chunk2]})
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Another query",
         embedding=query_embedding,
@@ -268,12 +271,12 @@ async def test_delete_all(postgres_datastore):
     chunk = DocumentChunk(
         id="chunk",
         text="Another text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     await postgres_datastore._upsert({"doc": [chunk]})
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Another query",
         embedding=query_embedding,

@@ -10,7 +10,7 @@ The app will create an Elasticsearch index for you automatically when you run it
 | --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
 | `DATASTORE`           | Yes      | Datastore name, set this to `elasticsearch`                                                                          |
 | `BEARER_TOKEN`        | Yes      | Your secret token for authenticating requests to the API                                                             |
-| `OPENAI_API_KEY`      | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                |
+| `OPENAI_API_KEY`      | Yes      | Your OpenAI API key for generating embeddings with the OpenAI embeddings model                                       |
 | `ELASTICSEARCH_INDEX` | Yes      | Your chosen Elasticsearch index name. **Note:** Index name must consist of lower case alphanumeric characters or '-' |
 
 **Connection Evironment Variables:**
