@@ -222,7 +222,7 @@ To create a custom GPT that can use your Retrieval Plugin for semantic search an
 7. Optionally, you might want to add a fetch endpoint. This would involve editing the [`/server/main.py`](/server/main.py) file to add an endpoint and implement this for your chosen vector database. If you make this change, please consider contributing it back to the project by opening a pull request! Adding the fetch endpoint to the OpenAPI schema would allow the model to fetch more content from a document by ID if some text is cut off in the retrieved result. It might also be useful to pass in a string with the text from the retrieved result and an option to return a fixed length of context before and after the retrieved result.
 8. If you want the GPT to be able to save information back to the vector database, you can give it access to the Retrieval Plugin's `/upsert` endpoint. To do this, copy the contents of [this file](/examples/memory/openapi.yaml) into the schema area. This allows the GPT to store new information it generates or learns during the conversation. More details on this feature can be found at [Memory Feature](#memory-feature) and [in the docs here](/examples/memory).
 
-Remember: ChatGPT and custom GPTs natively support retrieval from uploaded files, so you should use the Retrieval Plugin as a backend only if you want more granular control of your retrieval system (e.g. embedding chunk length, embedding model / size, etc.).
+Remember: ChatGPT and custom GPTs natively support retrieval from uploaded files, so you should use the Retrieval Plugin as a backend only if you want more granular control of your retrieval system (e.g. self-hosting, embedding chunk length, embedding model / size, etc.).
 
 ### Retrieval Plugin with Function Calling
 
