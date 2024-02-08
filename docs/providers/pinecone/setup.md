@@ -12,12 +12,12 @@ The app will create a Pinecone index for you automatically when you run it for t
 | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `DATASTORE`            | Yes      | Datastore name, set this to `pinecone`                                                                                           |
 | `BEARER_TOKEN`         | Yes      | Your secret token for authenticating requests to the API                                                                         |
-| `OPENAI_API_KEY`       | Yes      | Your OpenAI API key for generating embeddings with the `text-embedding-ada-002` model                                            |
+| `OPENAI_API_KEY`       | Yes      | Your OpenAI API key for generating embeddings with one of the OpenAI embeddings models                                           |
 | `PINECONE_API_KEY`     | Yes      | Your Pinecone API key, found in the [Pinecone console](https://app.pinecone.io/)                                                 |
 | `PINECONE_ENVIRONMENT` | Yes      | Your Pinecone environment, found in the [Pinecone console](https://app.pinecone.io/), e.g. `us-west1-gcp`, `us-east-1-aws`, etc. |
 | `PINECONE_INDEX`       | Yes      | Your chosen Pinecone index name. **Note:** Index name must consist of lower case alphanumeric characters or '-'                  |
 
-If you want to create your own index with custom configurations, you can do so using the Pinecone SDK, API, or web interface ([see docs](https://docs.pinecone.io/docs/manage-indexes)). Make sure to use a dimensionality of 1536 for the embeddings and avoid indexing on the text field in the metadata, as this will reduce the performance significantly.
+If you want to create your own index with custom configurations, you can do so using the Pinecone SDK, API, or web interface ([see docs](https://docs.pinecone.io/docs/manage-indexes)). Make sure to use a dimensionality of 256 (or another dimension) for the embeddings and avoid indexing on the text field in the metadata, as this will reduce the performance significantly.
 
 ```python
 # Creating index with Pinecone SDK - use only if you wish to create the index manually.
@@ -27,8 +27,10 @@ import os, pinecone
 pinecone.init(api_key=os.environ['PINECONE_API_KEY'],
               environment=os.environ['PINECONE_ENVIRONMENT'])
 
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
+
 pinecone.create_index(name=os.environ['PINECONE_INDEX'],
-                      dimension=1536,
+                      dimension=EMBEDDING_DIMENSION,
                       metric='cosine',
                       metadata_config={
                           "indexed": ['source', 'source_id', 'url', 'created_at', 'author', 'document_id']})

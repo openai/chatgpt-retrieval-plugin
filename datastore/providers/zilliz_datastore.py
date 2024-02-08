@@ -20,6 +20,7 @@ ZILLIZ_USE_SECURITY = False if ZILLIZ_PASSWORD is None else True
 
 ZILLIZ_CONSISTENCY_LEVEL = os.environ.get("ZILLIZ_CONSISTENCY_LEVEL")
 
+
 class ZillizDataStore(MilvusDataStore):
     def __init__(self, create_new: Optional[bool] = False):
         """Create a Zilliz DataStore.
@@ -54,12 +55,14 @@ class ZillizDataStore(MilvusDataStore):
         try:
             # If no index on the collection, create one
             if len(self.col.indexes) == 0:
-                self.index_params = {"metric_type": "IP", "index_type": "AUTOINDEX", "params": {}}
+                self.index_params = {
+                    "metric_type": "IP",
+                    "index_type": "AUTOINDEX",
+                    "params": {},
+                }
                 self.col.create_index("embedding", index_params=self.index_params)
 
             self.col.load()
             self.search_params = {"metric_type": "IP", "params": {}}
         except Exception as e:
             logger.error("Failed to create index, error: {}".format(e))
-
-

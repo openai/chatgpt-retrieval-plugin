@@ -9,15 +9,17 @@ from models.models import (
     DocumentChunkMetadata,
     QueryWithEmbedding,
 )
-
+import os
 
 num_lists = 1
 similarity = "COS"
 
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
+
 
 def create_embedding(non_zero_pos: int) -> List[float]:
-    # create a vector with a single non-zero value of dimension 1536
-    vector = [0.0] * 1536
+    # create a vector with a single non-zero value of dimension EMBEDDING_DIMENSION
+    vector = [0.0] * EMBEDDING_DIMENSION
     vector[non_zero_pos - 1] = 1.0
     return vector
 
@@ -33,7 +35,9 @@ def azure_cosmos_db_settings_from_dot_env() -> dict:
     config = dotenv_values(".env")
     env_variables = {
         "DATASTORE": "azurecosmosdb",
-        "AZCOSMOS_API": config.get(("AZCOSMOS_API")),  # Right now CosmosDB only supports vector search in Mongo vCore.
+        "AZCOSMOS_API": config.get(
+            ("AZCOSMOS_API")
+        ),  # Right now CosmosDB only supports vector search in Mongo vCore.
         "AZCOSMOS_CONNSTR": config.get("AZCOSMOS_CONNSTR"),
         "AZCOSMOS_DATABASE_NAME": config.get("AZCOSMOS_DATABASE_NAME"),
         "AZCOSMOS_CONTAINER_NAME": config.get("AZCOSMOS_CONTAINER_NAME"),
@@ -77,25 +81,30 @@ def queries() -> List[QueryWithEmbedding]:
 
 @pytest.fixture
 async def azurecosmosdb_datastore() -> DataStore:
-    return await AzureCosmosDBDataStore.create(num_lists=num_lists, similarity=similarity)
+    return await AzureCosmosDBDataStore.create(
+        num_lists=num_lists, similarity=similarity
+    )
 
 
 @pytest.mark.asyncio
 async def test_upsert(
-        azurecosmosdb_datastore: AzureCosmosDBDataStore,
-        initial_document_chunks: Dict[str, List[DocumentChunk]],
+    azurecosmosdb_datastore: AzureCosmosDBDataStore,
+    initial_document_chunks: Dict[str, List[DocumentChunk]],
 ) -> None:
     """Test basic upsert."""
     doc_ids = await azurecosmosdb_datastore._upsert(initial_document_chunks)
-    assert doc_ids == [f"doc:{doc_id}:chunk:{chunk.id}" for doc_id, chunk_list in initial_document_chunks.items()
-                       for chunk in chunk_list]
+    assert doc_ids == [
+        f"doc:{doc_id}:chunk:{chunk.id}"
+        for doc_id, chunk_list in initial_document_chunks.items()
+        for chunk in chunk_list
+    ]
 
 
 @pytest.mark.asyncio
 async def test_query(
-        azurecosmosdb_datastore: AzureCosmosDBDataStore,
-        initial_document_chunks: Dict[str, List[DocumentChunk]],
-        queries: List[QueryWithEmbedding],
+    azurecosmosdb_datastore: AzureCosmosDBDataStore,
+    initial_document_chunks: Dict[str, List[DocumentChunk]],
+    queries: List[QueryWithEmbedding],
 ) -> None:
     """Test basic query."""
     await azurecosmosdb_datastore.delete(delete_all=True)
@@ -123,19 +132,21 @@ async def test_delete(azurecosmosdb_datastore: AzureCosmosDBDataStore) -> None:
     chunk1 = DocumentChunk(
         id="deleteChunk1",
         text="delete text 1",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     chunk2 = DocumentChunk(
         id="deleteChunk2",
         text="delete text 2",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     # insert to prepare for test
-    await azurecosmosdb_datastore._upsert({"deleteDoc1": [chunk1], "deleteDoc2": [chunk2]})
+    await azurecosmosdb_datastore._upsert(
+        {"deleteDoc1": [chunk1], "deleteDoc2": [chunk2]}
+    )
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="Query for delete",
         embedding=query_embedding,
@@ -159,12 +170,12 @@ async def test_delete_all(azurecosmosdb_datastore: AzureCosmosDBDataStore) -> No
     chunk = DocumentChunk(
         id="deleteChunk",
         text="delete text",
-        embedding=[1] * 1536,
+        embedding=[1] * EMBEDDING_DIMENSION,
         metadata=DocumentChunkMetadata(),
     )
     await azurecosmosdb_datastore._upsert({"deleteDoc": [chunk]})
 
-    query_embedding = [1] * 1536
+    query_embedding = [1] * EMBEDDING_DIMENSION
     query = QueryWithEmbedding(
         query="delete query",
         embedding=query_embedding,
