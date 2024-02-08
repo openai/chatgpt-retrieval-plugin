@@ -22,12 +22,12 @@ async def get_document_from_file(
     return doc
 
 
-def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) -> str:
+def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None, filename: Optional[str] = None) -> str:
     """Return the text content of a file given its filepath."""
 
-    if mimetype is None:
+    if mimetype is None or mimetype == 'application/octet-stream':
         # Get the mimetype of the file based on its extension
-        mimetype, _ = mimetypes.guess_type(filepath)
+        mimetype, _ = mimetypes.guess_type(filename)
 
     if not mimetype:
         if filepath.endswith(".md"):
@@ -105,7 +105,7 @@ async def extract_text_from_form_file(file: UploadFile):
         f.write(file_stream)
 
     try:
-        extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
+        extracted_text = extract_text_from_filepath(temp_file_path, mimetype, file.filename)
     except Exception as e:
         logger.error(e)
         os.remove(temp_file_path)
