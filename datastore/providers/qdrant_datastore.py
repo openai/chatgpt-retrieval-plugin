@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from grpc._channel import _InactiveRpcError
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.http.models import PayloadSchemaType
+from qdrant_client.http.models import PayloadSchemaType, UpdateStatus
 
 from datastore.datastore import DataStore
 from models.models import (
@@ -128,7 +128,7 @@ class QdrantDataStore(DataStore):
             collection_name=self.collection_name,
             points_selector=points_selector,  # type: ignore
         )
-        return "COMPLETED" == response.status
+        return UpdateStatus.COMPLETED == response.status
 
     def _convert_document_chunk_to_point(
         self, document_chunk: DocumentChunk

@@ -278,3 +278,12 @@ async def test_delete_removes_all(
     await qdrant_datastore.delete(delete_all=True)
 
     assert 0 == client.count(collection_name="documents").count
+
+
+@pytest.mark.asyncio
+async def test_delete_returns_true_on_success(
+        qdrant_datastore
+):
+    success = await qdrant_datastore.delete(delete_all=True)
+
+    assert True is success
