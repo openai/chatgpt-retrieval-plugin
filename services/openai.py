@@ -29,7 +29,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 
     response = {}
     if deployment is None:
-        response = openai.Embedding.create(input=texts, model=EMBEDDING_MODEL, dimension=EMBEDDING_DIMENSION)
+        response = openai.Embedding.create(input=texts, model=EMBEDDING_MODEL, dimensions=EMBEDDING_DIMENSION)
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
 
