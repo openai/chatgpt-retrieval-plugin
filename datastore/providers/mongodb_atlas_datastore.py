@@ -25,7 +25,6 @@ MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "default")
 OVERSAMPLING_FACTOR = 10
 MAX_CANDIDATES = 10_000
-VECTOR_SIZE = 1536
 UPSERT_BATCH_SIZE = 100
 
 
@@ -33,10 +32,10 @@ class MongoDBAtlasDataStore(DataStore):
 
     def __init__(
         self,
+        atlas_connection_uri: str = MONGODB_CONNECTION_URI,
         index_name: str = MONGODB_INDEX,
         database_name: str = MONGODB_DATABASE,
         collection_name: str = MONGODB_COLLECTION,
-        vector_size: int = VECTOR_SIZE,
         oversampling_factor: float = OVERSAMPLING_FACTOR,
     ):
         """
@@ -46,7 +45,6 @@ class MongoDBAtlasDataStore(DataStore):
         - index_name (str, optional): Vector search index. If not provided, default index name is used.
         - database_name (str, optional): Database. If not provided, default database name is used.
         - collection_name (str, optional): Collection. If not provided, default collection name is used.
-        - vector_size (int, optional): Size of the vectors. Default is VECTOR_SIZE.
         - oversampling_factor (float, optional): Oversampling factor for data augmentation.
                                                  Default is OVERSAMPLING_FACTOR.
 
@@ -57,36 +55,26 @@ class MongoDBAtlasDataStore(DataStore):
         - index_name (str): Name of the index.
         - database_name (str): Name of the database.
         - collection_name (str): Name of the collection.
-        - vector_size (int): Size of the vectors.
-        - _oversampling_factor (float): Oversampling factor for data augmentation.
+        - oversampling_factor (float): Oversampling factor for data augmentation.
         """
 
-        index_name = index_name or MONGODB_INDEX
-
-        self._oversampling_factor = oversampling_factor
-        self.vector_size = vector_size
+        self.atlas_connection_uri = atlas_connection_uri
+        self.oversampling_factor = oversampling_factor
+        self.database_name = database_name
+        self.collection_name = collection_name
 
         if not (index_name and isinstance(index_name, str)):
             raise ValueError("Provide a valid index name")
         self.index_name = index_name
 
-        self._database_name = database_name or MONGODB_DATABASE
-        self.collection_name = collection_name or MONGODB_COLLECTION
-
         # TODO: Create index via driver https://jira.mongodb.org/browse/PYTHON-4175
-        # self._set_up_index(vector_size, similarity, recreate_index)
+        # self._create_search_index(num_dimensions=1536, path="embedding", similarity="dotProduct", type="vector")
 
     @cached_property
     def client(self):
         return self._connect_to_mongodb_atlas(
             atlas_connection_uri=MONGODB_CONNECTION_URI
         )
-
-    @property
-    def database_name(self):
-        if not self._database_name:
-            self._database_name = self.client.get_default_database()
-        return self._database_name
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
@@ -135,7 +123,7 @@ class MongoDBAtlasDataStore(DataStore):
                     'index': self.index_name,
                     'path': 'embedding',
                     'queryVector': query.embedding,
-                    'numCandidates': min(query.top_k * self._oversampling_factor, MAX_CANDIDATES),
+                    'numCandidates': min(query.top_k * self.oversampling_factor, MAX_CANDIDATES),
                     'limit': query.top_k
                  }
             }, {
