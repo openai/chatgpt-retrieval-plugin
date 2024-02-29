@@ -82,13 +82,15 @@ You can confirm that the required ones have been set like this:  `assert "MONGOD
 
 **IMPORTANT** It is crucial that the choices are consistent between setup in Atlas and the Python environment.
 
-| Name                  | Required | Description                                    |
-| --------------------- |----------|------------------------------------------------|
-| `MONGODB_URI`      | Yes      | Your MongoDB URI.                              |
-| `MONGODB_INDEX` | Yes      | Your chosen MongoDB index name.                |
-| `MONGODB_DATABASE` | No       | Your MongoDB Database. Defaults to 'default'.  |
-| `MONGODB_COLLECTION` | No       | Your MongoDB Collection. Defaults to 'default' |
-| `DATASTORE`           | Yes      | Datastore name, `mongodb`          |
+| Name                  | Description                 | Example                                                                          |
+|-----------------------|-----------------------------|----------------------------------------------------------------------------------|
+| `MONGODB_URI`         | Connection String           | mongodb+srv://`<user>`:`<password>`@chatgpt-retrieval-plugin.zeatahb.mongodb.net |
+| `MONGODB_DATABASE`    | Database name               | SQUAD                                                                            |
+| `MONGODB_COLLECTION`  | Collection name             | Beyonce                                                                          |
+| `MONGODB_INDEX`       | Search index name           | vector_index                                                                     |
+| `DATASTORE`           | Datastore name              | [must be] mongodb                                                                |
+| `EMBEDDING_MODEL`     | OpenAI Embedding Model      | text-embedding-3-small                                                           |
+| `EMBEDDING_DIMENSION` | Length of Embedding Vectors | 1536                                                                             |
 
 ### Create an Atlas Vector Search Index
 
