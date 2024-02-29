@@ -77,10 +77,11 @@ as these describe the data that we will use in our example Jupyter Notebook.
 
 ### Set Datastore Environment Variables
 
-To establish a connection to the MongoDB database and collection, define the following environment variables.
+To establish a connection to the MongoDB Cluster, Database, and Collection, plus create a Vector Search Index,
+define the following environment variables.
 You can confirm that the required ones have been set like this:  `assert "MONGODB_URI" in os.environ`
 
-**IMPORTANT** It is crucial that the choices are consistent between setup in Atlas and the Python environment.
+**IMPORTANT** It is crucial that the choices are consistent between setup in Atlas and Python environment(s).
 
 | Name                  | Description                 | Example                                                                          |
 |-----------------------|-----------------------------|----------------------------------------------------------------------------------|
@@ -91,6 +92,13 @@ You can confirm that the required ones have been set like this:  `assert "MONGOD
 | `DATASTORE`           | Datastore name              | [must be] mongodb                                                                |
 | `EMBEDDING_MODEL`     | OpenAI Embedding Model      | text-embedding-3-small                                                           |
 | `EMBEDDING_DIMENSION` | Length of Embedding Vectors | 1536                                                                             |
+
+The following will also be required to authenticate with OpenAI and Plugin APIs.
+
+| Name             | Description                                                     |
+|------------------|-----------------------------------------------------------------|
+| `OPENAI_API_KEY` | OpenAI token created at https://platform.openai.com/api-keys    |
+| `BEARER_TOKEN`   | Secret string passed in HTTP request header that server expects |
 
 ### Create an Atlas Vector Search Index
 
