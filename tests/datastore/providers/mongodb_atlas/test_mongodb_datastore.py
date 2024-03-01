@@ -1,5 +1,5 @@
 """
-Integration tests of MongoDB Atlas Datastores.
+Integration tests of MongoDB Atlas Datastore.
 
 These tests require one to have a running Cluster, Database, Collection and Atlas Search Index
 as described in docs/providers/mongodb/setup.md.
@@ -8,19 +8,19 @@ One will also have to set the same environment variables, although we recommend 
 a separate collection and index than that used in examples/providers/mongodb/semantic-search.ipynb.
 One can, for example, create a database called chatgpt_plugin and two collections: example, and test.
 
-MONGODB_DATABASE=chatgpt_plugin;
-MONGODB_COLLECTION=test;
-MONGODB_INDEX=vector_index;
+MONGODB_DATABASE=chatgpt_plugin
+MONGODB_COLLECTION=test
+MONGODB_INDEX=vector_index
+EMBEDDING_DIMENSION=1536
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/?retryWrites=true&w=majority
 """
 
 
-import asyncio
-import logging
 from inspect import iscoroutinefunction
 import pytest
 import time
 from typing import Callable
+import os
 
 from models.models import (
     DocumentChunkMetadata,
@@ -35,8 +35,6 @@ from datastore.providers.mongodb_atlas_datastore import (
     MongoDBAtlasDataStore,
 )
 
-
-DIM_SIZE = 1536
 
 
 async def assert_when_ready(callable: Callable, tries: int = 5, interval: float = 1):
@@ -80,8 +78,9 @@ async def mongodb_datastore(_mongodb_datastore):
 
 
 def sample_embedding(one_element_poz: int):
-    embedding = [0] * DIM_SIZE
-    embedding[one_element_poz % DIM_SIZE] = 1
+    n_dims = int(os.environ["EMBEDDING_DIMENSION"])
+    embedding = [0] * n_dims
+    embedding[one_element_poz % n_dims] = 1
     return embedding
 
 
@@ -194,7 +193,7 @@ async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
         query_results = await mongodb_datastore._query(queries=[query])
         return 1 == len(query_results) and query_results[0].results
 
-    await assert_when_ready(predicate)
+    await assert_when_ready(predicate, tries=12, interval=5)
     query_results = await mongodb_datastore._query(queries=[query])
     for result in query_results[0].results:
         assert result.text != "Aenean euismod bibendum laoreet"
