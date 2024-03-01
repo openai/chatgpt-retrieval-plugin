@@ -1,4 +1,22 @@
+"""
+Integration tests of MongoDB Atlas Datastores.
+
+These tests require one to have a running Cluster, Database, Collection and Atlas Search Index
+as described in docs/providers/mongodb/setup.md.
+
+One will also have to set the same environment variables, although we recommend using
+a separate collection and index than that used in examples/providers/mongodb/semantic-search.ipynb.
+One can, for example, create a database called chatgpt_plugin and two collections: example, and test.
+
+MONGODB_DATABASE=chatgpt_plugin;
+MONGODB_COLLECTION=test;
+MONGODB_INDEX=vector_index;
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/?retryWrites=true&w=majority
+"""
+
+
 import asyncio
+import logging
 from inspect import iscoroutinefunction
 import pytest
 import time
@@ -22,9 +40,12 @@ DIM_SIZE = 1536
 
 
 async def assert_when_ready(callable: Callable, tries: int = 5, interval: float = 1):
+
     for _ in range(tries):
         if iscoroutinefunction(callable):
+            print("starting async call")
             result = await callable()
+            print(f"finished async call with {result=}")
         else:
             result = callable()
         if result:
@@ -110,7 +131,11 @@ def document_chunk_one():
     return {document_id: doc_chunks}
 
 
-async def test_upsert(mongodb_datastore, document_chunk_one):
+async def test_upsert(mongodb_datastore: MongoDBAtlasDataStore, document_chunk_one):
+    """This tests that data gets uploaded, but not that the search index is built.
+
+    TODO - Expand it to check that embedding vector is created? It would require openai.api_key
+    """
     res = await mongodb_datastore._upsert(document_chunk_one)
     assert res == list(document_chunk_one.keys())
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
@@ -118,6 +143,7 @@ async def test_upsert(mongodb_datastore, document_chunk_one):
 
 
 async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
+    """By running _query, this performs """
     res = await mongodb_datastore._upsert(document_chunk_one)
     await assert_when_ready(lambda: res == list(document_chunk_one.keys()))
 
@@ -131,7 +157,7 @@ async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
         query_results = await mongodb_datastore._query(queries=[query])
         return 1 == len(query_results) and 3 == len(query_results[0].results)
 
-    await assert_when_ready(predicate)
+    await assert_when_ready(predicate, tries=12, interval=5)
 
 
 async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
