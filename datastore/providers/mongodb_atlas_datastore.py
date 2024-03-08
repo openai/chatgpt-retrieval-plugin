@@ -1,8 +1,6 @@
-import arrow
 import os
 from typing import Dict, List, Any, Optional
 from loguru import logger
-from bson.objectid import ObjectId
 from importlib.metadata import version
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.driver_info import DriverInfo
@@ -82,9 +80,8 @@ class MongoDBAtlasDataStore(DataStore):
         self, documents: List[Document], chunk_token_size: Optional[int] = None
     ) -> List[str]:
         """
-        Takes in a list of documents and inserts them into the database.
-        First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
-        Return a list of document ids.
+        Takes in a list of Documents, chunks them, and upserts the chunks into the database.
+        Return a list the ids of the document chunks.
         """
         chunks = get_document_chunks(documents, chunk_token_size)
         return await self._upsert(chunks)
@@ -95,8 +92,10 @@ class MongoDBAtlasDataStore(DataStore):
         Return a list of document ids.
         """
         documents_to_upsert = []
+        inserted_ids = []
         for chunk_list in chunks.values():
             for chunk in chunk_list:
+                inserted_ids.append(chunk.id)
                 documents_to_upsert.append(
                         UpdateOne({'_id': chunk.id}, {"$set": chunk.dict()}, upsert=True)
                 )
@@ -104,7 +103,7 @@ class MongoDBAtlasDataStore(DataStore):
         await self.client[self.database_name][self.collection_name].bulk_write(documents_to_upsert)
         logger.info("Upsert successful")
 
-        return list(chunks.keys())
+        return inserted_ids
 
     async def _query(
         self,
@@ -166,6 +165,9 @@ class MongoDBAtlasDataStore(DataStore):
         """
         Removes documents by ids, filter, or everything in the datastore.
         Returns whether the operation was successful.
+
+        Note that ids refer to those in the datastore,
+        which are those of the **DocumentChunks**
         """
         # Delete all documents from the collection if delete_all is True
         if delete_all:
@@ -174,11 +176,8 @@ class MongoDBAtlasDataStore(DataStore):
 
         # Delete by ids
         elif ids:
-            ids = [ObjectId(id_) for id_ in ids]
             logger.info(f"Deleting documents with ids: {ids}")
-            mg_filter = {
-                "_id": {"$in": ids}
-            }
+            mg_filter = {"_id": {"$in": ids}}
 
         # Delete by filters
         elif filter:
@@ -203,12 +202,11 @@ class MongoDBAtlasDataStore(DataStore):
     ) -> DocumentChunkWithScore:
         # Convert MongoDB document to DocumentChunkWithScore
         return DocumentChunkWithScore(
-            id=str(document["_id"]),
+            id=document.get("_id"),
             text=document["text"],
             metadata=document.get("metadata"),
             score=document.get("score"),
         )
-
 
     def _build_mongo_filter(
         self, filter: Optional[DocumentMetadataFilter] = None

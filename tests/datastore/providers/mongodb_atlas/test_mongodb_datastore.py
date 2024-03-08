@@ -4,12 +4,13 @@ Integration tests of MongoDB Atlas Datastore.
 These tests require one to have a running Cluster, Database, Collection and Atlas Search Index
 as described in docs/providers/mongodb/setup.md.
 
-One will also have to set the same environment variables, although we recommend using
-a separate collection and index than that used in examples/providers/mongodb/semantic-search.ipynb.
-One can, for example, create a database called chatgpt_plugin and two collections: example, and test.
+One will also have to set the same environment variables. Although one CAN
+use we the same collection and index used in examples/providers/mongodb/semantic-search.ipynb,
+these tests will make changes to the data, so you may wish to create another collection.
+If you have run the example notebook, you can reuse with the following.
 
-MONGODB_DATABASE=chatgpt_plugin
-MONGODB_COLLECTION=test
+MONGODB_DATABASE=SQUAD
+MONGODB_COLLECTION=Beyonce
 MONGODB_INDEX=vector_index
 EMBEDDING_DIMENSION=1536
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/?retryWrites=true&w=majority
@@ -89,14 +90,25 @@ def sample_embeddings(num: int, one_element_start: int = 0):
 
 
 @pytest.fixture
-def document_chunk_one():
-    document_id = "a5991f75a315f755c3365ab2"
-    doc_chunks = []
+def document_id():
+    """ID of an unchunked document"""
+    return "a5991f75a315f755c3365ab2"
 
-    ids = [
-        "659ecbb2b1a47b36f140167f",
-        "659ecbb2b1a47b36f1401680",
-        "659ecbb2b1a47b36f1401681"]
+@pytest.fixture
+def chunk_ids(document_id):
+    """IDs of chunks"""
+    return [f"{document_id}_{i}" for i in range(3)]
+
+
+@pytest.fixture
+def one_documents_chunks(document_id, chunk_ids):
+    """Represents output of services.chunks.get_document_chunks
+    -> Dict[str, List[DocumentChunk]]
+    called on a list containing a single Document
+    """
+
+    n_chunks = len(chunk_ids)
+
     texts = [
         "Aenean euismod bibendum laoreet",
         "Vivamus non enim vitae tortor",
@@ -110,11 +122,11 @@ def document_chunk_one():
     ]
     authors = ["Fred Smith", "Bob Doe", "Appleton Doe"]
 
-    embeddings = sample_embeddings(len(texts))
-
-    for i in range(3):
+    embeddings = sample_embeddings(n_chunks)
+    doc_chunks = []
+    for i in range(n_chunks):
         chunk = DocumentChunk(
-            id=ids[i],
+            id=chunk_ids[i],
             text=texts[i],
             metadata=DocumentChunkMetadata(
                 document_id=document_id,
@@ -130,21 +142,19 @@ def document_chunk_one():
     return {document_id: doc_chunks}
 
 
-async def test_upsert(mongodb_datastore: MongoDBAtlasDataStore, document_chunk_one):
-    """This tests that data gets uploaded, but not that the search index is built.
+async def test_upsert(mongodb_datastore: MongoDBAtlasDataStore, one_documents_chunks, chunk_ids):
+    """This tests that data gets uploaded, but not that the search index is built."""
+    res = await mongodb_datastore._upsert(one_documents_chunks)
+    assert res == chunk_ids
 
-    TODO - Expand it to check that embedding vector is created? It would require openai.api_key
-    """
-    res = await mongodb_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
     await assert_when_ready(collection_size_callback_factory(collection, 3))
 
 
-async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
+async def test_upsert_query_all(mongodb_datastore, one_documents_chunks, chunk_ids):
     """By running _query, this performs """
-    res = await mongodb_datastore._upsert(document_chunk_one)
-    await assert_when_ready(lambda: res == list(document_chunk_one.keys()))
+    res = await mongodb_datastore._upsert(one_documents_chunks)
+    await assert_when_ready(lambda: res == chunk_ids)
 
     query = QueryWithEmbedding(
         query="Aenean",
@@ -159,9 +169,9 @@ async def test_upsert_query_all(mongodb_datastore, document_chunk_one):
     await assert_when_ready(predicate, tries=12, interval=5)
 
 
-async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
-    res = await mongodb_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
+async def test_delete_with_document_id(mongodb_datastore, one_documents_chunks, chunk_ids):
+    res = await mongodb_datastore._upsert(one_documents_chunks)
+    assert res == chunk_ids
     collection = mongodb_datastore.client[mongodb_datastore.database_name][mongodb_datastore.collection_name]
     first_id = str((await collection.find_one())["_id"])
     await mongodb_datastore.delete(ids=[first_id])
@@ -173,9 +183,9 @@ async def test_delete_with_document_id(mongodb_datastore, document_chunk_one):
         assert document["metadata"]["author"] != "Fred Smith"
 
 
-async def test_delete_with_source_filter(mongodb_datastore, document_chunk_one):
-    res = await mongodb_datastore._upsert(document_chunk_one)
-    assert res == list(document_chunk_one.keys())
+async def test_delete_with_source_filter(mongodb_datastore, one_documents_chunks, chunk_ids):
+    res = await mongodb_datastore._upsert(one_documents_chunks)
+    assert res == chunk_ids
 
     await mongodb_datastore.delete(
         filter=DocumentMetadataFilter(
