@@ -6,16 +6,19 @@ from bson.objectid import ObjectId
 from importlib.metadata import version
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.driver_info import DriverInfo
+from pymongo import UpdateOne
 
 from datastore.datastore import DataStore
 from functools import cached_property
 from models.models import (
+    Document,
     DocumentChunk,
     DocumentChunkWithScore,
     DocumentMetadataFilter,
     QueryResult,
     QueryWithEmbedding,
 )
+from services.chunks import get_document_chunks
 from services.date import to_unix_timestamp
 
 
@@ -25,7 +28,6 @@ MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "default")
 MONGODB_INDEX = os.environ.get("MONGODB_INDEX", "default")
 OVERSAMPLING_FACTOR = 10
 MAX_CANDIDATES = 10_000
-UPSERT_BATCH_SIZE = 100
 
 
 class MongoDBAtlasDataStore(DataStore):
@@ -76,6 +78,17 @@ class MongoDBAtlasDataStore(DataStore):
             atlas_connection_uri=MONGODB_CONNECTION_URI
         )
 
+    async def upsert(
+        self, documents: List[Document], chunk_token_size: Optional[int] = None
+    ) -> List[str]:
+        """
+        Takes in a list of documents and inserts them into the database.
+        First deletes all the existing vectors with the document id (if necessary, depends on the vector db), then inserts the new ones.
+        Return a list of document ids.
+        """
+        chunks = get_document_chunks(documents, chunk_token_size)
+        return await self._upsert(chunks)
+
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
         Takes in a list of document chunks and inserts them into the database.
@@ -85,15 +98,11 @@ class MongoDBAtlasDataStore(DataStore):
         for chunk_list in chunks.values():
             for chunk in chunk_list:
                 documents_to_upsert.append(
-                    self._convert_document_chunk_to_mongodb_document(chunk)
+                        UpdateOne({'_id': chunk.id}, {"$set": chunk.dict()}, upsert=True)
                 )
-        # Upsert documents into the MongoDB collection
-        logger.info(f"{self.database_name}: {self.collection_name}")
-        await self.client[self.database_name][self.collection_name].insert_many(
-            documents_to_upsert
-        )
-
-        logger.info("Upsert document successfully")
+        logger.info(f"Upsert documents into MongoDB collection: {self.database_name}: {self.collection_name}")
+        await self.client[self.database_name][self.collection_name].bulk_write(documents_to_upsert)
+        logger.info("Upsert successful")
 
         return list(chunks.keys())
 
@@ -137,16 +146,16 @@ class MongoDBAtlasDataStore(DataStore):
             }
         ]
 
-        cursor = self.client[self.database_name][self.collection_name].aggregate(pipeline)
-        results = [
-            self._convert_mongodb_document_to_document_chunk_with_score(doc)
-            async for doc in cursor
-        ]
+        async with self.client[self.database_name][self.collection_name].aggregate(pipeline) as cursor:
+            results = [
+                self._convert_mongodb_document_to_document_chunk_with_score(doc)
+                async for doc in cursor
+            ]
 
-        return QueryResult(
-            query=query.query,
-            results=results,
-        )
+            return QueryResult(
+                query=query.query,
+                results=results,
+            )
 
     async def delete(
         self,
@@ -196,30 +205,10 @@ class MongoDBAtlasDataStore(DataStore):
         return DocumentChunkWithScore(
             id=str(document["_id"]),
             text=document["text"],
-            metadata=document["metadata"],
-            score=document["score"],
+            metadata=document.get("metadata"),
+            score=document.get("score"),
         )
 
-    def _convert_document_chunk_to_mongodb_document(
-        self, document_chunk: DocumentChunk
-    ) -> Dict:
-        # Convert DocumentChunk to MongoDB document format
-        
-        created_at = (
-            to_unix_timestamp(document_chunk.metadata.created_at)
-            if document_chunk.metadata.created_at is not None
-            else int(arrow.now().timestamp())
-        )
-        
-        mongodb_document = {
-            "id": document_chunk.id,
-            "text": document_chunk.text,
-            "created_at": created_at,
-            "metadata": document_chunk.metadata.dict(),
-            "embedding": document_chunk.embedding,
-        }
-        
-        return mongodb_document
 
     def _build_mongo_filter(
         self, filter: Optional[DocumentMetadataFilter] = None
