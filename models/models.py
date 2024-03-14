@@ -64,3 +64,11 @@ class QueryWithEmbedding(Query):
 class QueryResult(BaseModel):
     query: str
     results: List[DocumentChunkWithScore]
+
+
+class SummaryOptions(BaseModel):
+    num_words: int = 50 # document will be summarized in {num_words}
+
+
+class UpsertPreprocessOptions(BaseModel):
+    summary: Optional[SummaryOptions] = None
