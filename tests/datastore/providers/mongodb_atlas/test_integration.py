@@ -1,63 +1,21 @@
 """Integration Tests of ChatGPT Retrieval Plugin
 with MongoDB Atlas Vector Datastore and OPENAI Embedding model.
 
-As described in docs/providers/mongodb/setup.md including,
-to run this, one must have both a running MongoDB Atlas Cluster,
-and a running ChatGPT Retrieval Plugin service.
-One must also provide a valid OPENAI_API_KEY.
+As described in docs/providers/mongodb/setup.md, to run this, one must
+have a running MongoDB Atlas Cluster, and
+provide a valid OPENAI_API_KEY.
 """
 
 import os
-import openai
-from pymongo import MongoClient
-import pytest
-import requests
-from requests.adapters import HTTPAdapter, Retry
 from time import sleep
 
+import openai
+import pytest
+from fastapi.testclient import TestClient
+from httpx import Response
+from pymongo import MongoClient
 
-def test_required_vars() -> None:
-    """Confirm that the environment has all it needs"""
-    required_vars = {'BEARER_TOKEN', 'OPENAI_API_KEY', 'DATASTORE', 'EMBEDDING_DIMENSION', 'EMBEDDING_MODEL',
-                     'MONGODB_COLLECTION', 'MONGODB_DATABASE', 'MONGODB_INDEX', 'MONGODB_URI'}
-    assert os.environ["DATASTORE"] == 'mongodb'
-    missing = required_vars - set(os.environ)
-    assert len(missing) == 0
-
-
-def test_mongodb_connection() -> None:
-    """Start a synchronous MongoClient.
-    Send a ping to confirm a successful connection.
-    """
-    client = MongoClient(os.environ["MONGODB_URI"])
-    assert client.admin.command('ping')['ok']
-
-
-def test_openai_connection() -> None:
-    """Check that we can call OpenAI Embedding models"""
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    models = openai.Model.list()
-    model_names = [model["id"] for model in models['data']]
-    for model_name in model_names:
-        try:
-            response = openai.Embedding.create(input=["Some input text"], model=model_name)
-            assert len(response['data'][0]['embedding']) >= int(os.environ['EMBEDDING_DIMENSION'])
-        except:
-            pass  # Not all models are for text embedding.
-
-
-@pytest.fixture(scope="session")
-def endpoint_url() -> str:
-    """URL to running Retrieval Plugin Service
-    See README.md `poetry run start`
-    """
-    return 'http://0.0.0.0:8000'
-
-
-@pytest.fixture(scope="session")
-def headers() -> dict:
-    """JSON Request headers"""
-    return {"Authorization": f"Bearer {os.environ['BEARER_TOKEN']}"}
+from server.main import app
 
 
 @pytest.fixture(scope="session")
@@ -73,82 +31,98 @@ def documents():
     ]
 
 
-@pytest.fixture(scope="session")
-def delete(endpoint_url, headers) -> bool:
-    """Drop documents from the collection"""
-    requests.delete(url=f"{endpoint_url}/delete", headers=headers, json={"delete_all": True})
-    sleep(2)  # Be conservative
+@pytest.fixture(scope="session", autouse=True)
+def client():
+    """TestClient makes requests to FastAPI service."""
+    endpoint_url = "http://127.0.0.1:8000"
+    headers = {"Authorization": f"Bearer {os.environ['BEARER_TOKEN']}"}
+    with TestClient(app=app, base_url=endpoint_url, headers=headers) as client:
+        yield client
 
 
 @pytest.fixture(scope="session")
-def upsert(delete, documents, endpoint_url, headers) -> bool:
-    """ Upload documents to the datastore via plugin's REST API.
+def delete(client) -> bool:
+    """Drop existing documents from the collection"""
+    response = client.request("DELETE", "/delete", json={"delete_all": True})
+    sleep(2)
+    return response
 
-    Makes post requests that allow up to 5 retries
-    """
-    batch_size = 100
-    retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
-    session = requests.Session()
-    session.mount('http://', HTTPAdapter(max_retries=retries))
-    n_docs = len(documents)
-    assert n_docs == 4
-    for i in range(0, n_docs, batch_size):
-        i_end = min(n_docs, i + batch_size)
-        assert isinstance(documents[i:i_end], list)
-        assert isinstance(documents[i:i_end][0], dict)
-        res = session.post(
-            f"{endpoint_url}/upsert",
-            headers=headers,
-            json={"documents": documents[i:i_end]}
-        )
+
+@pytest.fixture(scope="session")
+def upsert(delete, documents, client) -> bool:
+    """Upload documents to the datastore via plugin's REST API."""
+    response = client.post("/upsert", json={"documents": documents})
     sleep(2)  # At this point, the Vector Search Index is being built
-    return True
+    return response
+
+
+def test_delete(delete) -> None:
+    """Simply confirm that delete fixture ran successfully"""
+    assert delete.status_code == 200
+    assert delete.json()['success']
 
 
 def test_upsert(upsert) -> None:
     """Simply confirm that upsert fixture has run successfully"""
-    assert upsert
+    assert upsert.status_code == 200
+    assert len(upsert.json()['ids']) == 4
 
 
-def post_query(question: str, endpoint: str, json_headers: dict, top_k: int=2):
-    """Helper function. Posts a query to Plugin API
-
-    Although the plugin endpoint takes a list, we are just using one..
+def test_query(upsert, client) -> None:  # upsert,
+    """Test queries produce reasonable results,
+    now that datastore contains embedded data which has been indexed
     """
-    response = requests.post(
-        f"{endpoint}/query",
-        headers=json_headers,
-        json={'queries': [{"query": question, "top_k": top_k}]}
-    )
-    assert len(response.json()) == 1
-    query_result = response.json()['results'][0]
-    print(f"\n\n{response.json() = }\n\n")
-    query = query_result['query']
+    question = "What did the fox jump over?"
+    n_requested = 2  # top N results per query
+    got_response = False
+    retries = 5
+    query_result = {}
+    while retries and not got_response:
+        response = client.post("/query", json={'queries': [{"query": question, "top_k": n_requested}]})
+        assert isinstance(response, Response)
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+        query_result = response.json()['results'][0]
+        if len(query_result['results']) > 0:
+            got_response = True
+        else:
+            retries -= 1
+            sleep(2)
+
+    assert len(query_result['results']) == n_requested  # we got an actual answers
+    assert query_result['query'] == question
     answers = []
     scores = []
     for result in query_result['results']:
         answers.append(result['text'])
         scores.append(round(result['score'], 2))
-    return dict(query=query, answers=answers, scores=scores)
+    assert 0.8 < scores[0] < 0.9
+    assert answers[0] == "The quick brown fox jumped over the slimy green toad."
 
 
-def test_query(upsert, endpoint_url, headers) -> None:
-    """Test queries produce reasonable results,
-    now that datastore contains embedded data which has been indexed
-    """
-    question = "What did the fox jump over?"
-    n_results = 2
-    got_response = False
-    while got_response is False:
-        response = post_query(question, endpoint_url, headers, top_k=n_results)
-        assert isinstance(response, dict)
-        if len(response["scores"]) == n_results:
-            got_response = True
-            assert len(response["scores"]) == n_results
-            assert 0.8 < response["scores"][0] < 0.9
-            assert response["answers"][0] == "The quick brown fox jumped over the slimy green toad."
+def test_required_vars() -> None:
+    """Confirm that the environment has all it needs"""
+    required_vars = {'BEARER_TOKEN', 'OPENAI_API_KEY', 'DATASTORE', 'EMBEDDING_DIMENSION', 'EMBEDDING_MODEL',
+                     'MONGODB_COLLECTION', 'MONGODB_DATABASE', 'MONGODB_INDEX', 'MONGODB_URI'}
+    assert os.environ["DATASTORE"] == 'mongodb'
+    missing = required_vars - set(os.environ)
+    assert len(missing) == 0
 
-    question = "What are red frogs?"
-    response = post_query(question, endpoint_url, headers, top_k=n_results)
-    assert len(response["scores"]) == n_results
-    assert response["answers"][0] == "Green toads are basically red frogs."
+
+def test_mongodb_connection() -> None:
+    """Confirm that the connection to the datastore works."""
+    client = MongoClient(os.environ["MONGODB_URI"])
+    assert client.admin.command('ping')['ok']
+
+
+def test_openai_connection() -> None:
+    """Check that we can call OpenAI Embedding models."""
+    openai.api_key = os.environ["OPENAI_API_KEY"]
+    models = openai.Model.list()
+    model_names = [model["id"] for model in models['data']]
+    for model_name in model_names:
+        try:
+            response = openai.Embedding.create(input=["Some input text"], model=model_name)
+            assert len(response['data'][0]['embedding']) >= int(os.environ['EMBEDDING_DIMENSION'])
+        except:
+            pass  # Not all models are for text embedding.
