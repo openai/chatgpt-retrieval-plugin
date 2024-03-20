@@ -44,7 +44,7 @@ class DataStore(ABC):
     @abstractmethod
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
-        Takes in a list of list of document chunks and inserts them into the database.
+        Takes in a list of document chunks and inserts them into the database.
         Return a list of document ids.
         """
 
@@ -54,7 +54,7 @@ class DataStore(ABC):
         """
         Takes in a list of queries and filters and returns a list of query results with matching document chunks and scores.
         """
-        # get a list of of just the queries from the Query list
+        # get a list of just the queries from the Query list
         query_texts = [query.query for query in queries]
         query_embeddings = get_embeddings(query_texts)
         # hydrate the queries with embeddings

@@ -6,6 +6,7 @@ from loguru import logger
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-3-large")
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
@@ -28,7 +29,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 
     response = {}
     if deployment is None:
-        response = openai.Embedding.create(input=texts, model=EMBEDDING_MODEL)
+        response = openai.Embedding.create(input=texts, model=EMBEDDING_MODEL, dimensions=EMBEDDING_DIMENSION)
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
 
