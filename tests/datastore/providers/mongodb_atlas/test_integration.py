@@ -83,13 +83,13 @@ def test_query(upsert, client) -> None:  # upsert,
         assert response.status_code == 200
         assert len(response.json()) == 1
         query_result = response.json()['results'][0]
-        if len(query_result['results']) > 0:
+        if len(query_result['results']) == n_requested:
             got_response = True
         else:
             retries -= 1
-            sleep(2)
+            sleep(5)
 
-    assert len(query_result['results']) == n_requested  # we got an actual answers
+    assert got_response  # we got n_requested responses
     assert query_result['query'] == question
     answers = []
     scores = []
