@@ -42,7 +42,7 @@ KDBAI_API_KEY = os.environ.get('KDBAI_API_KEY', '')
 if KDBAI_API_KEY == '':
     KDBAI_API_KEY = None
 
-DEFAULT_DIMS = 1536
+DEFAULT_DIMS = 3072
 BATCH_SIZE = 100
 
 DEFAULT_SCHEMA = dict(
@@ -133,7 +133,7 @@ class KDBAIDataStore(DataStore):
                 raise e
             
             docs = []
-            for result in resdf.to_dict(orient='record'):
+            for result in resdf.to_dict(orient='records'):
                 docs.append(DocumentChunkWithScore(
                     id=result['document_id'],
                     text=result['text'],
@@ -153,14 +153,14 @@ class KDBAIDataStore(DataStore):
     ) -> bool:
         
         """
-        Removes vectors by ids, filter, or everything from the index.
+        Delete all vectors and assosiated index.
         """
         # Delete all vectors and assosiated index
 
         try:
            if delete_all:
                 self._table.drop()
-                logger.info(f"Deleted all vectors successfully")
+                logger.info(f"Deleted all vectors and index successfully")
                 return True
            else:
                 logger.error("Functionality is not implemented yet")
