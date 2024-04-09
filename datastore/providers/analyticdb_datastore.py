@@ -30,7 +30,7 @@ PG_CONFIG = {
     "host": os.environ.get("PG_HOST", "localhost"),
     "port": int(os.environ.get("PG_PORT", "5432")),
 }
-OUTPUT_DIM = 1536
+OUTPUT_DIM = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 
 
 class AnalyticDBDataStore(DataStore):

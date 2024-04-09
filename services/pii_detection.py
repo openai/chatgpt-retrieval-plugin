@@ -22,8 +22,7 @@ def screen_text_for_pii(text: str) -> bool:
     ]
 
     completion = get_chat_completion(
-        messages,
-        deployment_id=os.environ.get("OPENAI_COMPLETIONMODEL_DEPLOYMENTID")
+        messages, deployment_id=os.environ.get("OPENAI_COMPLETIONMODEL_DEPLOYMENTID")
     )
 
     if completion.startswith("True"):
