@@ -68,7 +68,7 @@ async def get_datastore() -> DataStore:
             )
 
             return ElasticsearchDataStore()
-        case "mongodb":
+        case "mongodb-atlas":
             from datastore.providers.mongodb_atlas_datastore import (
                 MongoDBAtlasDataStore,
             )
@@ -77,5 +77,5 @@ async def get_datastore() -> DataStore:
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, azuresearch, or qdrant"
+                f"Try one of the following: mongodb-atlas, llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, azuresearch, or qdrant"
             )

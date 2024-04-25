@@ -1,7 +1,7 @@
 """Integration Tests of ChatGPT Retrieval Plugin
 with MongoDB Atlas Vector Datastore and OPENAI Embedding model.
 
-As described in docs/providers/mongodb/setup.md, to run this, one must
+As described in docs/providers/mongodb_atlas/setup.md, to run this, one must
 have a running MongoDB Atlas Cluster, and
 provide a valid OPENAI_API_KEY.
 """
@@ -104,7 +104,7 @@ def test_required_vars() -> None:
     """Confirm that the environment has all it needs"""
     required_vars = {'BEARER_TOKEN', 'OPENAI_API_KEY', 'DATASTORE', 'EMBEDDING_DIMENSION', 'EMBEDDING_MODEL',
                      'MONGODB_COLLECTION', 'MONGODB_DATABASE', 'MONGODB_INDEX', 'MONGODB_URI'}
-    assert os.environ["DATASTORE"] == 'mongodb'
+    assert os.environ["DATASTORE"] == 'mongodb-atlas'
     missing = required_vars - set(os.environ)
     assert len(missing) == 0
 

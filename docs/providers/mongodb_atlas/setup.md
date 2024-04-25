@@ -89,7 +89,7 @@ You can confirm that the required ones have been set like this:  `assert "MONGOD
 | `MONGODB_DATABASE`    | Database name               | SQUAD                                                                            |
 | `MONGODB_COLLECTION`  | Collection name             | Beyonce                                                                          |
 | `MONGODB_INDEX`       | Search index name           | vector_index                                                                     |
-| `DATASTORE`           | Datastore name              | [must be] mongodb                                                                |
+| `DATASTORE`           | Datastore name              | [must be] mongodb-atlas                                                          |
 | `EMBEDDING_MODEL`     | OpenAI Embedding Model      | text-embedding-3-small                                                           |
 | `EMBEDDING_DIMENSION` | Length of Embedding Vectors | 1536                                                                             |
 
