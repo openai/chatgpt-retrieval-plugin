@@ -2,10 +2,10 @@
 Integration tests of MongoDB Atlas Datastore.
 
 These tests require one to have a running Cluster, Database, Collection and Atlas Search Index
-as described in docs/providers/mongodb/setup.md.
+as described in docs/providers/mongodb_atlas/setup.md.
 
 One will also have to set the same environment variables. Although one CAN
-use we the same collection and index used in examples/providers/mongodb/semantic-search.ipynb,
+use we the same collection and index used in examples/providers/mongodb_atlas/semantic-search.ipynb,
 these tests will make changes to the data, so you may wish to create another collection.
 If you have run the example notebook, you can reuse with the following.
 
