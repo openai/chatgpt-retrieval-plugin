@@ -31,12 +31,13 @@ pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 # Set the batch size for upserting vectors to Pinecone
 UPSERT_BATCH_SIZE = 100
 
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
+
 
 class PineconeDataStore(DataStore):
     def __init__(self):
         # Check if the index name is specified and exists in Pinecone
         if PINECONE_INDEX and PINECONE_INDEX not in pinecone.list_indexes():
-
             # Get all fields in the metadata object in a list
             fields_to_index = list(DocumentChunkMetadata.__fields__.keys())
 
@@ -47,7 +48,7 @@ class PineconeDataStore(DataStore):
                 )
                 pinecone.create_index(
                     PINECONE_INDEX,
-                    dimension=1536,  # dimensionality of OpenAI ada v2 embeddings
+                    dimension=EMBEDDING_DIMENSION,
                     metadata_config={"indexed": fields_to_index},
                 )
                 self.index = pinecone.Index(PINECONE_INDEX)
@@ -159,7 +160,9 @@ class PineconeDataStore(DataStore):
                 result = DocumentChunkWithScore(
                     id=result.id,
                     score=score,
-                    text=metadata["text"] if metadata and "text" in metadata else None,
+                    text=str(metadata["text"])
+                    if metadata and "text" in metadata
+                    else "",
                     metadata=metadata_without_text,
                 )
                 query_results.append(result)
@@ -232,10 +235,14 @@ class PineconeDataStore(DataStore):
         for field, value in filter.dict().items():
             if value is not None:
                 if field == "start_date":
-                    pinecone_filter["created_at"] = pinecone_filter.get("created_at", {})
+                    pinecone_filter["created_at"] = pinecone_filter.get(
+                        "created_at", {}
+                    )
                     pinecone_filter["created_at"]["$gte"] = to_unix_timestamp(value)
                 elif field == "end_date":
-                    pinecone_filter["created_at"] = pinecone_filter.get("created_at", {})
+                    pinecone_filter["created_at"] = pinecone_filter.get(
+                        "created_at", {}
+                    )
                     pinecone_filter["created_at"]["$lte"] = to_unix_timestamp(value)
                 else:
                     pinecone_filter[field] = value

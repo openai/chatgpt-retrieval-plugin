@@ -1,17 +1,20 @@
 # ChatGPT Retrieval Plugin
 
-Find an example video of a Retrieval Plugin that has access to the UN Annual Reports from 2018 to 2022 [here](https://cdn.openai.com/chat-plugins/retrieval-gh-repo-readme/Retrieval-Final.mp4).
+Build Custom GPTs with a Retrieval Plugin backend to give ChatGPT access to personal documents.
+![Example Custom GPT Screenshot](/assets/example.png)
 
 ## Introduction
 
-The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. The repository is organized into several directories:
+The ChatGPT Retrieval Plugin repository provides a flexible solution for semantic search and retrieval of personal or organizational documents using natural language queries. It is a standalone retrieval backend, and can be used with [ChatGPT custom GPTs](https://chat.openai.com/gpts/discovery), [function calling](https://platform.openai.com/docs/guides/function-calling) with the [chat completions](https://platform.openai.com/docs/guides/text-generation) or [assistants APIs](https://platform.openai.com/docs/assistants/overview), or with the [ChatGPT plugins model (deprecated)](https://chat.openai.com/?model=gpt-4-plugins). ChatGPT and the Assistants API both natively support retrieval from uploaded files, so you should use the Retrieval Plugin as a backend only if you want more granular control of your retrieval system (e.g. document text chunk length, embedding model / size, etc.).
+
+The repository is organized into several directories:
 
 | Directory                       | Description                                                                                                                |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [`datastore`](/datastore)       | Contains the core logic for storing and querying document embeddings using various vector database providers.              |
 | [`docs`](/docs)                 | Includes documentation for setting up and using each vector database provider, webhooks, and removing unused dependencies. |
 | [`examples`](/examples)         | Provides example configurations, authentication methods, and provider-specific examples.                                   |
-| [`local_server`](/local_server) | Contains an implementation of the retrieval plugin configured for localhost testing.                                       |
+| [`local_server`](/local_server) | Contains an implementation of the Retrieval Plugin configured for localhost testing.                                       |
 | [`models`](/models)             | Contains the data models used by the plugin, such as document and metadata models.                                         |
 | [`scripts`](/scripts)           | Offers scripts for processing and uploading documents from different data sources.                                         |
 | [`server`](/server)             | Houses the main FastAPI server implementation.                                                                             |
@@ -19,17 +22,20 @@ The ChatGPT Retrieval Plugin repository provides a flexible solution for semanti
 | [`tests`](/tests)               | Includes integration tests for various vector database providers.                                                          |
 | [`.well-known`](/.well-known)   | Stores the plugin manifest file and OpenAPI schema, which define the plugin configuration and API specification.           |
 
-This README provides detailed information on how to set up, develop, and deploy the ChatGPT Retrieval Plugin.
+This README provides detailed information on how to set up, develop, and deploy the ChatGPT Retrieval Plugin (stand-alone retrieval backend).
 
 ## Table of Contents
 
 - [Quickstart](#quickstart)
 - [About](#about)
-  - [Plugins](#plugins)
   - [Retrieval Plugin](#retrieval-plugin)
+  - [Retrieval Plugin with custom GPTs](#retrieval-plugin-with-custom-gpts)
+  - [Retrieval Plugin with function calling](#retrieval-plugin-with-function-calling)
+  - [Retrieval Plugin with the plugins model (deprecated)](#chatgpt-plugins-model)
+  - [API Endpoints](#api-endpoints)
   - [Memory Feature](#memory-feature)
   - [Security](#security)
-  - [API Endpoints](#api-endpoints)
+  - [Choosing an Embeddings Model](#choosing-an-embeddings-model)
 - [Development](#development)
   - [Setup](#setup)
     - [General Environment Variables](#general-environment-variables)
@@ -44,15 +50,14 @@ This README provides detailed information on how to set up, develop, and deploy 
     - [Llama Index](#llamaindex)
     - [Chroma](#chroma)
     - [Azure Cognitive Search](#azure-cognitive-search)
+    - [Azure CosmosDB Mongo vCore](#azure-cosmosdb-mongo-vcore)
     - [Supabase](#supabase)
     - [Postgres](#postgres)
     - [AnalyticDB](#analyticdb)
   - [Running the API Locally](#running-the-api-locally)
-  - [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt)
   - [Personalization](#personalization)
   - [Authentication Methods](#authentication-methods)
 - [Deployment](#deployment)
-- [Installing a Developer Plugin](#installing-a-developer-plugin)
 - [Webhooks](#webhooks)
 - [Scripts](#scripts)
 - [Limitations](#limitations)
@@ -77,11 +82,13 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export DATASTORE=<your_datastore>
    export BEARER_TOKEN=<your_bearer_token>
    export OPENAI_API_KEY=<your_openai_api_key>
+   export EMBEDDING_DIMENSION=256 # edit this value based on the dimension of the embeddings you want to use
+   export EMBEDDING_MODEL=text-embedding-3-large # edit this based on your model preference, e.g. text-embedding-3-small, text-embedding-ada-002
 
    # Optional environment variables used when running Azure OpenAI
    export OPENAI_API_BASE=https://<AzureOpenAIName>.openai.azure.com/
    export OPENAI_API_TYPE=azure
-   export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of text-embedding-ada-002 model deployment>
+   export OPENAI_EMBEDDINGMODEL_DEPLOYMENTID=<Name of embedding model deployment>
    export OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID=<Name of deployment of model for metatdata>
    export OPENAI_COMPLETIONMODEL_DEPLOYMENTID=<Name of general model deployment used for completion>
    export OPENAI_EMBEDDING_BATCH_SIZE=<Batch size of embedding, for AzureOAI, this value need to be set as 1>
@@ -159,6 +166,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export AZURESEARCH_INDEX=<your_search_index_name>
    export AZURESEARCH_API_KEY=<your_api_key> (optional, uses key-free managed identity if not set)
 
+   # Azure CosmosDB Mongo vCore
+   export AZCOSMOS_API = <your azure cosmos db api, for now it only supports mongo>
+   export AZCOSMOS_CONNSTR = <your azure cosmos db mongo vcore connection string>
+   export AZCOSMOS_DATABASE_NAME = <your mongo database name>
+   export AZCOSMOS_CONTAINER_NAME = <your mongo container name>
+
    # Supabase
    export SUPABASE_URL=<supabase_project_url>
    export SUPABASE_ANON_KEY=<supabase_project_api_anon_key>
@@ -186,46 +199,56 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
 10. Run the API locally: `poetry run start`
 11. Access the API documentation at `http://0.0.0.0:8000/docs` and test the API endpoints (make sure to add your bearer token).
 
-### Testing in ChatGPT
-
-To test a locally hosted plugin in ChatGPT, follow these steps:
-
-1. Run the API on localhost: `poetry run dev`
-2. Follow the instructions in the [Testing a Localhost Plugin in ChatGPT](#testing-a-localhost-plugin-in-chatgpt) section of the README.
-
-For more detailed information on setting up, developing, and deploying the ChatGPT Retrieval Plugin, refer to the full Development section below.
-
 ## About
-
-### Plugins
-
-Plugins are chat extensions designed specifically for language models like ChatGPT, enabling them to access up-to-date information, run computations, or interact with third-party services in response to a user's request. They unlock a wide range of potential use cases and enhance the capabilities of language models.
-
-Developers can create a plugin by exposing an API through their website and providing a standardized manifest file that describes the API. ChatGPT consumes these files and allows the AI models to make calls to the API defined by the developer.
-
-A plugin consists of:
-
-- An API
-- An API schema (OpenAPI JSON or YAML format)
-- A manifest (JSON file) that defines relevant metadata for the plugin
-
-The Retrieval Plugin already contains all of these components. Read the Chat Plugins blogpost [here](https://openai.com/blog/chatgpt-plugins), and find the docs [here](https://platform.openai.com/docs/plugins/introduction).
 
 ### Retrieval Plugin
 
-This is a plugin for ChatGPT that enables semantic search and retrieval of personal or organizational documents. It allows users to obtain the most relevant document snippets from their data sources, such as files, notes, or emails, by asking questions or expressing needs in natural language. Enterprises can make their internal documents available to their employees through ChatGPT using this plugin.
+This is a standalone retrieval backend that can be used with [ChatGPT custom GPTs](https://chat.openai.com/gpts/discovery), [function calling](https://platform.openai.com/docs/guides/function-calling) with the [chat completions](https://platform.openai.com/docs/guides/text-generation) or [assistants APIs](https://platform.openai.com/docs/assistants/overview), or with the [ChatGPT plugins model (deprecated)](https://chat.openai.com/?model=gpt-4-plugins).
 
-The plugin uses OpenAI's `text-embedding-ada-002` embeddings model to generate embeddings of document chunks, and then stores and queries them using a vector database on the backend. As an open-source and self-hosted solution, developers can deploy their own Retrieval Plugin and register it with ChatGPT. The Retrieval Plugin supports several vector database providers, allowing developers to choose their preferred one from a list.
+It enables a model to carry out semantic search and retrieval of personal or organizational documents, and write answers informed by relevent retrieved context (sometimes referred to as "Retrieval-Augmented Generation" or "RAG"). It allows users to obtain the most relevant document snippets from their data sources, such as files, notes, or emails, by asking questions or expressing needs in natural language. Enterprises can make their internal documents available to their employees through ChatGPT using this plugin.
+
+The plugin uses OpenAI's embeddings model (`text-embedding-3-large` 256 dimension embeddings by default) to generate embeddings of document chunks, and then stores and queries them using a vector database on the backend. As an open-source and self-hosted solution, developers can deploy their own Retrieval Plugin and register it with ChatGPT. The Retrieval Plugin supports several vector database providers, allowing developers to choose their preferred one from a list.
 
 A FastAPI server exposes the plugin's endpoints for upserting, querying, and deleting documents. Users can refine their search results by using metadata filters by source, date, author, or other criteria. The plugin can be hosted on any cloud platform that supports Docker containers, such as Fly.io, Heroku, Render, or Azure Container Apps. To keep the vector database updated with the latest documents, the plugin can process and store documents from various data sources continuously, using incoming webhooks to the upsert and delete endpoints. Tools like [Zapier](https://zapier.com) or [Make](https://www.make.com) can help configure the webhooks based on events or schedules.
 
-### Memory Feature
+### Retrieval Plugin with Custom GPTs
 
-A notable feature of the Retrieval Plugin is its capacity to provide ChatGPT with memory. By utilizing the plugin's upsert endpoint, ChatGPT can save snippets from the conversation to the vector database for later reference (only when prompted to do so by the user). This functionality contributes to a more context-aware chat experience by allowing ChatGPT to remember and retrieve information from previous conversations. Learn how to configure the Retrieval Plugin with memory [here](/examples/memory).
+To create a custom GPT that can use your Retrieval Plugin for semantic search and retrieval of your documents, and even store new information back to the database, you first need to have deployed a Retrieval Plugin. For detailed instructions on how to do this, please refer to the [Deployment section](#deployment). Once you have your app URL (e.g., `https://your-app-url.com`), take the following steps:
 
-### Security
+1. Navigate to the create GPT page at `https://chat.openai.com/gpts/editor`.
+2. Follow the standard creation flow to set up your GPT.
+3. Navigate to the "Configure" tab. Here, you can manually fill in fields such as name, description, and instructions, or use the smart creator for assistance.
+4. Under the "Actions" section, click on "Create new action".
+5. Choose an authentication method. The Retrieval Plugin supports None, API key (Basic or Bearer) and OAuth. For more information on these methods, refer to the [Authentication Methods Section](#authentication-methods).
+6. Import the OpenAPI schema. You can either:
+   - Import directly from the OpenAPI schema hosted in your app at `https://your-app-url.com/.well-known/openapi.yaml`.
+   - Copy and paste the contents of [this file](/.well-known/openapi.yaml) into the Schema input area if you only want to expose the query endpoint to the GPT. Remember to change the URL under the `-servers` section of the OpenAPI schema you paste in.
+7. Optionally, you might want to add a fetch endpoint. This would involve editing the [`/server/main.py`](/server/main.py) file to add an endpoint and implement this for your chosen vector database. If you make this change, please consider contributing it back to the project by opening a pull request! Adding the fetch endpoint to the OpenAPI schema would allow the model to fetch more content from a document by ID if some text is cut off in the retrieved result. It might also be useful to pass in a string with the text from the retrieved result and an option to return a fixed length of context before and after the retrieved result.
+8. If you want the GPT to be able to save information back to the vector database, you can give it access to the Retrieval Plugin's `/upsert` endpoint. To do this, copy the contents of [this file](/examples/memory/openapi.yaml) into the schema area. This allows the GPT to store new information it generates or learns during the conversation. More details on this feature can be found at [Memory Feature](#memory-feature) and [in the docs here](/examples/memory).
 
-The Retrieval Plugin allows ChatGPT to search a vector database of content, and then add the best results into the ChatGPT session. This means it doesn’t have any external effects, and the main risk consideration is data authorization and privacy. Developers should only add content into their Retrieval Plugin that they have authorization for and that they are fine with appearing in users’ ChatGPT sessions. You can choose from a number of different authentication methods to secure the plugin (more information [here](#authentication-methods)).
+Remember: ChatGPT and custom GPTs natively support retrieval from uploaded files, so you should use the Retrieval Plugin as a backend only if you want more granular control of your retrieval system (e.g. self-hosting, embedding chunk length, embedding model / size, etc.).
+
+### Retrieval Plugin with Function Calling
+
+The Retrieval Plugin can be integrated with function calling in both the [Chat Completions API](https://platform.openai.com/docs/guides/function-calling) and the [Assistants API](https://platform.openai.com/docs/assistants/overview). This allows the model to decide when to use your functions (query, fetch, upsert) based on the conversation context.
+
+#### Function Calling with Chat Completions
+
+In a call to the chat completions API, you can describe functions and have the model generate a JSON object containing arguments to call one or many functions. The latest models (gpt-3.5-turbo-0125 and gpt-4-turbo-preview) have been trained to detect when a function should be called and to respond with JSON that adheres to the function signature.
+
+You can define the functions for the Retrieval Plugin endpoints and pass them in as tools when you use the Chat Completions API with one of the latest models. The model will then intelligently call the functions. You can use function calling to write queries to your APIs, call the endpoint on the backend, and return the response as a tool message to the model to continue the conversation. The function definitions/schemas and an example can be found [here](/examples/function-calling/).
+
+#### Function Calling with Assistants API
+
+You can use the same function definitions with the OpenAI [Assistants API](https://platform.openai.com/docs/assistants/overview), specifically the [function calling in tool use](https://platform.openai.com/docs/assistants/tools/function-calling). The Assistants API allows you to build AI assistants within your own applications, leveraging models, tools, and knowledge to respond to user queries. The function definitions/schemas and an example can be found [here](/examples/function-calling/). The Assistants API natively supports retrieval from uploaded files, so you should use the Retrieval Plugin with function calling only if you want more granular control of your retrieval system (e.g. embedding chunk length, embedding model / size, etc.).
+
+Parallel function calling is supported for both the Chat Completions API and the Assistants API. This means you can perform multiple tasks, such as querying something and saving something back to the vector database, in the same message.
+
+Read more about function calling with the Retrieval Plugin [here](/examples/function-calling/).
+
+### ChatGPT Plugins Model
+
+(deprecated) We recommend using custom actions with GPTs to make use of the Retrieval Plugin through ChatGPT. Instrucitons for using retrieval with the deprecated plugins model can be found [here](/docs/deprecated/plugins.md).
 
 ### API Endpoints
 
@@ -246,6 +269,46 @@ The plugin exposes the following endpoints for upserting, querying, and deleting
 The detailed specifications and examples of the request and response models can be found by running the app locally and navigating to http://0.0.0.0:8000/openapi.json, or in the OpenAPI schema [here](/.well-known/openapi.yaml). Note that the OpenAPI schema only contains the `/query` endpoint, because that is the only function that ChatGPT needs to access. This way, ChatGPT can use the plugin only to retrieve relevant documents based on natural language queries or needs. However, if developers want to also give ChatGPT the ability to remember things for later, they can use the `/upsert` endpoint to save snippets from the conversation to the vector database. An example of a manifest and OpenAPI schema that gives ChatGPT access to the `/upsert` endpoint can be found [here](/examples/memory).
 
 To include custom metadata fields, edit the `DocumentMetadata` and `DocumentMetadataFilter` data models [here](/models/models.py), and update the OpenAPI schema [here](/.well-known/openapi.yaml). You can update this easily by running the app locally, copying the JSON found at http://0.0.0.0:8000/sub/openapi.json, and converting it to YAML format with [Swagger Editor](https://editor.swagger.io/). Alternatively, you can replace the `openapi.yaml` file with an `openapi.json` file.
+
+### Memory Feature
+
+A notable feature of the Retrieval Plugin is its capacity to provide ChatGPT with memory. By using the plugin's upsert endpoint, ChatGPT can save snippets from the conversation to the vector database for later reference (only when prompted to do so by the user). This functionality contributes to a more context-aware chat experience by allowing ChatGPT to remember and retrieve information from previous conversations. Learn how to configure the Retrieval Plugin with memory [here](/examples/memory).
+
+### Security
+
+The Retrieval Plugin allows ChatGPT to search a vector database of content, and then add the best results into the ChatGPT session. This means it doesn’t have any external effects, and the main risk consideration is data authorization and privacy. Developers should only add content into their Retrieval Plugin that they have authorization for and that they are fine with appearing in users’ ChatGPT sessions. You can choose from a number of different authentication methods to secure the plugin (more information [here](#authentication-methods)).
+
+### Choosing an Embeddings Model
+
+The ChatGPT Retrieval Plugin uses OpenAI's embeddings models to generate embeddings of document chunks. The default model for the Retrieval Plugin is `text-embedding-3-large` with 256 dimensions. OpenAI offers two latest embeddings models, `text-embedding-3-small` and `text-embedding-3-large`, as well as an older model, `text-embedding-ada-002`.
+
+The new models support shortening embeddings without significant loss of retrieval accuracy, allowing you to balance retrieval accuracy, cost, and speed.
+
+Here's a comparison of the models:
+
+| Model                  | Embedding Size | Average MTEB Score | Cost per 1k Tokens |
+| ---------------------- | -------------- | ------------------ | ------------------ |
+| text-embedding-3-large | 3072           | 64.6%              | $0.00013           |
+| text-embedding-3-large | 1024           | 64.1%              | $0.00013           |
+| text-embedding-3-large | 256            | 62.0%              | $0.00013           |
+| text-embedding-3-small | 1536           | 62.3%              | $0.00002           |
+| text-embedding-3-small | 512            | 61.6%              | $0.00002           |
+| text-embedding-ada-002 | 1536           | 61.0%              | $0.0001            |
+
+When choosing a model, consider:
+
+1. **Retrieval Accuracy vs Cost**: `text-embedding-3-large` offers the highest accuracy but at a higher cost. `text-embedding-3-small` is more cost-effective with competitive accuracy. The older `text-embedding-ada-002` model has the lowest accuracy.
+
+2. **Embedding Size**: Larger embeddings provide better accuracy but consume more storage and could be slower to query. You can adjust the size of the embeddings to balance these factors.
+
+For example, if your vector database supports up to 1024 dimensions, you can use `text-embedding-3-large` and set the dimensions API parameter to 1024. This shortens the embedding from 3072 dimensions, trading off some accuracy for lower storage and query costs.
+
+To change your chosen embeddings model and size, edit the following environment variables:
+
+```
+EMBEDDING_DIMENSION=256 # edit this value based on the dimension of the embeddings you want to use
+EMBEDDING_MODEL="text-embedding-3-large" # edit this value based on the model you want to use e.g. text-embedding-3-small, text-embedding-ada-002
+```
 
 ## Development
 
@@ -296,7 +359,7 @@ The API requires the following environment variables to work:
 | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the `text-embedding-ada-002` model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                    |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the one of the OpenAI embeddings model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                |
 
 ### Using the plugin with Azure OpenAI
 
@@ -359,6 +422,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 
 [Azure Cognitive Search](https://azure.microsoft.com/products/search/) is a complete retrieval cloud service that supports vector search, text search, and hybrid (vectors + text combined to yield the best of the two approaches). It also offers an [optional L2 re-ranking step](https://learn.microsoft.com/azure/search/semantic-search-overview) to further improve results quality. For detailed setup instructions, refer to [`/docs/providers/azuresearch/setup.md`](/docs/providers/azuresearch/setup.md)
 
+#### Azure CosmosDB Mongo vCore
+
+[Azure CosmosDB Mongo vCore](https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/vcore/) supports vector search on embeddings, and it could be used to seamlessly integrate your AI-based applications with your data stored in the Azure CosmosDB. For detailed instructions, refer to [`/docs/providers/azurecosmosdb/setup.md`](/docs/providers/azurecosmosdb/setup.md)
+
 #### Supabase
 
 [Supabase](https://supabase.com/blog/openai-embeddings-postgres-vector) offers an easy and efficient way to store vectors via [pgvector](https://github.com/pgvector/pgvector) extension for Postgres Database. [You can use Supabase CLI](https://github.com/supabase/cli) to set up a whole Supabase stack locally or in the cloud or you can also use docker-compose, k8s and other options available. For a hosted/managed solution, try [Supabase.com](https://supabase.com/) and unlock the full power of Postgres with built-in authentication, storage, auto APIs, and Realtime features. For detailed setup instructions, refer to [`/docs/providers/supabase/setup.md`](/docs/providers/supabase/setup.md).
@@ -395,22 +462,6 @@ poetry run start
 Append `docs` to the URL shown in the terminal and open it in a browser to access the API documentation and try out the endpoints (i.e. http://0.0.0.0:8000/docs). Make sure to enter your bearer token and test the API endpoints.
 
 **Note:** If you add new dependencies to the pyproject.toml file, you need to run `poetry lock` and `poetry install` to update the lock file and install the new dependencies.
-
-### Testing a Localhost Plugin in ChatGPT
-
-To test a localhost plugin in ChatGPT, use the provided [`local_server/main.py`](/local_server/main.py) file, which is specifically configured for localhost testing with CORS settings, no authentication and routes for the manifest, OpenAPI schema and logo.
-
-Follow these steps to test your localhost plugin:
-
-1. Run the localhost server using the `poetry run dev` command. This starts the server at the default address (e.g. `localhost:3333`).
-
-2. Visit [ChatGPT](https://chat.openai.com/), select "Plugins" from the model picker, click on the plugins picker, and click on "Plugin store" at the bottom of the list.
-
-3. Choose "Develop your own plugin" and enter your localhost URL (e.g. `localhost:3333`) when prompted.
-
-4. Your localhost plugin is now enabled for your ChatGPT session.
-
-For more information, refer to the [OpenAI documentation](https://platform.openai.com/docs/plugins/getting-started/openapi-definition).
 
 ### Personalization
 
@@ -459,28 +510,6 @@ Instructions:
 
 Once you have deployed your app, consider uploading an initial batch of documents using one of [these scripts](/scripts) or by calling the `/upsert` endpoint.
 
-## Installing a Developer Plugin
-
-To install a developer plugin, follow the steps below:
-
-- First, create your developer plugin by deploying it to your preferred hosting platform (e.g. Fly.io, Heroku, etc.) and updating the plugin URL in the manifest file and OpenAPI schema.
-
-- Go to [ChatGPT](https://chat.openai.com/) and select "Plugins" from the model picker.
-
-- From the plugins picker, scroll to the bottom and click on "Plugin store."
-
-- Go to "Develop your own plugin" and follow the instructions provided. You will need to enter the domain where your plugin is deployed.
-
-- Follow the instructions based on the authentication type you have chosen for your plugin (e.g. if your plugin uses Service Level HTTP, you will have to paste in your access token, then paste the new access token you receive from the plugin flow into your [ai-plugin.json](/.well-known/ai-plugin.json) file and redeploy your app).
-
-- Next, you must add your plugin. Go to the "Plugin store" again and click on "Install an unverified plugin."
-
-- Follow the instructions provided, which will require you to enter the domain where your plugin is deployed.
-
-- Follow the instructions based on the authentication type you have chosen for your plugin (e.g. if your plugin uses User Level HTTP, you will have to paste in your bearer token).
-
-After completing these steps, your developer plugin should be installed and ready to use in ChatGPT.
-
 ## Webhooks
 
 To keep the documents stored in the vector database up-to-date, consider using tools like [Zapier](https://zapier.com) or [Make](https://www.make.com) to configure incoming webhooks to your plugin's API based on events or schedules. For example, this could allow you to sync new information as you update your notes or receive emails. You can also use a [Zapier Transfer](https://zapier.com/blog/zapier-transfer-guide/) to batch process a collection of existing documents and upload them to the vector database.
@@ -491,9 +520,9 @@ To set up an incoming webhook, follow these general steps:
 
 - Choose a webhook tool like Zapier or Make and create an account.
 - Set up a new webhook or transfer in the tool, and configure it to trigger based on events or schedules.
-- Specify the target URL for the webhook, which should be the API endpoint of your retrieval plugin (e.g. `https://your-plugin-url.com/upsert`).
-- Configure the webhook payload to include the necessary data fields and format them according to your retrieval plugin's API requirements.
-- Test the webhook to ensure it's working correctly and sending data to your retrieval plugin as expected.
+- Specify the target URL for the webhook, which should be the API endpoint of your Retrieval Plugin (e.g. `https://your-plugin-url.com/upsert`).
+- Configure the webhook payload to include the necessary data fields and format them according to your Retrieval Plugin's API requirements.
+- Test the webhook to ensure it's working correctly and sending data to your Retrieval Plugin as expected.
 
 After setting up the webhook, you may want to run a backfill to ensure that any previously missed data is included in the vector database.
 
@@ -557,10 +586,9 @@ feature/advanced-chunking-strategy-123
 
 While the ChatGPT Retrieval Plugin is designed to provide a flexible solution for semantic search and retrieval, it does have some limitations:
 
-- **Keyword search limitations**: The embeddings generated by the `text-embedding-ada-002` model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
+- **Keyword search limitations**: The embeddings generated by the chosen OpenAI embeddings model may not always be effective at capturing exact keyword matches. As a result, the plugin might not return the most relevant results for queries that rely heavily on specific keywords. Some vector databases, like Elasticsearch, Pinecone, Weaviate and Azure Cognitive Search, use hybrid search and might perform better for keyword searches.
 - **Sensitive data handling**: The plugin does not automatically detect or filter sensitive data. It is the responsibility of the developers to ensure that they have the necessary authorization to include content in the Retrieval Plugin and that the content complies with data privacy requirements.
 - **Scalability**: The performance of the plugin may vary depending on the chosen vector database provider and the size of the dataset. Some providers may offer better scalability and performance than others.
-- **Language support**: The plugin currently uses OpenAI's `text-embedding-ada-002` model, which is optimized for use in English. However, it is still robust enough to generate good results for a variety of languages.
 - **Metadata extraction**: The optional metadata extraction feature relies on a language model to extract information from the document text. This process may not always be accurate, and the quality of the extracted metadata may vary depending on the document content and structure.
 - **PII detection**: The optional PII detection feature is not foolproof and may not catch all instances of personally identifiable information. Use this feature with caution and verify its effectiveness for your specific use case.
 
