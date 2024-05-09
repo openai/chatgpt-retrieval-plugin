@@ -42,6 +42,7 @@ This README provides detailed information on how to set up, develop, and deploy 
   - [Choosing a Vector Database](#choosing-a-vector-database)
     - [Pinecone](#pinecone)
     - [Elasticsearch](#elasticsearch)
+    - [MongoDB Atlas](#mongodb-atlas)
     - [Weaviate](#weaviate)
     - [Zilliz](#zilliz)
     - [Milvus](#milvus)
@@ -194,6 +195,12 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export ELASTICSEARCH_INDEX=<elasticsearch_index_name>
    export ELASTICSEARCH_REPLICAS=<elasticsearch_replicas>
    export ELASTICSEARCH_SHARDS=<elasticsearch_shards>
+
+   # MongoDB Atlas
+   export MONGODB_URI=<mongodb_uri>
+   export MONGODB_DATABASE=<mongodb_database>
+   export MONGODB_COLLECTION=<mongodb_collection>
+   export MONGODB_INDEX=<mongodb_index>
    ```
 
 10. Run the API locally: `poetry run start`
@@ -356,8 +363,8 @@ poetry install
 The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                                                                                   |
-| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`. |
+| ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `mongodb-atlas`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the one of the OpenAI embeddings model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                |
 
@@ -394,7 +401,7 @@ For more detailed instructions on setting up and using each vector database prov
 
 #### KDB.AI
 
-[KDB.AI](https://kdb.ai) is a powerful knowledge-based vector database and search engine that allows developers to build scalable, reliable and real-time applications by providing advanced search, recommendation and personalization for AI applications, using real-time data. For detailed setup instructions, refer to [`/docs/providers/kdbai/setup.md`](/docs/providers/kdbai/setup.md).
+[KDB.AI](https://kdb.ai) is a powerful knowledge-based vector database that allows developers to build scalable, reliable AI applications using real-time data. It provides advanced search, recommendation, and personalization features for generative AI applications. For setup instructions, refer to [`/docs/providers/kdbai/setup.md`](/docs/providers/kdbai/setup.md).
 
 #### Qdrant
 
@@ -441,6 +448,10 @@ For detailed setup instructions, refer to [`/docs/providers/llama/setup.md`](/do
 #### Elasticsearch
 
 [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) currently supports storing vectors through the `dense_vector` field type and uses them to calculate document scores. Elasticsearch 8.0 builds on this functionality to support fast, approximate nearest neighbor search (ANN). This represents a much more scalable approach, allowing vector search to run efficiently on large datasets. For detailed setup instructions, refer to [`/docs/providers/elasticsearch/setup.md`](/docs/providers/elasticsearch/setup.md).
+
+#### Mongodb-Atlas
+
+[MongoDB Atlas](https://www.mongodb.com/docs/atlas/getting-started/) Currently, the procedure involves generating an Atlas Vector Search index for all collections featuring vector embeddings of 2048 dimensions or fewer in width. This applies to diverse data types coexisting with additional data on your Atlas cluster, and the process is executed through the Atlas UI and Atlas Administration AP, refer to [`/docs/providers/mongodb_atlas/setup.md`](/docs/providers/mongodb_atlas/setup.md).
 
 ### Running the API locally
 

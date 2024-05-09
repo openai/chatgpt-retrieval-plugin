@@ -72,6 +72,13 @@ async def get_datastore() -> DataStore:
 
             return KDBAIDataStore()
 
+            return ElasticsearchDataStore()
+        case "mongodb":
+            from datastore.providers.mongodb_atlas_datastore import (
+                MongoDBAtlasDataStore,
+            )
+
+            return MongoDBAtlasDataStore()
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
