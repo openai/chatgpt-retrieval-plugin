@@ -71,8 +71,6 @@ async def get_datastore() -> DataStore:
             from datastore.providers.kdbai_datastore import KDBAIDataStore
 
             return KDBAIDataStore()
-
-            return ElasticsearchDataStore()
         case "mongodb":
             from datastore.providers.mongodb_atlas_datastore import (
                 MongoDBAtlasDataStore,
