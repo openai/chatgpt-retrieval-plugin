@@ -42,7 +42,7 @@ KDBAI_API_KEY = os.environ.get('KDBAI_API_KEY', '')
 if KDBAI_API_KEY == '':
     KDBAI_API_KEY = None
 
-DEFAULT_DIMS = 3072
+DEFAULT_DIMS = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 BATCH_SIZE = 100
 
 DEFAULT_SCHEMA = dict(
