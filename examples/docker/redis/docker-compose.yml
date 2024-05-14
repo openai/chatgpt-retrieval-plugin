@@ -2,9 +2,11 @@ version: "3.9"
 
 services:
   redis:
-    image: redis/redis-stack-server:latest
+    image: redis/redis-stack:latest
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_ARGS=--requirepass redis-stack
     volumes:
         - redis_data:/data
     healthcheck:
@@ -13,6 +15,3 @@ services:
       timeout: 1m30s
       retries: 5
       start_period: 5s
-
-volumes:
-  redis_data:
