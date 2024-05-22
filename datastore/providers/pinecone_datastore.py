@@ -82,13 +82,15 @@ class PineconeDataStore(DataStore):
             doc_ids.append(doc_id)
             logger.info(f"Upserting document_id: {doc_id}")
             for chunk in chunk_list:
-                # Create a vector tuple of (id, embedding, metadata)
+                # Create a vector dict with keys {id, embedding, metadata}
                 # Convert the metadata object to a dict with unix timestamps for dates
                 pinecone_metadata = self._get_pinecone_metadata(chunk.metadata)
                 # Add the text and document id to the metadata dict
                 pinecone_metadata["text"] = chunk.text
                 pinecone_metadata["document_id"] = doc_id
-                vector = (chunk.id, chunk.embedding, pinecone_metadata)
+                vector = {"id": chunk.id,
+                          "values": chunk.embedding,
+                          "metadata" : pinecone_metadata}
                 vectors.append(vector)
 
         # Split the vectors list into batches of the specified size
