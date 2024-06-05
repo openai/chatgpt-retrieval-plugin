@@ -155,7 +155,7 @@ class RedisDataStore(DataStore):
         Returns:
             str: JSON key string.
         """
-        return f"doc:{document_id}:chunk:{chunk_id}"
+        return f"{REDIS_DOC_PREFIX}:{document_id}:chunk:{chunk_id}"
 
     @staticmethod
     def _escape(value: str) -> str:
