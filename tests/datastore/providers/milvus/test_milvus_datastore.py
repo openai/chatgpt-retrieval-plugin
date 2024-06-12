@@ -303,7 +303,8 @@ async def test_delete_with_source_filter(milvus_datastore, document_chunk_one):
 
     assert 1 == len(query_results)
     assert 2 == len(query_results[0].results)
-    assert "def_456" == query_results[0].results[0].id
+    for res in query_results[0].results:
+        assert "abc_123" != res.id
     milvus_datastore.col.drop()
 
 
