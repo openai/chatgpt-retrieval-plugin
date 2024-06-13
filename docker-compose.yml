@@ -1,0 +1,14 @@
+services:
+  web:
+    image: "chatgpt-retrieval-plugin-web:latest"
+    ports:
+      - "9099:8080"
+    environment:
+      - BEARER_TOKEN=1111111111zdWIiOiIxMjM0NTY3IiwibmFtZSI6ImFuZHlTdW4iLCJpYXQiOjEzNTg4NzkyNzYyfQ.gkvK6TKwQL9Ra691aPOzxMwA5GAb7y4hSchbomN6Guk
+      - DATASTORE=redis
+      - OPENAI_API_KEY=111111T3BlbkFJevKpclfEWR91H9unZGpm
+      - REDIS_HOST=172.31
+  redis:
+    image: "redis/redis-stack-server:6.2.6-v7"
+    ports:
+      - "6379:6379"
