@@ -120,6 +120,10 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export MILVUS_USER=<your_milvus_username>
    export MILVUS_PASSWORD=<your_milvus_password>
 
+   # KDB.AI
+   export KDBAI_ENDPOINT=<KDB.AI_endpoint>
+   export KDBAI_API_KEY=<KDB.AI_API_key>
+
    # Qdrant
    export QDRANT_URL=<your_qdrant_url>
    export QDRANT_PORT=<your_qdrant_port>
@@ -394,6 +398,10 @@ For more detailed instructions on setting up and using each vector database prov
 #### Milvus
 
 [Milvus](https://milvus.io/) is an open-source, cloud-native vector database that scales to billions of vectors. It is the open-source version of Zilliz and shares many of its features, such as various indexing algorithms, distance metrics, scalar filtering, time travel searches, rollback with snapshots, multi-language SDKs, storage and compute separation, and cloud scalability. For detailed setup instructions, refer to [`/docs/providers/milvus/setup.md`](/docs/providers/milvus/setup.md).
+
+#### KDB.AI
+
+[KDB.AI](https://kdb.ai) is a powerful knowledge-based vector database that allows developers to build scalable, reliable AI applications using real-time data. It provides advanced search, recommendation, and personalization features for generative AI applications. For setup instructions, refer to [`/docs/providers/kdbai/setup.md`](/docs/providers/kdbai/setup.md).
 
 #### Qdrant
 
