@@ -34,7 +34,7 @@ docker pull ankane/pgvector
 ```
 
 ```bash
-docker run --name pgvector -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+docker run --name pgvector -e POSTGRES_PASSWORD=mysecretpassword -d ankane/pgvector
 ```
 
 Check PostgreSQL [official docker image](https://github.com/docker-library/docs/blob/master/postgres/README.md) for more options.
@@ -50,7 +50,7 @@ psql -h localhost -p 5432 -U postgres -d postgres -f examples/providers/supabase
 
 ```bash
 export PG_HOST=localhost
-export PG_PORT=54322
+export PG_PORT=5432
 export PG_PASSWORD=mysecretpassword
 ```
 
