@@ -245,6 +245,8 @@ class ChromaDataStore(DataStore):
                 }
         elif filter:
             where_clause = self._where_from_query_filter(filter)
+        else:
+            where_clause = None
 
         self._collection.delete(where=where_clause)
         return True
