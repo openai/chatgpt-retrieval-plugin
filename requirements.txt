@@ -1,0 +1,78 @@
+# ChatGPT Retrieval Plugin - Core Requirements
+# Generated from pyproject.toml for pip users
+# Install with: pip install -r requirements.txt
+
+# Core Framework
+fastapi>=0.92.0
+uvicorn>=0.20.0
+pydantic>=1.10.5,<2.0.0
+python-dotenv>=0.21.1
+python-multipart>=0.0.6
+
+# OpenAI & Embeddings
+openai>=0.27.5
+tiktoken>=0.2.0
+tenacity>=8.2.1
+
+# Data Processing
+numpy>=1.24.2
+arrow>=1.2.3
+
+# Document Processing
+docx2txt>=0.8
+PyPDF2>=3.0.1
+python-pptx>=0.6.21
+
+# Production Features (Enhanced Server)
+slowapi>=0.1.9
+psutil>=5.9.5
+requests>=2.31.0
+loguru>=0.7.0
+
+# Vector Databases (install only what you need)
+
+# Pinecone
+pinecone-client>=2.1.0
+
+# Weaviate
+weaviate-client>=3.12.0
+
+# Chroma
+chromadb>=0.3.25
+
+# Qdrant
+qdrant-client>=1.0.4
+
+# Redis
+redis==4.5.4
+
+# Milvus/Zilliz
+pymilvus>=2.2.2
+
+# Supabase
+supabase>=1.0.2
+
+# Postgres
+psycopg2>=2.9.5
+psycopg2-binary>=2.9.5
+pgvector>=0.1.7
+
+# Elasticsearch
+elasticsearch==8.8.2
+
+# MongoDB
+pymongo>=4.3.3
+motor>=3.3.2
+
+# LlamaIndex
+llama-index==0.5.4
+
+# Azure
+azure-identity>=1.12.0
+azure-search-documents==11.4.0b8
+
+# Development (optional)
+# httpx>=0.23.3
+# pytest>=7.2.1
+# pytest-cov>=4.0.0
+# pytest-asyncio>=0.20.3
