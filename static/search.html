@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSP Ticket Knowledge Base</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #searchInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            border-color: #667eea;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-height: 400px;
+        }
+
+        .result-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .result-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .ticket-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .relevance-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #4a5568;
+        }
+
+        .meta-tag strong {
+            color: #2d3748;
+        }
+
+        .result-text {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .result-footer {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            color: #742a2a;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .stats-info {
+            color: #4a5568;
+            font-size: 0.95em;
+        }
+
+        .stats-info strong {
+            color: #2d3748;
+        }
+
+        @media (max-width: 768px) {
+            .search-input-wrapper {
+                flex-direction: column;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .result-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 MSP Ticket Knowledge Base</h1>
+            <p class="subtitle">Search historical tickets to find solutions faster</p>
+        </header>
+
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search for issues, error codes, solutions..."
+                    autocomplete="off"
+                >
+                <button class="btn btn-primary" id="searchBtn">Search</button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="clientFilter">Client</label>
+                    <input type="text" id="clientFilter" placeholder="Filter by client...">
+                </div>
+                <div class="filter-group">
+                    <label for="priorityFilter">Priority</label>
+                    <select id="priorityFilter">
+                        <option value="">All Priorities</option>
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="categoryFilter">Category</label>
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="Email">Email</option>
+                        <option value="Network">Network</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Software">Software</option>
+                        <option value="VPN">VPN</option>
+                        <option value="Printer">Printer</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="topKFilter">Results</label>
+                    <select id="topKFilter">
+                        <option value="3">Top 3</option>
+                        <option value="5" selected>Top 5</option>
+                        <option value="10">Top 10</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="no-results">
+                <div class="no-results-icon">💡</div>
+                <h3>Search to Find Solutions</h3>
+                <p>Enter a problem description, error code, or issue to find similar resolved tickets</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        const BEARER_TOKEN = localStorage.getItem('bearer_token') || prompt('Enter API Bearer Token:');
+
+        if (BEARER_TOKEN) {
+            localStorage.setItem('bearer_token', BEARER_TOKEN);
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const results = document.getElementById('results');
+        const clientFilter = document.getElementById('clientFilter');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const topKFilter = document.getElementById('topKFilter');
+
+        // Search on button click
+        searchBtn.addEventListener('click', performSearch);
+
+        // Search on Enter key
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            // Build filter
+            const filter = {};
+            if (clientFilter.value) filter.client_name = clientFilter.value;
+            if (priorityFilter.value) filter.priority = priorityFilter.value;
+            if (categoryFilter.value) filter.issue_category = categoryFilter.value;
+
+            // Show loading
+            showLoading();
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${BEARER_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        queries: [{
+                            query: query,
+                            filter: Object.keys(filter).length > 0 ? filter : null,
+                            top_k: parseInt(topKFilter.value)
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResults(data.results[0], query);
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                searchBtn.disabled = false;
+            }
+        }
+
+        function showLoading() {
+            results.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching knowledge base...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            results.innerHTML = `
+                <div class="error">
+                    <strong>⚠️ Error:</strong> ${message}
+                </div>
+                <div class="no-results">
+                    <p>Please check your API token and try again</p>
+                </div>
+            `;
+        }
+
+        function displayResults(result, query) {
+            if (!result.results || result.results.length === 0) {
+                results.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h3>No Results Found</h3>
+                        <p>No similar tickets found for "${query}"</p>
+                        <p>Try different keywords or remove filters</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const resultItems = result.results.map(item => {
+                const metadata = item.metadata || {};
+                const score = (item.score * 100).toFixed(1);
+
+                return `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div>
+                                <div class="ticket-title">
+                                    ${metadata.ticket_id ? `Ticket #${metadata.ticket_id}` : 'Unknown Ticket'}
+                                </div>
+                            </div>
+                            <div class="relevance-score">${score}% Match</div>
+                        </div>
+
+                        <div class="result-meta">
+                            ${metadata.client_name ? `<span class="meta-tag"><strong>Client:</strong> ${metadata.client_name}</span>` : ''}
+                            ${metadata.priority ? `<span class="meta-tag"><strong>Priority:</strong> ${metadata.priority}</span>` : ''}
+                            ${metadata.ticket_type ? `<span class="meta-tag"><strong>Type:</strong> ${metadata.ticket_type}</span>` : ''}
+                            ${metadata.resolved_by ? `<span class="meta-tag"><strong>Resolved by:</strong> ${metadata.resolved_by}</span>` : ''}
+                            ${metadata.resolution_time_hours ? `<span class="meta-tag"><strong>Time:</strong> ${Math.round(metadata.resolution_time_hours)}h</span>` : ''}
+                        </div>
+
+                        <div class="result-text">
+                            ${truncateText(item.text, 400)}
+                        </div>
+
+                        <div class="result-footer">
+                            ${metadata.url ? `<button class="btn btn-secondary" onclick="window.open('${metadata.url}', '_blank')">View in ConnectWise</button>` : ''}
+                            <button class="btn btn-secondary" onclick="copyToClipboard(\`${escapeHtml(item.text)}\`)">Copy Solution</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            results.innerHTML = `
+                <div class="stats">
+                    <div class="stats-info">
+                        Found <strong>${result.results.length}</strong> similar tickets for "<strong>${query}</strong>"
+                    </div>
+                </div>
+                ${resultItems}
+            `;
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return escapeHtml(text);
+            return escapeHtml(text.substring(0, maxLength)) + '...';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Solution copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>
