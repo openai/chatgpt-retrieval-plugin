@@ -3,6 +3,8 @@ from services.openai import get_chat_completion
 import json
 from typing import Dict
 import os
+from loguru import logger
+
 
 def extract_metadata_from_document(text: str) -> Dict[str, str]:
     sources = Source.__members__.keys()
@@ -29,14 +31,15 @@ def extract_metadata_from_document(text: str) -> Dict[str, str]:
     completion = get_chat_completion(
         messages,
         "gpt-4",
-        os.environ.get("OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID")
+        # os.environ.get("OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID")
     )  # TODO: change to your preferred model name
 
-    print(f"completion: {completion}")
+    logger.info(f"completion: {completion}")
 
     try:
         metadata = json.loads(completion)
-    except:
+    except Exception as e:
+        logger.error(f"Error parsing completion: {e}")
         metadata = {}
 
     return metadata

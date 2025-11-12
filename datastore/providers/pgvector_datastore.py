@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+from loguru import logger
 
 from services.date import to_unix_timestamp
 from datastore.datastore import DataStore
@@ -147,7 +148,7 @@ class PgVectorDataStore(DataStore):
                     results.append(document_chunk)
                 query_results.append(QueryResult(query=query.query, results=results))
             except Exception as e:
-                print("error:", e)
+                logger.error(e)
                 query_results.append(QueryResult(query=query.query, results=[]))
         return query_results
 

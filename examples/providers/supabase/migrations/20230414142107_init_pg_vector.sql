@@ -9,7 +9,7 @@ create table if not exists documents (
     author text,
     url text,
     created_at timestamptz default now(),
-    embedding vector(1536)
+    embedding vector(256) -- 256 is the default dimension, change depending on dimensionality of your chosen embeddings model
 );
 
 create index ix_documents_document_id on documents using btree ( document_id );
@@ -20,7 +20,7 @@ create index ix_documents_created_at on documents using brin ( created_at );
 
 alter table documents enable row level security;
 
-create or replace function match_page_sections(in_embedding vector(1536)
+create or replace function match_page_sections(in_embedding vector(256) -- 256 is the default dimension, change depending on dimensionality of your chosen embeddings model
                                             , in_match_count int default 3
                                             , in_document_id text default '%%'
                                             , in_source_id text default '%%'
@@ -36,7 +36,7 @@ returns table (id text
             , created_at timestamptz
             , author text
             , content text
-            , embedding vector(1536)
+            , embedding vector(256) -- 256 is the default dimension, change depending on dimensionality of your chosen embeddings model
             , similarity float)
 language plpgsql
 as $$

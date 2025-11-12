@@ -116,6 +116,9 @@ env.bak/
 venv.bak/
 myvenv/
 
+# Exception for .env.example
+!.env.example
+
 # Spyder project settings
 .spyderproject
 .spyproject

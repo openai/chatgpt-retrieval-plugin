@@ -19,13 +19,14 @@ from datastore.providers.milvus_datastore import (
 
 @pytest.fixture
 def milvus_datastore():
-    return MilvusDataStore(consistency_level = "Strong")
+    return MilvusDataStore(consistency_level="Strong")
 
 
 def sample_embedding(one_element_poz: int):
     embedding = [0] * OUTPUT_DIM
     embedding[one_element_poz % OUTPUT_DIM] = 1
     return embedding
+
 
 def sample_embeddings(num: int, one_element_start: int = 0):
     # since metric type is consine, we create vector contains only one element 1, others 0
@@ -35,6 +36,7 @@ def sample_embeddings(num: int, one_element_start: int = 0):
         embedding[(x + one_element_start) % OUTPUT_DIM] = 1
         embeddings.append(embedding)
     return embeddings
+
 
 @pytest.fixture
 def document_chunk_one():

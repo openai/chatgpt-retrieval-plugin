@@ -5,6 +5,7 @@ import json
 import argparse
 import asyncio
 
+from loguru import logger
 from models.models import Document, DocumentMetadata, Source
 from datastore.datastore import DataStore
 from datastore.factory import get_datastore
@@ -32,13 +33,13 @@ async def process_file_dump(
     for root, dirs, files in os.walk("dump"):
         for filename in files:
             if len(documents) % 20 == 0:
-                print(f"Processed {len(documents)} documents")
+                logger.info(f"Processed {len(documents)} documents")
 
             filepath = os.path.join(root, filename)
 
             try:
                 extracted_text = extract_text_from_filepath(filepath)
-                print(f"extracted_text from {filepath}")
+                logger.info(f"extracted_text from {filepath}")
 
                 # create a metadata object with the source and source_id fields
                 metadata = DocumentMetadata(
@@ -56,7 +57,7 @@ async def process_file_dump(
                     pii_detected = screen_text_for_pii(extracted_text)
                     # if pii detected, print a warning and skip the document
                     if pii_detected:
-                        print("PII detected in document, skipping")
+                        logger.info("PII detected in document, skipping")
                         skipped_files.append(
                             filepath
                         )  # add the skipped file to the list
@@ -80,7 +81,7 @@ async def process_file_dump(
                 documents.append(document)
             except Exception as e:
                 # log the error and continue with the next file
-                print(f"Error processing {filepath}: {e}")
+                logger.error(f"Error processing {filepath}: {e}")
                 skipped_files.append(filepath)  # add the skipped file to the list
 
     # do this in batches, the upsert method already batches documents but this allows
@@ -88,8 +89,8 @@ async def process_file_dump(
     for i in range(0, len(documents), DOCUMENT_UPSERT_BATCH_SIZE):
         # Get the text of the chunks in the current batch
         batch_documents = [doc for doc in documents[i : i + DOCUMENT_UPSERT_BATCH_SIZE]]
-        print(f"Upserting batch of {len(batch_documents)} documents, batch {i}")
-        print("documents: ", documents)
+        logger.info(f"Upserting batch of {len(batch_documents)} documents, batch {i}")
+        logger.info("documents: ", documents)
         await datastore.upsert(batch_documents)
 
     # delete all files in the dump directory
@@ -105,9 +106,9 @@ async def process_file_dump(
     os.rmdir("dump")
 
     # print the skipped files
-    print(f"Skipped {len(skipped_files)} files due to errors or PII detection")
+    logger.info(f"Skipped {len(skipped_files)} files due to errors or PII detection")
     for file in skipped_files:
-        print(file)
+        logger.info(file)
 
 
 async def main():

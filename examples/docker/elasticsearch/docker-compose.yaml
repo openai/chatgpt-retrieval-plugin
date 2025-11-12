@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - node.name=elasticsearch
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - esnet
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+networks:
+  esnet:
+
+volumes:
+  esdata:
+    driver: local

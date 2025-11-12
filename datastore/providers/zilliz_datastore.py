@@ -1,5 +1,6 @@
 import os
 
+from loguru import logger
 from typing import Optional
 from pymilvus import (
     connections,
@@ -18,6 +19,7 @@ ZILLIZ_PASSWORD = os.environ.get("ZILLIZ_PASSWORD")
 ZILLIZ_USE_SECURITY = False if ZILLIZ_PASSWORD is None else True
 
 ZILLIZ_CONSISTENCY_LEVEL = os.environ.get("ZILLIZ_CONSISTENCY_LEVEL")
+
 
 class ZillizDataStore(MilvusDataStore):
     def __init__(self, create_new: Optional[bool] = False):
@@ -47,18 +49,20 @@ class ZillizDataStore(MilvusDataStore):
             # Connect to the Zilliz instance using the passed in Environment variables
             self.alias = uuid4().hex
             connections.connect(alias=self.alias, uri=ZILLIZ_URI, user=ZILLIZ_USER, password=ZILLIZ_PASSWORD, secure=ZILLIZ_USE_SECURITY)  # type: ignore
-            self._print_info("Connect to zilliz cloud server")
+            logger.info("Connect to zilliz cloud server")
 
     def _create_index(self):
         try:
             # If no index on the collection, create one
             if len(self.col.indexes) == 0:
-                self.index_params = {"metric_type": "IP", "index_type": "AUTOINDEX", "params": {}}
+                self.index_params = {
+                    "metric_type": "IP",
+                    "index_type": "AUTOINDEX",
+                    "params": {},
+                }
                 self.col.create_index("embedding", index_params=self.index_params)
 
             self.col.load()
             self.search_params = {"metric_type": "IP", "params": {}}
         except Exception as e:
-            self._print_err("Failed to create index, error: {}".format(e))
-
-
+            logger.error("Failed to create index, error: {}".format(e))

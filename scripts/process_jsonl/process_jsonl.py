@@ -3,6 +3,7 @@ import json
 import argparse
 import asyncio
 
+from loguru import logger
 from models.models import Document, DocumentMetadata
 from datastore.datastore import DataStore
 from datastore.factory import get_datastore
@@ -28,7 +29,7 @@ async def process_jsonl_dump(
     # iterate over the data and create document objects
     for item in data:
         if len(documents) % 20 == 0:
-            print(f"Processed {len(documents)} documents")
+            logger.info(f"Processed {len(documents)} documents")
 
         try:
             # get the id, text, source, source_id, url, created_at and author from the item
@@ -42,7 +43,7 @@ async def process_jsonl_dump(
             author = item.get("author", None)
 
             if not text:
-                print("No document text, skipping...")
+                logger.info("No document text, skipping...")
                 continue
 
             # create a metadata object with the source, source_id, url, created_at and author
@@ -64,7 +65,7 @@ async def process_jsonl_dump(
                 pii_detected = screen_text_for_pii(text)
                 # if pii detected, print a warning and skip the document
                 if pii_detected:
-                    print("PII detected in document, skipping")
+                    logger.info("PII detected in document, skipping")
                     skipped_items.append(item)  # add the skipped item to the list
                     continue
 
@@ -86,7 +87,7 @@ async def process_jsonl_dump(
             documents.append(document)
         except Exception as e:
             # log the error and continue with the next item
-            print(f"Error processing {item}: {e}")
+            logger.error(f"Error processing {item}: {e}")
             skipped_items.append(item)  # add the skipped item to the list
 
     # do this in batches, the upsert method already batches documents but this allows
@@ -94,13 +95,13 @@ async def process_jsonl_dump(
     for i in range(0, len(documents), DOCUMENT_UPSERT_BATCH_SIZE):
         # Get the text of the chunks in the current batch
         batch_documents = documents[i : i + DOCUMENT_UPSERT_BATCH_SIZE]
-        print(f"Upserting batch of {len(batch_documents)} documents, batch {i}")
+        logger.info(f"Upserting batch of {len(batch_documents)} documents, batch {i}")
         await datastore.upsert(batch_documents)
 
     # print the skipped items
-    print(f"Skipped {len(skipped_items)} items due to errors or PII detection")
+    logger.info(f"Skipped {len(skipped_items)} items due to errors or PII detection")
     for item in skipped_items:
-        print(item)
+        logger.info(item)
 
 
 async def main():

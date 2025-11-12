@@ -1,8 +1,12 @@
 from typing import List
 import openai
 import os
+from loguru import logger
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-3-large")
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
@@ -24,11 +28,11 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
     deployment = os.environ.get("OPENAI_EMBEDDINGMODEL_DEPLOYMENTID")
 
     response = {}
-    if deployment == None:
-        response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
+    if deployment is None:
+        response = openai.Embedding.create(input=texts, model=EMBEDDING_MODEL, dimensions=EMBEDDING_DIMENSION)
     else:
         response = openai.Embedding.create(input=texts, deployment_id=deployment)
-    
+
     # Extract the embedding data from the response
     data = response["data"]  # type: ignore
 
@@ -40,7 +44,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 def get_chat_completion(
     messages,
     model="gpt-3.5-turbo",  # use "gpt-4" for better results
-    deployment_id = None
+    deployment_id=None,
 ):
     """
     Generate a chat completion using OpenAI's chat completion API.
@@ -65,12 +69,11 @@ def get_chat_completion(
         )
     else:
         response = openai.ChatCompletion.create(
-            deployment_id = deployment_id,
+            deployment_id=deployment_id,
             messages=messages,
         )
-    
 
     choices = response["choices"]  # type: ignore
     completion = choices[0].message.content.strip()
-    print(f"Completion: {completion}")
+    logger.info(f"Completion: {completion}")
     return completion

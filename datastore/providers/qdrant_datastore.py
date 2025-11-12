@@ -26,6 +26,8 @@ QDRANT_GRPC_PORT = os.environ.get("QDRANT_GRPC_PORT", "6334")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 QDRANT_COLLECTION = os.environ.get("QDRANT_COLLECTION", "document_chunks")
 
+EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
+
 
 class QdrantDataStore(DataStore):
     UUID_NAMESPACE = uuid.UUID("3896d314-1e95-4a3a-b45a-945f9f0b541d")
@@ -33,7 +35,7 @@ class QdrantDataStore(DataStore):
     def __init__(
         self,
         collection_name: Optional[str] = None,
-        vector_size: int = 1536,
+        vector_size: int = EMBEDDING_DIMENSION,
         distance: str = "Cosine",
         recreate_collection: bool = False,
     ):
