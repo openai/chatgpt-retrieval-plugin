@@ -145,6 +145,15 @@ Follow these steps to quickly set up and run the ChatGPT Retrieval Plugin:
    export REDIS_DISTANCE_METRIC=<your_redis_distance_metric>
    export REDIS_INDEX_TYPE=<your_redis_index_type>
 
+   # Valkey
+   export VALKEY_HOST=<your_valkey_host>
+   export VALKEY_PORT=<your_valkey_port>
+   export VALKEY_PASSWORD=<your_valkey_password>
+   export VALKEY_INDEX_NAME=<your_valkey_index_name>
+   export VALKEY_DOC_PREFIX=<your_valkey_doc_prefix>
+   export VALKEY_DISTANCE_METRIC=<your_valkey_distance_metric>
+   export VALKEY_INDEX_TYPE=<your_valkey_index_type>
+
    # Llama
    export LLAMA_INDEX_TYPE=<gpt_vector_index_type>
    export LLAMA_INDEX_JSON_PATH=<path_to_saved_index_json_file>
@@ -360,7 +369,7 @@ The API requires the following environment variables to work:
 
 | Name             | Required | Description                                                                                                                                                                                                                                                   |
 | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `mongodb-atlas`. |
+| `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `valkey`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `mongodb-atlas`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
 | `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the one of the OpenAI embeddings model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                |
 
@@ -402,6 +411,10 @@ For more detailed instructions on setting up and using each vector database prov
 #### Redis
 
 [Redis](https://redis.com/solutions/use-cases/vector-database/) is a real-time data platform suitable for a variety of use cases, including everyday applications and AI/ML workloads. It can be used as a low-latency vector engine by creating a Redis database with the [Redis Stack docker container](/examples/docker/redis/docker-compose.yml). For a hosted/managed solution, [Redis Cloud](https://app.redislabs.com/#/) is available. For detailed setup instructions, refer to [`/docs/providers/redis/setup.md`](/docs/providers/redis/setup.md).
+
+#### Valkey
+
+[Valkey](https://valkey.io/) is an open-source, high-performance key-value datastore and Redis fork that maintains full API compatibility while providing enhanced performance and features. It can be used as a low-latency vector engine with ValkeySearch module support. For detailed setup instructions, refer to [`/docs/providers/valkey/setup.md`](/docs/providers/valkey/setup.md).
 
 #### LlamaIndex
 

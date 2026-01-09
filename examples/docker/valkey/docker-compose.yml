@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  valkey:
+    image: valkey/valkey-bundle:latest
+    ports:
+      - "6379:6379"
+    volumes:
+        - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-h", "localhost", "-p", "6379", "ping"]
+      interval: 2s
+      timeout: 1m30s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  valkey_data:

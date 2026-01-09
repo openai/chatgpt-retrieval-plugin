@@ -36,6 +36,10 @@ async def get_datastore() -> DataStore:
             from datastore.providers.redis_datastore import RedisDataStore
 
             return await RedisDataStore.init()
+        case "valkey":
+            from datastore.providers.valkey_datastore import ValkeyDataStore
+
+            return await ValkeyDataStore.init()
         case "azurecosmosdb":
             from datastore.providers.azurecosmosdb_datastore import (
                 AzureCosmosDBDataStore,
@@ -77,5 +81,5 @@ async def get_datastore() -> DataStore:
         case _:
             raise ValueError(
                 f"Unsupported vector database: {datastore}. "
-                f"Try one of the following: llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, azuresearch, or qdrant"
+                f"Try one of the following: llama, elasticsearch, pinecone, weaviate, milvus, zilliz, redis, valkey, azuresearch, or qdrant"
             )
