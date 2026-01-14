@@ -42,6 +42,10 @@ class PostgresClient(PGClient):
         """
         Takes in a list of documents and inserts them into the table.
         """
+        # Validate table name to prevent SQL injection (only allow alphanumeric and underscore)
+        if not table.replace('_', '').isalnum():
+            raise ValueError(f"Invalid table name: {table}")
+
         with self.client.cursor() as cur:
             if not json.get("created_at"):
                 json["created_at"] = datetime.now()
@@ -89,6 +93,12 @@ class PostgresClient(PGClient):
         """
         Deletes rows in the table that match the pattern.
         """
+        # Validate table and column names to prevent SQL injection
+        if not table.replace('_', '').isalnum():
+            raise ValueError(f"Invalid table name: {table}")
+        if not column.replace('_', '').isalnum():
+            raise ValueError(f"Invalid column name: {column}")
+
         with self.client.cursor() as cur:
             cur.execute(
                 f"DELETE FROM {table} WHERE {column} LIKE %s",
@@ -100,6 +110,12 @@ class PostgresClient(PGClient):
         """
         Deletes rows in the table that match the ids.
         """
+        # Validate table and column names to prevent SQL injection
+        if not table.replace('_', '').isalnum():
+            raise ValueError(f"Invalid table name: {table}")
+        if not column.replace('_', '').isalnum():
+            raise ValueError(f"Invalid column name: {column}")
+
         with self.client.cursor() as cur:
             cur.execute(
                 f"DELETE FROM {table} WHERE {column} IN %s",
@@ -111,22 +127,38 @@ class PostgresClient(PGClient):
         """
         Deletes rows in the table that match the filter.
         """
+        # Validate table name to prevent SQL injection (only allow alphanumeric and underscore)
+        if not table.replace('_', '').isalnum():
+            raise ValueError(f"Invalid table name: {table}")
 
-        filters = "WHERE"
+        conditions = []
+        params = []
+
         if filter.document_id:
-            filters += f" document_id = '{filter.document_id}' AND"
+            conditions.append("document_id = %s")
+            params.append(filter.document_id)
         if filter.source:
-            filters += f" source = '{filter.source}' AND"
+            conditions.append("source = %s")
+            params.append(filter.source)
         if filter.source_id:
-            filters += f" source_id = '{filter.source_id}' AND"
+            conditions.append("source_id = %s")
+            params.append(filter.source_id)
         if filter.author:
-            filters += f" author = '{filter.author}' AND"
+            conditions.append("author = %s")
+            params.append(filter.author)
         if filter.start_date:
-            filters += f" created_at >= '{filter.start_date}' AND"
+            conditions.append("created_at >= %s")
+            params.append(filter.start_date)
         if filter.end_date:
-            filters += f" created_at <= '{filter.end_date}' AND"
-        filters = filters[:-4]
+            conditions.append("created_at <= %s")
+            params.append(filter.end_date)
+
+        if not conditions:
+            return  # No filters specified, don't delete anything
+
+        where_clause = " AND ".join(conditions)
+        query = f"DELETE FROM {table} WHERE {where_clause}"
 
         with self.client.cursor() as cur:
-            cur.execute(f"DELETE FROM {table} {filters}")
+            cur.execute(query, tuple(params))
             self.client.commit()
