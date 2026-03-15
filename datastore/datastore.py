@@ -56,7 +56,7 @@ class DataStore(ABC):
         """
         # get a list of just the queries from the Query list
         query_texts = [query.query for query in queries]
-        query_embeddings = get_embeddings(query_texts)
+        query_embeddings = get_embeddings(query_texts, embedding_type="query")
         # hydrate the queries with embeddings
         queries_with_embeddings = [
             QueryWithEmbedding(**query.dict(), embedding=embedding)

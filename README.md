@@ -313,6 +313,26 @@ EMBEDDING_DIMENSION=256 # edit this value based on the dimension of the embeddin
 EMBEDDING_MODEL="text-embedding-3-large" # edit this value based on the model you want to use e.g. text-embedding-3-small, text-embedding-ada-002
 ```
 
+#### Using MiniMax Embeddings
+
+The plugin also supports [MiniMax](https://www.minimaxi.com/) as an alternative embedding provider. MiniMax offers high-quality embedding models with support for asymmetric embeddings (separate encodings for documents and queries), which can improve retrieval accuracy.
+
+To use MiniMax embeddings, set the following environment variables:
+
+```
+EMBEDDING_PROVIDER="minimax"
+EMBEDDING_MODEL="embo-01"
+MINIMAX_API_KEY="<your_minimax_api_key>"
+```
+
+MiniMax's embedding API automatically uses asymmetric embeddings — documents are encoded with `type=db` and search queries with `type=query` — which can provide better retrieval results compared to symmetric embedding approaches.
+
+For chat completions (used in metadata extraction), MiniMax's OpenAI-compatible API is used automatically when `EMBEDDING_PROVIDER` is set to `minimax`. You can configure the chat model with:
+
+```
+MINIMAX_CHAT_MODEL="MiniMax-M2.5"  # default, or use "MiniMax-M2.5-highspeed" for faster responses
+```
+
 ## Development
 
 ### Setup
@@ -362,7 +382,9 @@ The API requires the following environment variables to work:
 | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATASTORE`      | Yes      | This specifies the vector database provider you want to use to store and query embeddings. You can choose from `elasticsearch`, `chroma`, `pinecone`, `weaviate`, `zilliz`, `milvus`, `qdrant`, `redis`, `azuresearch`, `supabase`, `postgres`, `analyticdb`, `mongodb-atlas`. |
 | `BEARER_TOKEN`   | Yes      | This is a secret token that you need to authenticate your requests to the API. You can generate one using any tool or method you prefer, such as [jwt.io](https://jwt.io/).                                                                                   |
-| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the one of the OpenAI embeddings model. You can get an API key by creating an account on [OpenAI](https://openai.com/).                                                                |
+| `OPENAI_API_KEY` | Yes      | This is your OpenAI API key that you need to generate embeddings using the one of the OpenAI embeddings model. You can get an API key by creating an account on [OpenAI](https://openai.com/). Not required when using MiniMax as the embedding provider.      |
+| `EMBEDDING_PROVIDER` | No  | The embedding provider to use. Supported values: `openai` (default), `minimax`. When set to `minimax`, the plugin uses MiniMax's embedding and chat completion APIs instead of OpenAI's.                                                                      |
+| `MINIMAX_API_KEY` | No      | Your MiniMax API key. Required when `EMBEDDING_PROVIDER` is set to `minimax`. Get your API key at [MiniMax Platform](https://platform.minimaxi.com/).                                                                                                         |
 
 ### Using the plugin with Azure OpenAI
 
@@ -372,6 +394,25 @@ In addition to the `OPENAI_API_BASE` (your specific URL) and `OPENAI_API_TYPE` (
 
 If you wish to use the data preparation scripts, you will also need to set `OPENAI_METADATA_EXTRACTIONMODEL_DEPLOYMENTID`, used for metadata extraction and
 `OPENAI_COMPLETIONMODEL_DEPLOYMENTID`, used for PII handling.
+
+### Using the plugin with MiniMax
+
+[MiniMax](https://www.minimaxi.com/) provides both embedding and chat completion APIs that can be used as an alternative to OpenAI. To use MiniMax:
+
+1. Get an API key from the [MiniMax Platform](https://platform.minimaxi.com/)
+2. Set the following environment variables:
+
+```
+EMBEDDING_PROVIDER="minimax"
+EMBEDDING_MODEL="embo-01"
+MINIMAX_API_KEY="<your_minimax_api_key>"
+```
+
+Optionally, you can also configure:
+- `MINIMAX_API_BASE`: Custom API base URL (default: `https://api.minimax.io/v1`)
+- `MINIMAX_CHAT_MODEL`: Chat model for metadata extraction (default: `MiniMax-M2.5`, or use `MiniMax-M2.5-highspeed` for faster responses)
+
+MiniMax's embedding model supports asymmetric embeddings, using different encoding strategies for documents (`type=db`) and queries (`type=query`). The plugin handles this automatically, applying the appropriate type based on the operation.
 
 ### Choosing a Vector Database
 
