@@ -15,7 +15,7 @@ EMBEDDING_DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", 256))
 # MiniMax configuration
 MINIMAX_API_KEY = os.environ.get("MINIMAX_API_KEY")
 MINIMAX_API_BASE = os.environ.get("MINIMAX_API_BASE", "https://api.minimax.io/v1")
-MINIMAX_CHAT_MODEL = os.environ.get("MINIMAX_CHAT_MODEL", "MiniMax-M2.5")
+MINIMAX_CHAT_MODEL = os.environ.get("MINIMAX_CHAT_MODEL", "MiniMax-M2.7")
 
 
 def _get_minimax_embeddings(texts: List[str], embedding_type: str = "db") -> List[List[float]]:

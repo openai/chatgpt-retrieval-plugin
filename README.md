@@ -330,7 +330,7 @@ MiniMax's embedding API automatically uses asymmetric embeddings — documents a
 For chat completions (used in metadata extraction), MiniMax's OpenAI-compatible API is used automatically when `EMBEDDING_PROVIDER` is set to `minimax`. You can configure the chat model with:
 
 ```
-MINIMAX_CHAT_MODEL="MiniMax-M2.5"  # default, or use "MiniMax-M2.5-highspeed" for faster responses
+MINIMAX_CHAT_MODEL="MiniMax-M2.7"  # default, or use "MiniMax-M2.7-highspeed" for faster responses
 ```
 
 ## Development
@@ -410,7 +410,7 @@ MINIMAX_API_KEY="<your_minimax_api_key>"
 
 Optionally, you can also configure:
 - `MINIMAX_API_BASE`: Custom API base URL (default: `https://api.minimax.io/v1`)
-- `MINIMAX_CHAT_MODEL`: Chat model for metadata extraction (default: `MiniMax-M2.5`, or use `MiniMax-M2.5-highspeed` for faster responses)
+- `MINIMAX_CHAT_MODEL`: Chat model for metadata extraction (default: `MiniMax-M2.7`, or use `MiniMax-M2.7-highspeed` for faster responses)
 
 MiniMax's embedding model supports asymmetric embeddings, using different encoding strategies for documents (`type=db`) and queries (`type=query`). The plugin handles this automatically, applying the appropriate type based on the operation.
 
