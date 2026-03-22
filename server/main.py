@@ -1,4 +1,5 @@
 import os
+import secrets
 from typing import Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
@@ -21,11 +22,12 @@ from models.models import DocumentMetadata, Source
 
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
-assert BEARER_TOKEN is not None
+if not BEARER_TOKEN:
+    raise ValueError("BEARER_TOKEN environment variable is not set")
 
 
 def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
-    if credentials.scheme != "Bearer" or credentials.credentials != BEARER_TOKEN:
+    if credentials.scheme != "Bearer" or not secrets.compare_digest(credentials.credentials, BEARER_TOKEN):
         raise HTTPException(status_code=401, detail="Invalid or missing token")
     return credentials
 

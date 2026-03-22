@@ -16,6 +16,16 @@ from services.pii_detection import screen_text_for_pii
 DOCUMENT_UPSERT_BATCH_SIZE = 50
 
 
+def _safe_extract(zip_file, target_dir):
+    """Extract zip contents after validating no path traversal attacks."""
+    target_dir = os.path.realpath(target_dir)
+    for member in zip_file.namelist():
+        member_path = os.path.realpath(os.path.join(target_dir, member))
+        if not member_path.startswith(target_dir + os.sep) and member_path != target_dir:
+            raise ValueError(f"Attempted path traversal in zip: {member}")
+    zip_file.extractall(target_dir)
+
+
 async def process_file_dump(
     filepath: str,
     datastore: DataStore,
@@ -23,9 +33,9 @@ async def process_file_dump(
     screen_for_pii: bool,
     extract_metadata: bool,
 ):
-    # create a ZipFile object and extract all the files into a directory named 'dump'
+    # create a ZipFile object and safely extract all the files into a directory named 'dump'
     with zipfile.ZipFile(filepath) as zip_file:
-        zip_file.extractall("dump")
+        _safe_extract(zip_file, "dump")
 
     documents = []
     skipped_files = []

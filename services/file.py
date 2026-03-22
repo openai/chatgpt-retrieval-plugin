@@ -1,4 +1,5 @@
 import os
+import tempfile
 from io import BufferedReader
 from typing import Optional
 from fastapi import UploadFile
@@ -98,11 +99,12 @@ async def extract_text_from_form_file(file: UploadFile):
 
     file_stream = await file.read()
 
-    temp_file_path = "/tmp/temp_file"
-
-    # write the file to a temporary location
-    with open(temp_file_path, "wb") as f:
-        f.write(file_stream)
+    # write the file to a secure temporary location
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=os.path.splitext(file.filename or "")[1]
+    ) as tmp:
+        tmp.write(file_stream)
+        temp_file_path = tmp.name
 
     try:
         extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
