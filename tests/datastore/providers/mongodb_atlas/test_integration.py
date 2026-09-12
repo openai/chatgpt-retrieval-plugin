@@ -9,13 +9,13 @@ provide a valid OPENAI_API_KEY.
 import os
 from time import sleep
 
-import openai
 import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
 from pymongo import MongoClient
 
 from server.main import app
+from openai import OpenAI
 
 
 @pytest.fixture(scope="session")
@@ -117,12 +117,12 @@ def test_mongodb_connection() -> None:
 
 def test_openai_connection() -> None:
     """Check that we can call OpenAI Embedding models."""
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    models = openai.Model.list()
-    model_names = [model["id"] for model in models['data']]
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    models = client.models.list()
+    model_names = [model.id for model in models.data]
     for model_name in model_names:
         try:
-            response = openai.Embedding.create(input=["Some input text"], model=model_name)
-            assert len(response['data'][0]['embedding']) >= int(os.environ['EMBEDDING_DIMENSION'])
+            response = client.embeddings.create(input=["Some input text"], model=model_name)
+            assert len(response.data[0].embedding) >= int(os.environ['EMBEDDING_DIMENSION'])
         except:
             pass  # Not all models are for text embedding.
