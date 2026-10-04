@@ -513,8 +513,8 @@ class MilvusDataStore(DataStore):
             # document_id is not primary key, use query+delete to workaround,
             # in future version we can delete by expression
             if (ids is not None) and len(ids) > 0:
-                # Add quotation marks around the string format id
-                ids = ['"' + str(id) + '"' for id in ids]
+                # Escape quotes/backslashes in ids to prevent expression injection
+                ids = ['"' + str(id).replace('\\', '\\\\').replace('"', '\\"') + '"' for id in ids]
                 # Query for the pk's of entries that match id's
                 ids = self.col.query(f"document_id in [{','.join(ids)}]")
                 # Convert to list of pks
